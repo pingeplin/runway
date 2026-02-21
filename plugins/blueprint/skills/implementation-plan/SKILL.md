@@ -114,3 +114,4 @@ When breaking tasks into work streams:
 - If a design doc exists with the same ID in `docs/`, link to it; otherwise omit the design doc line
 - If the user provides `$ARGUMENTS`, use it as the feature name and description context
 - Read the codebase first to understand existing patterns before generating the plan
+- If no design doc exists for the feature yet, suggest the user create one first by running `/design-doc {feature-name}` — design docs capture the *why* and *how* before breaking work into tasks
