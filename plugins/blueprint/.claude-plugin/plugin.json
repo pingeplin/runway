@@ -1,0 +1,8 @@
+{
+  "name": "blueprint",
+  "description": "Generate implementation plans with progress checklists for features or tasks. Breaks work into parallelizable work streams for agent teams. Supports optional TDD mode.",
+  "version": "1.0.0",
+  "author": {
+    "name": "eplin"
+  }
+}
