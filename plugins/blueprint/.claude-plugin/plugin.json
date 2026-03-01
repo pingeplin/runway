@@ -3,6 +3,6 @@
   "description": "Generate design docs and implementation plans for features or tasks. Design docs capture motivation, proposed solution, and alternatives. Implementation plans break work into parallelizable work streams for agent teams.",
   "version": "1.1.0",
   "author": {
-    "name": "eplin"
+    "name": "@pingeplin"
   }
 }
