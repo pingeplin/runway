@@ -1,13 +1,6 @@
 ---
 name: test-generator
-description: >
-  Generate executable test cases from design documents, guided by Kent Beck's
-  Test Desiderata and Canon TDD principles. Use this skill whenever the user
-  provides a design doc, RFC, ADR, technical spec, or feature description and
-  wants test cases, test plans, or test code generated from it. Also trigger
-  when the user says "write tests for this design", "generate test cases",
-  "review my design with tests", "what should I test", or references
-  design-doc-to-test workflows. This skill works for any programming language.
+description: Generate executable test cases from design documents, guided by Kent Beck's Test Desiderata and Canon TDD principles. Use this skill whenever the user provides a design doc, RFC, ADR, technical spec, or feature description and wants test cases, test plans, or test code generated from it. Also trigger when the user says "write tests for this design", "generate test cases", "review my design with tests", "what should I test", or references design-doc-to-test workflows. This skill works for any programming language.
 ---
 
 # Test Generator

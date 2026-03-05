@@ -1,14 +1,6 @@
 ---
 name: test-reviewer
-description: >
-  Review and refactor existing test code using Kent Beck's Test Desiderata,
-  Canon TDD, and Programmer Test Principles. Use this skill whenever the user
-  provides existing test code and wants it reviewed, improved, refactored, or
-  audited for quality. Also trigger when the user says "review my tests",
-  "refactor these tests", "are my tests good", "improve test quality",
-  "my tests are flaky", "my tests break when I refactor", "too many mocks",
-  or any request to evaluate or improve existing test suites. Works for any
-  programming language and test framework.
+description: Review and refactor existing test code using Kent Beck's Test Desiderata, Canon TDD, and Programmer Test Principles. Use this skill whenever the user provides existing test code and wants it reviewed, improved, refactored, or audited for quality. Also trigger when the user says "review my tests", "refactor these tests", "are my tests good", "improve test quality", "my tests are flaky", "my tests break when I refactor", "too many mocks", or any request to evaluate or improve existing test suites. Works for any programming language and test framework.
 ---
 
 # Test Reviewer
