@@ -1,22 +1,12 @@
 ---
 name: test-reviewer
-description: Review and refactor existing test code using Kent Beck's Test Desiderata, Canon TDD, and Programmer Test Principles. Use this skill whenever the user provides existing test code and wants it reviewed, improved, refactored, or audited for quality. Also trigger when the user says "review my tests", "refactor these tests", "are my tests good", "improve test quality", "my tests are flaky", "my tests break when I refactor", "too many mocks", or any request to evaluate or improve existing test suites. Works for any programming language and test framework.
+description: Review existing test suites for quality, flakiness, and maintainability using Kent Beck's Test Desiderata framework. Scores tests against 12 desirable properties, detects anti-patterns (excessive mocking, structure-sensitivity, non-determinism), identifies coverage gaps, and produces a concrete refactoring plan with code examples. Works for any programming language and test framework.
 ---
 
 # Test Reviewer
 
 Review and refactor existing test code through the lens of Kent Beck's
 testing philosophy.
-
-## When to Use
-
-- User provides existing test code and wants a quality review.
-- User complains about flaky tests, brittle tests, or tests that break
-  on refactoring.
-- User asks whether their tests are "good enough" or wants improvement
-  suggestions.
-- User wants to refactor a test suite to follow best practices.
-- User has both production code and test code and wants alignment review.
 
 ## Workflow
 
@@ -43,8 +33,13 @@ For each test function/method, evaluate:
 | Inspiring | ✅/⚠️/❌ | |
 
 **Behavioral** and **Structure-insensitive** are the two critical
-properties. Any test scoring ❌ on either must be flagged as high
+properties. Any test scoring ❌ on either should be flagged as high
 priority for refactoring.
+
+Note: some structure-sensitive tests are legitimate — for example,
+tests verifying middleware ordering, decorator composition, or event
+emission for monitoring. Acknowledge these cases rather than
+automatically flagging them.
 
 Present a **summary scorecard** first, then detailed findings.
 
@@ -59,6 +54,7 @@ legitimate refactoring:
 - Tests without meaningful assertions
 - Copy-pasted expected values from actual output
 - Non-deterministic tests (time, randomness, ordering)
+- Flaky tests (see AP-3, AP-11 in `references/anti-patterns.md`)
 
 **🟡 Warning** — Tests that work but have maintainability problems:
 - Excessive mocking beyond external boundaries
@@ -71,6 +67,17 @@ legitimate refactoring:
 - Inline fixtures for clarity
 - Grouping tests by behavior rather than by class
 - Adding missing edge cases
+
+#### Coverage Gap Analysis
+
+After smell detection, perform a lightweight gap analysis:
+
+1. **List the behaviors** the production code implements (scan function signatures, branches, error handling)
+2. **Map tests to behaviors** — which tests cover which behaviors?
+3. **Flag gaps** — behaviors with zero test coverage, especially error paths and edge cases
+4. **Flag redundancy** — multiple tests asserting the exact same thing (wasted maintenance cost)
+
+Present gaps as a prioritized list, ranked by risk (public API > internal helpers, error paths > happy paths already covered).
 
 ### Phase 3 — Refactoring Plan
 
@@ -168,11 +175,12 @@ Apply the refactoring plan and produce the refactored test file.
 **Rules for refactoring:**
 1. Never change test behavior while refactoring structure (Beck's
    "wearing two hats" — one hat at a time).
-2. Preserve the original test as a comment if the refactoring changes
-   what's being tested (not just how).
+2. If the refactoring changes what's being tested (not just how), note
+   the change explicitly and confirm with the user before applying.
 3. Group tests by behavior, not by class or method.
-4. Add a brief comment on each test explaining the behavioral scenario
-   being verified.
+4. Ensure each test name describes the behavioral scenario being
+   verified. Add a comment only when the scenario has nuance that the
+   name alone can't convey.
 
 ### Phase 5 — Before/After Summary
 
@@ -217,8 +225,19 @@ or design doc.
   alignment between test assertions and actual behavior.
 
 - **Test code + design doc:** Ideal scenario. Can verify that tests
-  cover the specified behaviors AND follow Desiderata. Can identify
+  cover the specified behaviors and follow Desiderata. Can identify
   behavioral gaps.
+
+## Handling Large Test Suites
+
+When the test suite spans many files or thousands of lines:
+
+- Ask the user to scope the review to specific files or modules.
+- Alternatively, prioritize the most problematic files (highest mock
+  count, most test failures, largest setup blocks).
+- Offer a **summary-only mode**: deliver Phases 1-2 (scorecard and
+  findings) without generating refactored code, so the user can decide
+  where to invest effort.
 
 ## Output Format
 

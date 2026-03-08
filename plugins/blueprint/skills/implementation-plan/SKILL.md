@@ -1,12 +1,22 @@
 ---
 name: implementation-plan
-description: Generate an implementation plan with a progress checklist for a feature or task. Breaks work into parallelizable work streams for agent teams. Supports optional TDD mode. Use when the user asks to create a plan, implementation checklist, or task breakdown for upcoming work.
+description: Generate a progress checklist for tracking implementation of a feature. Breaks work into concrete tasks with file paths, references the design doc and test cases, and includes workflow-level checkpoints (CI, refactor, final review). Use when the user asks to create a plan, implementation checklist, or task breakdown for upcoming work.
 argument-hint: [feature-name] [optional-description]
 ---
 
 # Implementation Plan Generator
 
-Create an implementation plan with a progress checklist in the `plans/` directory. Plans are structured for parallel execution by an agent team.
+Create a progress checklist in the `plans/` directory. The checklist tracks implementation progress from "tests written" through "human sign-off," referencing the design doc and test cases as inputs.
+
+## When to Use
+
+This skill sits after test generation and human review in the workflow:
+
+```
+/design-doc → /design-doc-reviewer → /test-generator → human review → /implementation-plan → implement → CI → /refactor → CI → human review
+```
+
+The test cases define WHAT to build. This checklist tracks the progress of building it.
 
 ## ID System
 
@@ -22,6 +32,7 @@ IDs follow arXiv-style `yymm.xxxx` format:
 2. Find the highest `xxxx` across both directories
 3. Increment by 1
 4. If no files exist for the current month, start at `0001`
+5. If neither `docs/` nor `plans/` exists, start at `yymm.0001`
 
 ## Output File
 
@@ -31,7 +42,7 @@ Write the plan to:
 plans/{yymm.xxxx}_{feature_name}_checklist.md
 ```
 
-Where `feature_name` is derived from `$ARGUMENTS` — lowercase, underscores, no special characters.
+Where `feature_name` is derived from `$ARGUMENTS` — lowercase, underscores, no special characters. If `$ARGUMENTS` is empty, infer the feature name and scope from conversation context. If there is not enough context to produce a meaningful plan, ask the user before generating.
 
 Create the `plans/` directory if it does not exist.
 
@@ -44,74 +55,56 @@ Use this exact structure:
 
 **Date:** {YYYY-MM-DD}
 **Design doc:** [yymm.xxxx](../docs/{yymm.xxxx}_{feature_name}.md) *(if exists, omit if not)*
-**Mode:** {standard | tdd}
+**Test cases:** {path to test file(s)} *(if exists, omit if not)*
 
 ## Goal
 
 {One or two sentences describing what we are building and why.}
 
-## Work Streams
+## Implementation Tasks
 
-Tasks are grouped into parallel work streams. Streams with no dependencies between them can be executed concurrently by separate agents. Dependencies across streams are marked explicitly.
+Tasks are grouped by area. Each task is a concrete, checkable unit of work.
 
-### Stream 1: {name} (e.g., "Backend API", "Data layer", "Tests")
-- [ ] {Task}: {file path if known} — {brief description}
-- [ ] {Task}: {file path} — {description}
+### {Area 1} (e.g., "Data layer", "API", "UI")
+- [ ] {Task}: {file path if known} — {brief description} `[S]`
+- [ ] {Task}: {file path} — {description} `[M]`
 
-### Stream 2: {name}
-**Depends on:** Stream 1 tasks 1-2 *(only if blocked; omit if independent)*
-- [ ] {Task}: {file path} — {description}
-- [ ] {Task}: {file path} — {description}
+### {Area 2}
+- [ ] {Task}: {file path} — {description} `[M]`
+- [ ] {Task}: {file path} — {description} `[S]`
 
-### Stream 3: {name}
-- [ ] {Task}: {file path} — {description}
+### {Area 3}
+- [ ] {Task}: {file path} — {description} `[L]`
 
-### Verify
-**Depends on:** All streams
-- [ ] Tests pass
-- [ ] Manual verification
+## Workflow Checkpoints
+
+Track progress through the full development cycle:
+
+- [ ] **All tests pass** — run test suite, all generated test cases go green
+- [ ] **CI green** — automated verification passes
+- [ ] **Refactor** — human gives direction, AI refactors (`/refactor`)
+- [ ] **CI green (post-refactor)** — verify refactoring preserved behavior
+- [ ] **Human review** — structural review and sign-off
+
+## Risks & Rollback
+
+{Optional — include when the plan involves data migration, external integrations, or breaking changes. Omit for simple features.}
+
+- **Risk:** {e.g., "Migration may lock the users table for >30s"}
+  **Mitigation:** {e.g., "Use batched migration with 1000-row chunks"}
+- **Rollback:** {e.g., "Revert deploy; migration is backwards-compatible"}
 ```
-
-## TDD Mode
-
-When the user mentions TDD, test-driven, or red-green-refactor, use TDD mode. Structure work streams around the TDD cycle:
-
-```markdown
-### Stream 1: Test scaffolding (Red)
-- [ ] {Test case}: {test file path} — {what it asserts, pseudo-code only}
-- [ ] {Test case}: {test file path} — {what it asserts}
-
-### Stream 2: Implementation (Green)
-**Depends on:** Stream 1
-- [ ] {Component}: {file path} — {pseudo-code description, NO copy-pasteable code}
-- [ ] {Component}: {file path} — {description}
-
-### Stream 3: Refactor
-**Depends on:** Stream 2
-- [ ] {Improvement}: {file path} — {what to optimize}
-```
-
-**TDD constraints:**
-- NO implementation code — use pseudo-code and high-level logic only
-- Group test cases from simple to complex: happy path, error handling, edge cases, integration
-- Each implementation task references which test(s) it satisfies
-
-## Parallelization Guidelines
-
-When breaking tasks into work streams:
-
-1. **Identify independent axes** — e.g., backend vs frontend, data layer vs API layer, different modules
-2. **Minimize cross-stream dependencies** — tasks within a stream are sequential; streams themselves should be parallel when possible
-3. **Mark dependencies explicitly** — use `**Depends on:** Stream N task M` when one stream needs output from another
-4. **Keep streams cohesive** — each stream should be a logical unit one agent can own end-to-end
-5. **Shared contracts first** — if streams must agree on interfaces (types, API shapes), put those in an early unblocking task
 
 ## General Guidelines
 
+- **Right-size the plan** — for trivial changes (single file, clear fix), produce a minimal plan with one area and skip Risks & Rollback. Reserve multi-area plans for features spanning multiple files or modules.
 - Keep it lightweight — the checklist IS the plan
 - Each task should be concrete and actionable (not vague like "implement feature")
 - Include file paths when known (e.g., `- [ ] Add handler in src/api/routes.py`)
+- **Size each task** with `[S]`, `[M]`, or `[L]` suffix — S = a few lines, M = a file-sized change, L = multi-file or requires research
+- **S tasks** should take a single focused edit; **L tasks** should be broken down further if possible
 - If a design doc exists with the same ID in `docs/`, link to it; otherwise omit the design doc line
+- If test cases exist, link to them; otherwise omit the test cases line
 - If the user provides `$ARGUMENTS`, use it as the feature name and description context
-- Read the codebase first to understand existing patterns before generating the plan
-- If no design doc exists for the feature yet, suggest the user create one first by running `/design-doc {feature-name}` — design docs capture the *why* and *how* before breaking work into tasks
+- Read the codebase first to understand existing patterns before generating the plan. Focus on files and modules directly related to the feature — read entry points, relevant tests, and type definitions rather than exhaustively exploring the entire codebase
+- If no design doc or test cases exist yet, suggest the user create them first — the workflow is `/design-doc` → `/design-doc-reviewer` → `/test-generator` → `/implementation-plan`

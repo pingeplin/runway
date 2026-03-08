@@ -1,7 +1,7 @@
 {
   "name": "thinking-craft",
   "description": "Personal thinking tools that coach — not automate — the craft of structured thought. Includes guided note-making, Zettelkasten workflows, and reflective writing practices.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": {
     "name": "@pingeplin"
   }
