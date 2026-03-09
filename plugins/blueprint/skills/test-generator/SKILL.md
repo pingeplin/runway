@@ -239,5 +239,5 @@ After generating the test file, automatically proceed to `/test-orderer` with th
 
 The full workflow chain:
 ```
-/design-doc → /design-doc-reviewer → /test-generator (auto-chains /test-orderer) → human review → /implementation-plan → implement → CI (auto-chains /post-verification) → /refactor → CI → human review
+/design-doc → /design-doc-reviewer → /test-generator (auto-chains /test-orderer) → human review → /implementation-plan → implement (auto-chains /post-verification) → /refactor → human review
 ```

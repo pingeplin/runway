@@ -3,7 +3,7 @@
 The canonical blueprint workflow for building a feature with TDD. Each step is an independent skill — use as many or as few as the task warrants.
 
 ```
-/design-doc → /design-doc-reviewer → /test-generator (auto-chains /test-orderer) → human review → /implementation-plan → implement → CI (auto-chains /post-verification) → /refactor → CI → human review
+/design-doc → /design-doc-reviewer → /test-generator (auto-chains /test-orderer) → human review → /implementation-plan → implement (auto-chains /post-verification) → /refactor → human review
 ```
 
 ## Step-by-step
@@ -15,7 +15,7 @@ The canonical blueprint workflow for building a feature with TDD. Each step is a
 | 3 | `/test-generator` → `/test-orderer` | AI | Generate skipped test cases, then auto-order for TDD implementation |
 | 4 | Human review | Human | Review generated tests and ordering; adjust sequence, cut scope if needed |
 | 5 | `/implementation-plan` | AI | Generate a task checklist from design doc + tests |
-| 6 | Implement → CI → `/post-verification` | AI | Red-Green loop: unskip tests one phase at a time, then auto-verify against design doc and plan |
+| 6 | Implement → `/post-verification` | AI | Red-Green loop: unskip tests one phase at a time, then auto-verify against design doc and plan |
 | 7 | `/refactor` | AI + Human | Human gives direction, AI refactors with tests as safety net |
 | 8 | Design scan | Human | Quick structural review of the result |
 

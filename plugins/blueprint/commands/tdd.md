@@ -12,7 +12,7 @@ Step-to-skill mapping:
 - Step 2 → /design-doc-reviewer
 - Step 3 → /test-generator (auto-chains /test-orderer)
 - Step 5 → /implementation-plan
-- Step 6 → implement → CI (auto-chains /post-verification)
+- Step 6 → implement (auto-chains /post-verification)
 - Step 7 → /refactor
 - Step 8 → /git-commit-message (for committing the result)
 

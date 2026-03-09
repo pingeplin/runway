@@ -10,13 +10,13 @@ Verify that the implementation fulfills all requirements from the design doc and
 
 ## When to Use
 
-This skill sits after implementation and CI in the workflow:
+This skill sits after implementation in the workflow:
 
 ```
-/design-doc → /design-doc-reviewer → /test-generator (auto-chains /test-orderer) → human review → /implementation-plan → implement → CI (auto-chains /post-verification) → /refactor → CI → human review
+/design-doc → /design-doc-reviewer → /test-generator (auto-chains /test-orderer) → human review → /implementation-plan → implement (auto-chains /post-verification) → /refactor → human review
 ```
 
-This skill is **auto-chained** after CI passes during the implement step. It can also be invoked standalone. The goal is to catch missing functionality early — refactoring should only happen on a complete implementation.
+This skill is **auto-chained** after the implement step completes. It can also be invoked standalone. The goal is to catch missing functionality early — refactoring should only happen on a complete implementation.
 
 ## Inputs
 
