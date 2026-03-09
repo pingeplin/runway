@@ -13,7 +13,7 @@ Create a progress checklist in the `plans/` directory. The checklist tracks impl
 This skill sits after test generation and human review in the workflow:
 
 ```
-/design-doc → /design-doc-reviewer → /test-generator (auto-chains /test-orderer) → human review → /implementation-plan → implement → CI → /post-verification → /refactor → CI → human review
+/design-doc → /design-doc-reviewer → /test-generator (auto-chains /test-orderer) → human review → /implementation-plan → implement → CI (auto-chains /post-verification) → /refactor → CI → human review
 ```
 
 The test cases define WHAT to build. This checklist tracks the progress of building it.
@@ -84,6 +84,7 @@ Track progress through the full development cycle:
 
 - [ ] **All tests pass** — run test suite, all generated test cases go green
 - [ ] **CI green** — automated verification passes
+- [ ] **Post-verification** — auto-runs `/post-verification` to cross-check implementation against design doc and plan
 - [ ] **Refactor** — human gives direction, AI refactors (`/refactor`)
 - [ ] **CI green (post-refactor)** — verify refactoring preserved behavior
 - [ ] **Human review** — structural review and sign-off

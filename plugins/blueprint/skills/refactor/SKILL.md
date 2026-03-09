@@ -142,7 +142,7 @@ This feedback loop between refactoring and test quality is a key part of Beck's 
 This skill is the last AI step before final human review:
 
 ```
-/design-doc → /design-doc-reviewer → /test-generator (auto-chains /test-orderer) → human review → /implementation-plan → implement → CI → /post-verification → /refactor → CI → human review
+/design-doc → /design-doc-reviewer → /test-generator (auto-chains /test-orderer) → human review → /implementation-plan → implement → CI (auto-chains /post-verification) → /refactor → CI → human review
 ```
 
 If the refactoring reveals structure-sensitive tests, suggest `blueprint:test-reviewer` to clean them up.

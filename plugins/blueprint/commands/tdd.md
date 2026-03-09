@@ -12,10 +12,10 @@ Step-to-skill mapping:
 - Step 2 → /design-doc-reviewer
 - Step 3 → /test-generator (auto-chains /test-orderer)
 - Step 5 → /implementation-plan
-- Step 7 → /post-verification
-- Step 8 → /refactor
-- Step 9 → /git-commit-message (for committing the result)
+- Step 6 → implement → CI (auto-chains /post-verification)
+- Step 7 → /refactor
+- Step 8 → /git-commit-message (for committing the result)
 
-Note: /test-orderer can still be invoked standalone to re-order tests independently.
+Note: /test-orderer and /post-verification can still be invoked standalone.
 
 Include the scaling guidance from the workflow doc so the user can calibrate the workflow to their task size.
