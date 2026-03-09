@@ -3,7 +3,7 @@
 The canonical blueprint workflow for building a feature with TDD. Each step is an independent skill — use as many or as few as the task warrants.
 
 ```
-/design-doc → /design-doc-reviewer → /test-generator → /test-orderer → human review → /implementation-plan → implement → CI → /post-verification → /refactor → CI → human review
+/design-doc → /design-doc-reviewer → /test-generator (auto-chains /test-orderer) → human review → /implementation-plan → implement → CI → /post-verification → /refactor → CI → human review
 ```
 
 ## Step-by-step
@@ -12,13 +12,15 @@ The canonical blueprint workflow for building a feature with TDD. Each step is a
 |------|-------|-----|--------------|
 | 1 | `/design-doc` | AI + Human | Generate a design doc with acceptance scenarios |
 | 2 | `/design-doc-reviewer` | AI | Review for testability, ambiguity, coverage gaps |
-| 3 | `/test-generator` | AI | Generate skipped test cases from the design doc |
-| 4 | `/test-orderer` | AI + Human | Order tests for incremental TDD implementation |
+| 3 | `/test-generator` → `/test-orderer` | AI | Generate skipped test cases, then auto-order for TDD implementation |
+| 4 | Human review | Human | Review generated tests and ordering; adjust sequence, cut scope if needed |
 | 5 | `/implementation-plan` | AI | Generate a task checklist from design doc + tests |
 | 6 | Implement | AI | Red-Green loop: unskip tests one phase at a time |
 | 7 | `/post-verification` | AI | Cross-check implementation against design doc and plan |
 | 8 | `/refactor` | AI + Human | Human gives direction, AI refactors with tests as safety net |
 | 9 | Design scan | Human | Quick structural review of the result |
+
+> **Note:** `/test-orderer` can still be invoked standalone (e.g., to re-order after adding tests manually).
 
 ## Human decision points
 

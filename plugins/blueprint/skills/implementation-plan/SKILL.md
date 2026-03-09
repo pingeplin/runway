@@ -13,7 +13,7 @@ Create a progress checklist in the `plans/` directory. The checklist tracks impl
 This skill sits after test generation and human review in the workflow:
 
 ```
-/design-doc → /design-doc-reviewer → /test-generator → /test-orderer → human review → /implementation-plan → implement → CI → /post-verification → /refactor → CI → human review
+/design-doc → /design-doc-reviewer → /test-generator (auto-chains /test-orderer) → human review → /implementation-plan → implement → CI → /post-verification → /refactor → CI → human review
 ```
 
 The test cases define WHAT to build. This checklist tracks the progress of building it.

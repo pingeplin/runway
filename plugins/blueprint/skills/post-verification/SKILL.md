@@ -13,7 +13,7 @@ Verify that the implementation fulfills all requirements from the design doc and
 This skill sits after implementation and CI in the workflow:
 
 ```
-/design-doc → /design-doc-reviewer → /test-generator → /test-orderer → human review → /implementation-plan → implement → CI → /post-verification → /refactor → CI → human review
+/design-doc → /design-doc-reviewer → /test-generator (auto-chains /test-orderer) → human review → /implementation-plan → implement → CI → /post-verification → /refactor → CI → human review
 ```
 
 Run this after all tests pass and CI is green, but **before** refactoring. The goal is to catch missing functionality early — refactoring should only happen on a complete implementation.

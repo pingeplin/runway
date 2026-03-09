@@ -10,11 +10,12 @@ After presenting the workflow, ask the user which step they'd like to start with
 Step-to-skill mapping:
 - Step 1 → /design-doc
 - Step 2 → /design-doc-reviewer
-- Step 3 → /test-generator
-- Step 4 → /test-orderer
+- Step 3 → /test-generator (auto-chains /test-orderer)
 - Step 5 → /implementation-plan
 - Step 7 → /post-verification
 - Step 8 → /refactor
 - Step 9 → /git-commit-message (for committing the result)
+
+Note: /test-orderer can still be invoked standalone to re-order tests independently.
 
 Include the scaling guidance from the workflow doc so the user can calibrate the workflow to their task size.

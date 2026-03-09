@@ -232,3 +232,12 @@ covers distinct modules). Include:
 
 The test file should be immediately runnable — all tests skip, the suite
 is green, and the developer begins the TDD loop by unskipping Phase 1.
+
+## Next Step
+
+After generating the test file, automatically proceed to `/test-orderer` with the generated test file path. This chains the two skills so the user gets both test generation and implementation ordering in a single flow.
+
+The full workflow chain:
+```
+/design-doc → /design-doc-reviewer → /test-generator (+test-orderer) → human review → /implementation-plan → implement → CI → /post-verification → /refactor → CI → human review
+```
