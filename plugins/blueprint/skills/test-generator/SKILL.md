@@ -1,6 +1,7 @@
 ---
 name: test-generator
 description: Generate executable test cases from design documents, source code, or feature descriptions using Kent Beck's Test Desiderata and Canon TDD principles. Applies to design docs, RFCs, ADRs, technical specs, or existing code. Works for any programming language.
+argument-hint: [path-to-design-doc-or-source]
 ---
 
 # Test Generator
@@ -112,7 +113,7 @@ language — common combos include pytest, Jest/Vitest, Go testing, JUnit,
 RSpec, etc.
 
 For each test, apply the **Test Desiderata checklist** from
-`references/test-desiderata.md`. Read that file now for the full checklist.
+`../../references/test-desiderata.md`. Read that file now for the full checklist.
 
 **All tests are generated as skipped.** Every test must be marked with the
 framework's skip mechanism and annotated with its implementation phase
@@ -216,7 +217,7 @@ coal mine."
 
 ## Anti-Patterns to Avoid
 
-Read `references/anti-patterns.md` for the full list of anti-patterns to
+Read `../../references/anti-patterns.md` for the full list of anti-patterns to
 avoid when generating tests. Apply every item during Phase 2 and Phase 3.
 
 ## Output Format

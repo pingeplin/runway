@@ -1,6 +1,7 @@
 ---
 name: test-reviewer
 description: Review existing test suites for quality, flakiness, and maintainability using Kent Beck's Test Desiderata framework. Scores tests against 12 desirable properties, detects anti-patterns (excessive mocking, structure-sensitivity, non-determinism), identifies coverage gaps, and produces a concrete refactoring plan with code examples. Works for any programming language and test framework.
+argument-hint: [path-to-test-file-or-directory]
 ---
 
 # Test Reviewer
@@ -13,7 +14,7 @@ testing philosophy.
 ### Phase 1 — Desiderata Audit
 
 Score every test against Beck's 12 Test Desiderata properties. Read
-`references/test-desiderata.md` for full definitions and checklist.
+`../../references/test-desiderata.md` for full definitions and checklist.
 
 For each test function/method, evaluate:
 
@@ -45,7 +46,7 @@ Present a **summary scorecard** first, then detailed findings.
 
 ### Phase 2 — Smell Detection
 
-Scan for the anti-patterns listed in `references/anti-patterns.md`.
+Scan for the anti-patterns listed in `../../references/anti-patterns.md`.
 Read that file now. Categorize findings by severity:
 
 **🔴 Critical** — Tests that give false confidence or will break on
@@ -54,7 +55,7 @@ legitimate refactoring:
 - Tests without meaningful assertions
 - Copy-pasted expected values from actual output
 - Non-deterministic tests (time, randomness, ordering)
-- Flaky tests (see AP-3, AP-11 in `references/anti-patterns.md`)
+- Flaky tests (see AP-3, AP-11 in `../../references/anti-patterns.md`)
 
 **🟡 Warning** — Tests that work but have maintainability problems:
 - Excessive mocking beyond external boundaries
@@ -68,7 +69,7 @@ legitimate refactoring:
 - Grouping tests by behavior rather than by class
 - Adding missing edge cases
 
-#### Coverage Gap Analysis
+### Phase 3 — Coverage Gap Analysis
 
 After smell detection, perform a lightweight gap analysis:
 
@@ -79,7 +80,7 @@ After smell detection, perform a lightweight gap analysis:
 
 Present gaps as a prioritized list, ranked by risk (public API > internal helpers, error paths > happy paths already covered).
 
-### Phase 3 — Refactoring Plan
+### Phase 4 — Refactoring Plan
 
 For each finding, propose a concrete refactoring. Group refactorings by
 type to allow batch application:
@@ -168,7 +169,7 @@ One test verifying multiple unrelated behaviors → Split into focused tests.
 **R8: Coverage Gap Fill**
 Missing test for a behavior implied by the code → Add new test.
 
-### Phase 4 — Refactored Code
+### Phase 5 — Refactored Code
 
 Apply the refactoring plan and produce the refactored test file.
 
@@ -182,7 +183,7 @@ Apply the refactoring plan and produce the refactored test file.
    verified. Add a comment only when the scenario has nuance that the
    name alone can't convey.
 
-### Phase 5 — Before/After Summary
+### Phase 6 — Before/After Summary
 
 Present a concise comparison:
 
@@ -243,9 +244,10 @@ When the test suite spans many files or thousands of lines:
 
 1. Summary scorecard (Phase 1)
 2. Categorized findings (Phase 2)
-3. Refactoring plan with code examples (Phase 3)
-4. Complete refactored test file (Phase 4)
-5. Before/after comparison (Phase 5)
+3. Coverage gap analysis (Phase 3)
+4. Refactoring plan with code examples (Phase 4)
+5. Complete refactored test file (Phase 5)
+6. Before/after comparison (Phase 6)
 
 If the user only wants a quick review (not full refactoring), deliver
-Phases 1-2 only and ask if they want to proceed with refactoring.
+Phases 1-3 only and ask if they want to proceed with refactoring.

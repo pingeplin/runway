@@ -13,7 +13,6 @@
       "name": "blueprint",
       "source": "./plugins/blueprint",
       "description": "Generate design docs and implementation plans for features or tasks. Design docs capture motivation, proposed solution, and alternatives. Implementation plans break work into parallelizable work streams for agent teams.",
-      "version": "1.4.0",
       "category": "planning",
       "tags": ["implementation-plan", "checklist", "tdd", "task-breakdown"]
     },
@@ -21,7 +20,6 @@
       "name": "thinking-craft",
       "source": "./plugins/thinking-craft",
       "description": "Personal thinking tools that coach — not automate — the craft of structured thought. Includes guided note-making, Zettelkasten workflows, and reflective writing practices.",
-      "version": "1.1.0",
       "category": "thinking",
       "tags": ["zettelkasten", "permanent-notes", "note-making", "thinking", "reflection"]
     }

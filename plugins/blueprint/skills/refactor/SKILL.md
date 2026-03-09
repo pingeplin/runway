@@ -116,10 +116,10 @@ After completing all steps:
 - {Preserved behavior 2}
 
 ### Structure-sensitive tests found
-- {Test name — broke on refactoring despite no behavior change. Consider reviewing with /test-reviewer}
+- {Test name — broke on refactoring despite no behavior change. Consider reviewing with blueprint:test-reviewer}
 
 ### Suggested follow-ups
-- {e.g., "Run /test-reviewer on the affected test files to check for structure sensitivity"}
+- {e.g., "Run blueprint:test-reviewer on the affected test files to check for structure sensitivity"}
 - {e.g., "Consider extracting the tax logic next — it's now isolated enough"}
 ```
 
@@ -142,7 +142,7 @@ This feedback loop between refactoring and test quality is a key part of Beck's 
 This skill is the last AI step before final human review:
 
 ```
-/test-generator → human review → AI implement → CI → /refactor → CI → human review
+/design-doc → /design-doc-reviewer → /test-generator → /test-orderer → human review → /implementation-plan → implement → CI → /refactor → CI → human review
 ```
 
-If the refactoring reveals structure-sensitive tests, suggest `/test-reviewer` to clean them up.
+If the refactoring reveals structure-sensitive tests, suggest `blueprint:test-reviewer` to clean them up.

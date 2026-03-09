@@ -2,12 +2,11 @@
 name: test-orderer
 description: >
   Order and prioritize generated test cases for incremental TDD implementation.
-  Use this skill after test-generator has produced a set of test cases and you need
-  to decide which tests to implement first to drive design forward incrementally.
-  Trigger when the user mentions "order tests", "prioritize tests", "which test first",
-  "test sequence", "TDD ordering", "implementation order for tests", "unskip tests",
-  or wants to plan the sequence of test-driven development steps. Also use when the
-  user has a batch of skipped tests and wants a strategy for tackling them one by one.
+  Use after test-generator has produced test cases and you need to decide which
+  to implement first. Trigger when the user mentions "order tests", "prioritize tests",
+  "which test first", "test sequence", "unskip tests", or wants to plan the sequence
+  of test-driven development steps.
+argument-hint: [path-to-test-file]
 ---
 
 # Test Orderer
@@ -60,6 +59,20 @@ Present the inventory as a compact table:
 Analyze which tests depend on which. A test "depends on" another if the behavior it tests is meaningless without the prerequisite behavior already working. This isn't about code-level imports — it's about logical prerequisites.
 
 Build a simple dependency graph. Tests with no dependencies are your starting candidates.
+
+Example output:
+
+```
+#1 empty cart rejection ──────────────────────┐
+                                              ├─→ no dependencies (start here)
+#2 basic order creation ──────────────────────┘
+        │
+        ├──→ #3 discount application (needs working order creation)
+        │        │
+        │        └──→ #4 expired coupon (needs discount logic)
+        │
+        └──→ #5 shipping calculation (needs working order creation)
+```
 
 ### Phase 3 — Propose an Ordering
 

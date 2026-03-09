@@ -176,5 +176,5 @@ After generating the design doc, suggest the user review it for testability by r
 
 The full workflow chain:
 ```
-/design-doc → /design-doc-reviewer → /test-generator → human review → implement → /refactor
+/design-doc → /design-doc-reviewer → /test-generator → /test-orderer → human review → /implementation-plan → implement → CI → /refactor → CI → human review
 ```

@@ -1,6 +1,7 @@
 ---
 name: git-commit-message
 description: Write high-quality git commit messages following the 7 rules from Chris Beams' guide. Use when the user asks to write, generate, improve, or prepare a git commit message, or says "commit this" or "commit my changes".
+argument-hint: [optional description of changes]
 ---
 
 # Git Commit Message
@@ -11,7 +12,7 @@ Help the user write a well-crafted git commit message. This skill combines Chris
 
 1. **Separate subject from body** with a blank line
 2. **Aim for 50 characters in the subject line** — treat 72 as the hard limit (type+scope prefixes eat into the budget)
-3. **Capitalize** the first word after the type prefix colon (e.g., `feat: Add export button`, not `feat: add export button`)
+3. **Capitalize** the first word after the type prefix colon (e.g., `feat: Add export button`, not `feat: add export button`). Note: some Conventional Commits conventions use lowercase — this is one of the most commonly varied rules, so defer to repo conventions when they exist.
 4. **Do not end** the subject line with a period
 5. **Use imperative mood** — write as if giving a command ("Fix bug", not "Fixed bug" or "Fixes bug")
    - A good test: the subject should complete the sentence *"If applied, this commit will ___"*

@@ -13,7 +13,7 @@ Create a progress checklist in the `plans/` directory. The checklist tracks impl
 This skill sits after test generation and human review in the workflow:
 
 ```
-/design-doc → /design-doc-reviewer → /test-generator → human review → /implementation-plan → implement → CI → /refactor → CI → human review
+/design-doc → /design-doc-reviewer → /test-generator → /test-orderer → human review → /implementation-plan → implement → CI → /refactor → CI → human review
 ```
 
 The test cases define WHAT to build. This checklist tracks the progress of building it.
@@ -107,4 +107,4 @@ Track progress through the full development cycle:
 - If test cases exist, link to them; otherwise omit the test cases line
 - If the user provides `$ARGUMENTS`, use it as the feature name and description context
 - Read the codebase first to understand existing patterns before generating the plan. Focus on files and modules directly related to the feature — read entry points, relevant tests, and type definitions rather than exhaustively exploring the entire codebase
-- If no design doc or test cases exist yet, suggest the user create them first — the workflow is `/design-doc` → `/design-doc-reviewer` → `/test-generator` → `/implementation-plan`
+- **If no design doc or test cases exist yet**, check before generating the plan and suggest the user create them first. The recommended workflow is `/design-doc` → `/design-doc-reviewer` → `/test-generator` → `/test-orderer` → `/implementation-plan`. A plan without tests to ground it risks solving the wrong problem.
