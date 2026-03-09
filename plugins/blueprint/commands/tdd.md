@@ -13,7 +13,8 @@ Step-to-skill mapping:
 - Step 3 → /test-generator
 - Step 4 → /test-orderer
 - Step 5 → /implementation-plan
-- Step 7 → /refactor
-- Step 8 → /git-commit-message (for committing the result)
+- Step 7 → /post-verification
+- Step 8 → /refactor
+- Step 9 → /git-commit-message (for committing the result)
 
 Include the scaling guidance from the workflow doc so the user can calibrate the workflow to their task size.
