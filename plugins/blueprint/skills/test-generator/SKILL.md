@@ -7,11 +7,15 @@ argument-hint: [path-to-design-doc-or-source]
 # Test Generator
 
 Generate high-quality, executable test cases from design documents using
-Kent Beck's testing philosophy.
+Kent Beck's testing philosophy. After generating tests, this skill
+automatically chains to `/test-orderer` to produce the implementation
+sequence — so this skill focuses on **what to test**, not **what order
+to implement in**.
 
 ## Workflow
 
-Follow these steps in order. If the user already provides a test list or explicitly asks to skip analysis, begin at Phase 2.
+Follow these steps in order. If the user already provides a test list or
+explicitly asks to skip analysis, begin at Phase 2.
 
 ### Phase 1 — Behavioral Analysis (Beck's "Test List")
 
@@ -54,23 +58,10 @@ before writing any code. Format:
 8. [ ] ...
 ```
 
-**Implementation order:** Number tests sequentially across all categories.
-The ordering follows the TDD progression — simple behaviors first, then
-edge cases, then error handling, then invariants:
-
-1. **Start with the simplest happy path** — the one that forces you to
-   create the basic interface and return the most obvious correct result.
-2. **Add happy path variations** — each one should require a small,
-   incremental change to the implementation.
-3. **Edge cases** — boundary values and special inputs that reveal
-   handling logic.
-4. **Error scenarios** — invalid inputs, failures, and exceptional paths.
-5. **Invariants / properties** — cross-cutting rules verified last, once
-   the implementation is stable enough.
-
-The human reviews and may reorder this list before implementation begins
-(Step 5 in the workflow). The numbering gives them a concrete sequence
-to approve, adjust, or reprioritize.
+Number tests sequentially across all categories for easy reference. Group
+by behavior type (happy path, edge cases, error scenarios, invariants) —
+this is a logical grouping for review, not an implementation order.
+Implementation ordering is handled by `/test-orderer` after code generation.
 
 > **Key principle from Beck:** "This is analysis, but behavioral analysis.
 > You're thinking of all the different cases in which the behavior change
@@ -115,26 +106,30 @@ RSpec, etc.
 For each test, apply the **Test Desiderata checklist** from
 `../../references/test-desiderata.md`. Read that file now for the full checklist.
 
-**All tests are generated as skipped.** Every test must be marked with the
-framework's skip mechanism and annotated with its implementation phase
-number from the Test List. This is the key enabler for the TDD loop —
-the developer (or AI) unskips one test at a time, makes it pass, then
-moves to the next.
+**All tests are generated as skipped.** Every test must use the framework's
+skip mechanism. The skip reason should describe the behavior being tested,
+not an implementation order — ordering is handled downstream by
+`/test-orderer`.
 
 Skip mechanism by framework:
 
 | Framework | Skip syntax |
 |-----------|------------|
-| pytest | `@pytest.mark.skip(reason="Phase N: ...")` |
+| pytest | `@pytest.mark.skip(reason="...")` |
 | Jest/Vitest | `it.skip("...", () => { ... })` or `xit("...", ...)` |
-| Go testing | `t.Skip("Phase N: ...")` |
-| JUnit | `@Disabled("Phase N: ...")` |
-| RSpec | `xit "..." do ... end` or `pending("Phase N: ...")` |
+| Go testing | `t.Skip("...")` |
+| JUnit | `@Disabled("...")` |
+| RSpec | `xit "..." do ... end` or `pending("...")` |
 
-The skip reason must include the phase number and a brief description:
+The skip reason should be a concise description of the behavior:
 ```
-@pytest.mark.skip(reason="Phase 1: simplest happy path — create returns success")
+@pytest.mark.skip(reason="registration with valid input creates unverified account")
 ```
+
+Do NOT include phase/order numbers in skip reasons. Those numbers would
+become stale when `/test-orderer` establishes the real implementation
+sequence. Describe the behavior instead — it stays correct regardless
+of ordering.
 
 **Code structure per test:**
 
@@ -151,32 +146,34 @@ test_[action]_[scenario]_[expected_outcome]
 # Example: test_create_order_with_expired_coupon_returns_validation_error
 ```
 
-**Test ordering in the file:** Tests must appear in the file in their
-implementation phase order. Group them with section comments that match
-the Test List categories, but within and across categories, maintain
-the numbered sequence:
+**Test organization in the file:** Group tests by behavior category using
+section comments that match the Test List. Within each category, order
+tests from simple to complex — but don't assign implementation phase
+numbers. The file reads as a behavioral specification organized by topic;
+`/test-orderer` will later produce the cross-cutting implementation
+sequence.
 
 ```python
-# --- Happy Path ---
+# --- Registration ---
 
-@pytest.mark.skip(reason="Phase 1: create with valid input returns success")
-def test_create_order_with_valid_items_returns_confirmation():
+@pytest.mark.skip(reason="valid registration creates unverified account")
+def test_register_with_valid_input_creates_account():
     ...
 
-@pytest.mark.skip(reason="Phase 2: create applies tax to taxable items")
-def test_create_order_with_taxable_items_includes_regional_tax():
+@pytest.mark.skip(reason="duplicate email is rejected")
+def test_register_with_existing_email_returns_conflict():
     ...
 
-# --- Edge Cases ---
+# --- Login ---
 
-@pytest.mark.skip(reason="Phase 3: empty cart is rejected")
-def test_create_order_with_empty_cart_returns_validation_error():
+@pytest.mark.skip(reason="valid credentials return token pair")
+def test_login_with_valid_credentials_returns_tokens():
     ...
 
-# --- Error Scenarios ---
+# --- Error Handling ---
 
-@pytest.mark.skip(reason="Phase 4: payment failure rolls back order")
-def test_create_order_when_payment_fails_does_not_persist_order():
+@pytest.mark.skip(reason="account locks after repeated failures")
+def test_login_after_five_failures_returns_locked():
     ...
 ```
 
@@ -225,17 +222,29 @@ avoid when generating tests. Apply every item during Phase 2 and Phase 3.
 Deliver as a single executable test file (or multiple if the design doc
 covers distinct modules). Include:
 
-1. All tests marked as **skipped**, ordered by implementation phase number
-2. Clear section comments grouping tests by Test List category
+1. All tests marked as **skipped** with behavioral descriptions (no phase numbers)
+2. Clear section comments grouping tests by behavior category
 3. Minimal but sufficient fixtures/factories
 4. The Desiderata summary table as a comment block at the end of the file
 
 The test file should be immediately runnable — all tests skip, the suite
-is green, and the developer begins the TDD loop by unskipping Phase 1.
+is green.
 
-## Next Step
+## Next Step — Auto-chain to /test-orderer
 
-After generating the test file, automatically proceed to `/test-orderer` with the generated test file path. This chains the two skills so the user gets both test generation and implementation ordering in a single flow.
+After generating the test file and presenting the Desiderata review,
+automatically invoke `/test-orderer {path-to-generated-test-file}`.
+
+This is why test-generator does not assign implementation phase numbers:
+`/test-orderer` analyzes dependencies between tests and produces the
+implementation sequence with its own phased groupings (Skeleton, Core
+Behavior, Extended Behavior, etc.). If test-generator pre-assigned
+phase numbers, test-orderer would have to undo them, and the skip
+annotations in the test file would become misleading.
+
+The division of responsibility:
+- **test-generator** decides WHAT to test (behavioral analysis + code)
+- **test-orderer** decides WHICH ORDER to implement (dependency analysis + sequencing)
 
 The full workflow chain:
 ```
