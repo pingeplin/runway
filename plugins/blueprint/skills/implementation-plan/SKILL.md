@@ -1,6 +1,6 @@
 ---
 name: implementation-plan
-description: Generate a progress checklist for tracking implementation of a feature. Breaks work into concrete tasks with file paths, references the design doc and test cases, and includes workflow-level checkpoints (CI, refactor, final review). Use when the user asks to create a plan, implementation checklist, or task breakdown for upcoming work.
+description: Generate a progress checklist for tracking implementation of a feature. Breaks work into concrete tasks with file paths, references the design doc and test cases, and includes workflow-level checkpoints (post-verification, refactor, final review). Use when the user asks to create a plan, implementation checklist, or task breakdown for upcoming work.
 argument-hint: [feature-name] [optional-description]
 ---
 
@@ -13,7 +13,7 @@ Create a progress checklist in the `plans/` directory. The checklist tracks impl
 This skill sits after test generation and human review in the workflow:
 
 ```
-/design-doc → /design-doc-reviewer → /test-generator → /test-orderer → human review → /implementation-plan → implement → CI → /refactor → CI → human review
+/design-doc → /design-doc-reviewer → /test-generator (auto-chains /test-orderer) → human review → /implementation-plan → implement (auto-chains /post-verification) → /refactor → human review
 ```
 
 The test cases define WHAT to build. This checklist tracks the progress of building it.
@@ -26,13 +26,15 @@ IDs follow arXiv-style `yymm.xxxx` format:
 - `mm` — 2-digit month
 - `xxxx` — zero-padded sequential number, scoped per `yymm`
 
-**To determine the next ID:**
+**To determine the ID:**
 
-1. Scan both `docs/` and `plans/` for files matching `yymm.*` where `yymm` is the current year+month
-2. Find the highest `xxxx` across both directories
-3. Increment by 1
-4. If no files exist for the current month, start at `0001`
-5. If neither `docs/` nor `plans/` exists, start at `yymm.0001`
+1. **If a design doc is referenced** (provided as argument, linked in conversation, or discoverable in `docs/` for the current feature) — **reuse the design doc's ID**. The implementation plan and design doc form a pair and must share the same ID so they can be cross-referenced unambiguously. Scan `docs/` for a matching design doc by feature name or conversation context.
+2. **Only if no design doc exists** — generate a new ID:
+   1. Scan both `docs/` and `plans/` for files matching `yymm.*` where `yymm` is the current year+month
+   2. Find the highest `xxxx` across both directories
+   3. Increment by 1
+   4. If no files exist for the current month, start at `0001`
+   5. If neither `docs/` nor `plans/` directory exists yet, start at `yymm.0001`
 
 ## Output File
 
@@ -81,9 +83,8 @@ Tasks are grouped by area. Each task is a concrete, checkable unit of work.
 Track progress through the full development cycle:
 
 - [ ] **All tests pass** — run test suite, all generated test cases go green
-- [ ] **CI green** — automated verification passes
+- [ ] **Post-verification** — auto-runs `/post-verification` to cross-check implementation against design doc and plan
 - [ ] **Refactor** — human gives direction, AI refactors (`/refactor`)
-- [ ] **CI green (post-refactor)** — verify refactoring preserved behavior
 - [ ] **Human review** — structural review and sign-off
 
 ## Risks & Rollback

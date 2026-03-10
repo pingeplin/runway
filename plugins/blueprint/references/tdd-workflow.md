@@ -3,7 +3,7 @@
 The canonical blueprint workflow for building a feature with TDD. Each step is an independent skill — use as many or as few as the task warrants.
 
 ```
-/design-doc → /design-doc-reviewer → /test-generator → /test-orderer → human review → /implementation-plan → implement → CI → /refactor → CI → human review
+/design-doc → /design-doc-reviewer → /test-generator (auto-chains /test-orderer) → human review → /implementation-plan → implement (auto-chains /post-verification) → /refactor → human review
 ```
 
 ## Step-by-step
@@ -12,12 +12,14 @@ The canonical blueprint workflow for building a feature with TDD. Each step is a
 |------|-------|-----|--------------|
 | 1 | `/design-doc` | AI + Human | Generate a design doc with acceptance scenarios |
 | 2 | `/design-doc-reviewer` | AI | Review for testability, ambiguity, coverage gaps |
-| 3 | `/test-generator` | AI | Generate skipped test cases from the design doc |
-| 4 | `/test-orderer` | AI + Human | Order tests for incremental TDD implementation |
+| 3 | `/test-generator` → `/test-orderer` | AI | Generate skipped test cases, then auto-order for TDD implementation |
+| 4 | Human review | Human | Review generated tests and ordering; adjust sequence, cut scope if needed |
 | 5 | `/implementation-plan` | AI | Generate a task checklist from design doc + tests |
-| 6 | Implement | AI | Red-Green loop: unskip tests one phase at a time |
+| 6 | Implement → `/post-verification` | AI | Red-Green loop: unskip tests one phase at a time, then auto-verify against design doc and plan |
 | 7 | `/refactor` | AI + Human | Human gives direction, AI refactors with tests as safety net |
 | 8 | Design scan | Human | Quick structural review of the result |
+
+> **Note:** `/test-orderer` and `/post-verification` can still be invoked standalone.
 
 ## Human decision points
 
@@ -26,8 +28,9 @@ The human's role is thinking clearly and quality gates:
 1. **Requirements** — Articulate acceptance scenarios before the AI writes anything
 2. **Design approval** — Compare the generated doc against your own thinking
 3. **Test ordering** — Control the rhythm of implementation, cut scope if needed
-4. **Refactoring direction** — Tell the AI what structural improvements to make
-5. **Design scan** — Verify the final structure makes sense
+4. **Verification review** — Review the post-verification report, decide whether to address gaps or defer
+5. **Refactoring direction** — Tell the AI what structural improvements to make
+6. **Design scan** — Verify the final structure makes sense
 
 ## Scaling to task size
 
