@@ -24,6 +24,7 @@ Before starting, assess scope and recommend the right entry point:
 - **Small bug fix** — Skip /spec. Start at /plan with the description inline.
 - **Single feature** — Full workflow. /spec can be lightweight (~200 words).
 - **Large feature** — Break into sub-features. Run /tdd for each one.
+- **Prototype / spike** — Use `/proto` instead. Explore first, formalize later.
 - **Refactoring only** — Jump to /refactor directly (verify tests pass first).
 - **Test review only** — Jump to /review.
 

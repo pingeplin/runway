@@ -35,4 +35,5 @@ The human's role is thinking clearly and quality gates:
 - **Small bug fix:** Skip /spec, go straight to /plan.
 - **Single feature:** Full workflow, /spec can be lightweight.
 - **Large feature:** Break into sub-features, run workflow multiple times.
+- **Prototype / spike:** Use `/proto` — happy-path only, no spec, fast feedback. Promote to `/tdd` if the idea works.
 - **Refactoring only:** Jump to /refactor (verify tests pass first).
