@@ -1,6 +1,6 @@
 ---
 name: proto
-description: Rapid prototyping orchestrator. Skips spec, generates a happy-path-only plan, runs it fast, then asks whether to promote to a full /tdd workflow or discard. Use for spikes, experiments, "does this even work?" explorations, or when the user says "prototype", "spike", "try", "experiment", or "explore".
+description: Rapid prototyping orchestrator. Skips spec, generates happy-path tests inline, implements them fast, then asks whether to promote to /tdd or discard. Use for spikes, experiments, "does this even work?" explorations, or when the user says "prototype", "spike", "try", "experiment", or "explore".
 ---
 
 If invoked **without arguments**, display this and ask what the user wants to explore:
@@ -8,10 +8,10 @@ If invoked **without arguments**, display this and ask what the user wants to ex
 ```
 Blueprint Prototype Mode
 
-/proto ──→ lightweight /plan ──→ /run ──→ promote or discard
-               │                   │
-               no spec             no verification
-               happy path only     no refactor
+/proto ──→ discover ──→ test ──→ implement ──→ promote or discard
+              │           │          │
+              read code   2-4 tests  RED-GREEN only
+              no spec     happy path no refactor
 ```
 
 If invoked **with a description** (e.g., `/proto "try WebSocket instead of polling"`), begin immediately.
@@ -21,46 +21,93 @@ If invoked **with a description** (e.g., `/proto "try WebSocket instead of polli
 | | /tdd | /proto |
 |---|---|---|
 | Spec | Required (with self-review) | Skipped |
-| Plan scope | Full: all scenarios, edge cases, errors | Happy path only: 1 stream, no edge cases |
-| REFACTOR nodes | Included | Skipped |
-| Human gates | After spec, after plan | After plan only |
-| Verification | Auto-verify against spec | No verification (there is no spec) |
+| Plan file | Execution graph with streams | None — tests are generated inline |
+| Scope | All scenarios, edge cases, errors | Happy path only: 2-4 tests |
+| REFACTOR | Included | Skipped |
+| Human gates | After spec, after plan | Before implementation only |
+| Verification | Auto-verify against spec | None (there is no spec) |
 | Goal | Build it right | Find out if it works |
 
 ## Workflow
 
-### Step 1: Lightweight /plan
+### Step 1: Discover
 
-Invoke `/plan` with these overrides:
+Read the codebase to understand:
 
-- **No spec required** — use the user's description directly as input
-- **Happy path only** — generate tests for the core behavior only. No edge cases, no error scenarios, no invariants.
-- **Single stream** — keep it simple. 2-4 triplets maximum.
-- **Skip REFACTOR nodes** — mark all as "(skip)". Structure doesn't matter in a prototype.
-- **Skip Phase 5 self-review** — no spec to check coverage against, and completeness is not the goal.
-- **Skip desiderata self-review** — speed over rigor.
+- Existing test framework and conventions (naming, directory, imports)
+- Modules and files relevant to the user's description
+- Data models, APIs, or interfaces the prototype will touch
 
-The plan should be minimal — just enough to prove the concept works.
+This is quick reconnaissance, not deep analysis. Spend minimal time here.
 
-**GATE — Present the plan. Ask: "Run this spike, or adjust?"**
+### Step 2: Generate happy-path tests
 
-### Step 2: /run
+Write 2-4 skipped tests directly to a test file. No plan file, no graph, no streams.
 
-Invoke `/run` with the plan. Since it's a single stream with no REFACTOR nodes, execution is always sequential and fast.
+**Rules:**
+- **Happy path only** — test the core "does it work?" behavior. No edge cases, no error handling, no boundary conditions.
+- **Follow project conventions** — match the existing test framework, naming, and directory structure.
+- **All tests skipped** — use the framework's skip marker with a behavioral description.
+- **AAA structure** — Arrange/Act/Assert, inline setup, no shared fixtures.
+- **Behavioral** — test observable output, not internals.
 
-**Override for proto mode:**
-- Skip auto-verification (there is no spec to verify against)
-- After all GREEN nodes pass, report success directly
+Example output:
 
-### Step 3: Decide
+```python
+# tests/test_websocket_updates.py
 
-After execution completes, present the outcome and ask:
+@pytest.mark.skip(reason="client receives live update via WebSocket")
+def test_client_receives_live_update():
+    ws = WebSocketClient("ws://localhost/updates")
+    ws.connect()
+    trigger_update(item_id=1, status="shipped")
+    message = ws.receive(timeout=2)
+    assert message["item_id"] == 1
+    assert message["status"] == "shipped"
+
+@pytest.mark.skip(reason="multiple clients receive the same update")
+def test_multiple_clients_receive_broadcast():
+    ws1 = WebSocketClient("ws://localhost/updates")
+    ws2 = WebSocketClient("ws://localhost/updates")
+    ws1.connect()
+    ws2.connect()
+    trigger_update(item_id=1, status="shipped")
+    assert ws1.receive(timeout=2)["item_id"] == 1
+    assert ws2.receive(timeout=2)["item_id"] == 1
+```
+
+**Present the tests to the user. Ask: "Run this spike, or adjust?"**
+
+### Step 3: RED-GREEN loop
+
+For each test, sequentially:
+
+1. **RED** — Unskip the test. Run it. Expect failure.
+   - If it passes unexpectedly: flag it ("already implemented or trivially true")
+2. **GREEN** — Write the minimal code to make it pass. Run all tests. Expect all green.
+   - If it fails after 2 attempts: stop and report the issue.
+
+No REFACTOR step. Structure doesn't matter in a prototype.
+
+Show progress:
+```
+[1/3] RED  — test_client_receives_live_update — FAILED (expected)
+[1/3] GREEN — implemented WebSocketHandler — ALL PASSING
+[2/3] RED  — test_multiple_clients_receive_broadcast — FAILED (expected)
+[2/3] GREEN — added broadcast logic — ALL PASSING
+```
+
+### Step 4: Decide
+
+After all tests pass, present the outcome:
 
 ```
 Spike complete. All tests passing.
 
 Files created/modified:
   - {list of files}
+Tests:
+  - {list of test names}
 
 What next?
   (a) Promote → run /spec to formalize, then /tdd for the full workflow
@@ -68,11 +115,14 @@ What next?
   (c) Discard → revert changes
 ```
 
-If the user chooses **(a) Promote**:
-- Suggest `/spec "{feature name}"` — the prototype code and tests provide context for writing a proper spec
-- The existing test file can serve as a starting point for `/plan`'s behavioral analysis
-- The prototype code stays as-is until `/run` replaces it with properly tested implementation
+**If (a) Promote:**
+- Suggest `/spec "{feature name}"` — the prototype code and passing tests give concrete context for writing a proper spec
+- The existing tests can inform `/plan`'s behavioral analysis
+- The prototype code stays until `/run` replaces it with a fully tested implementation
 
-If the user chooses **(c) Discard**:
-- Confirm before reverting: "This will undo all changes from this spike. Proceed?"
+**If (b) Iterate:**
+- Ask what to change, then repeat from Step 2 with adjusted tests
+
+**If (c) Discard:**
+- Confirm: "This will undo all changes from this spike. Proceed?"
 - Run `git checkout -- {files}` to revert, or `git stash` to save for later
