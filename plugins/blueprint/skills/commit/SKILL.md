@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Write high-quality git commit messages following the 7 rules from Chris Beams' guide. Use when the user asks to write, generate, improve, or prepare a git commit message, or says "commit this", "commit my changes", or "/commit".
+description: Write high-quality git commit messages following the 7 rules from Chris Beams' guide. ALWAYS use this skill when the user wants to commit changes, write a commit message, prepare a commit, or says "commit this", "commit my changes", "commit it", "let's commit", "write a commit message", or "help me commit". Also trigger when the user has just finished implementing something and says they want to save or commit the result.
 argument-hint: [optional description of changes]
 ---
 

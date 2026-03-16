@@ -1,6 +1,6 @@
 ---
 name: spec
-description: Write a technical spec with structured acceptance scenarios and built-in testability review. Outputs to specs/ directory. Use when the user asks to write a spec, create a spec, design doc, technical spec, RFC, ADR, architecture document, or feature spec.
+description: Write a technical spec with structured acceptance scenarios and built-in testability review. Outputs to specs/ directory. ALWAYS use this skill when the user wants to write, create, or draft any kind of spec, design doc, technical spec, RFC, ADR, architecture document, feature spec, or technical proposal. Also trigger when the user describes a feature they want to build and needs requirements, acceptance criteria, or a written specification — even if they don't explicitly say "spec". If someone says "I want to add X to our system" and the request is complex enough to need a written plan, this skill should be consulted.
 argument-hint: [feature-name] [optional-description]
 ---
 

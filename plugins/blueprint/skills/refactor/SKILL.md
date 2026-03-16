@@ -1,6 +1,6 @@
 ---
 name: refactor
-description: Refactor production code with a given direction while keeping all tests green. Follows Kent Beck's "two hats" discipline — change structure OR behavior, never both at once. Use when the user asks to refactor, restructure, extract, inline, rename, or reorganize production code after tests are passing.
+description: Refactor production code with a given direction while keeping all tests green. Follows Kent Beck's "two hats" discipline — change structure OR behavior, never both at once. ALWAYS use this skill when the user asks to refactor, restructure, extract, inline, rename, move, simplify, decompose, consolidate, or reorganize code. Trigger on phrases like "extract X into a service", "inline this back", "rename across the module", "move these handlers", "simplify this logic", "too many nested conditionals", or any request to change code structure without changing behavior.
 argument-hint: [direction or goal, e.g. "extract payment logic into a service"]
 ---
 

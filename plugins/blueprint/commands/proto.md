@@ -1,6 +1,6 @@
 ---
 name: proto
-description: Rapid prototyping orchestrator. Skips spec, generates happy-path tests inline, implements them fast, then asks whether to promote to /tdd or discard. Use for spikes, experiments, "does this even work?" explorations, or when the user says "prototype", "spike", "try", "experiment", or "explore".
+description: Rapid prototyping orchestrator for quick spikes and experiments. ALWAYS use this when the user wants to prototype, spike, experiment, explore, or try something out quickly. Trigger on "try X real quick", "spike: does X work?", "let's experiment with X", "explore whether X is feasible", "prototype X", "quick proof of concept", "does this even work?", "just want to see if X works", or any request to quickly test an idea or approach before committing to a full implementation.
 ---
 
 If invoked **without arguments**, display this and ask what the user wants to explore:

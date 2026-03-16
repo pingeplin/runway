@@ -1,6 +1,6 @@
 ---
 name: review
-description: Review any project artifact — spec, plan, test file, or implementation — for quality, completeness, and correctness. Auto-detects artifact type and adapts review approach. Scores tests against Beck's 12 Desiderata, validates plan graphs, audits spec testability, and cross-checks implementation against spec. Use when the user asks to review, check, audit, review spec, review plan, review tests, review implementation, check quality, or code review.
+description: Review any project artifact for quality, completeness, and correctness — specs, plans, test files, or implementation code. ALWAYS use this skill when the user asks to review, check, audit, or assess quality of any code or document. Trigger on "review my spec", "check the tests", "audit the plan", "review my implementation", "check for anti-patterns", "score tests against desiderata", "is this testable?", "did I miss anything?", or any request to evaluate quality of specs, plans, tests, or code against best practices. Even casual requests like "take a look at this" or "what do you think of these tests?" should trigger this skill.
 argument-hint: [path-to-file] [--type=spec|plan|test|impl]
 ---
 

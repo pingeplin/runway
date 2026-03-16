@@ -1,6 +1,6 @@
 ---
 name: run
-description: Execute a plan's TDD execution graph — walk RED/GREEN/REFACTOR triplets in dependency order, auto-verify against the spec when complete. Use when the user says "run the plan", "execute plan", "start implementation", "run TDD", "execute graph", or "implement the plan".
+description: Execute a plan's TDD execution graph — walk RED/GREEN/REFACTOR triplets in dependency order, auto-verify against the spec when complete. ALWAYS use this skill when the user wants to run a plan, execute a plan, start implementing from a plan, implement the plan, begin the TDD cycle, execute the graph, or says anything like "let's start building" when a plan graph file exists. Also trigger when the user references a plans/*_graph.md file and wants to begin implementation, or says "unskip the tests and make them pass".
 argument-hint: [path-to-plan-graph-file]
 ---
 

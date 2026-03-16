@@ -1,6 +1,6 @@
 ---
 name: tdd
-description: Full TDD workflow orchestrator. Chains /spec → /plan → /run → /refactor → /commit with human approval gates. Use to start a feature from scratch or jump to any step.
+description: Full TDD workflow orchestrator. Chains /spec → /plan → /run → /refactor → /commit with human approval gates. ALWAYS use this when the user wants to build a feature end-to-end with TDD, start a new feature from scratch, go through the full development workflow, or says "let's build X", "add feature X with TDD", "take me through the whole process", or "full workflow". Also trigger when the user has a spec and wants to go all the way to implementation and commit.
 ---
 
 If invoked **without arguments**, display this workflow map and ask what the user wants to build:

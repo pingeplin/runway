@@ -1,6 +1,6 @@
 ---
 name: plan
-description: Generate an execution graph of TDD triplets (RED/GREEN/REFACTOR) with dependency tracking from a spec or source code. Merges behavioral analysis, test ordering, and implementation planning into a single artifact. Use when the user asks to "create a plan", "generate plan", "implementation plan", "execution graph", "TDD plan", "break down into tasks", or wants a structured plan for test-driven development.
+description: Generate an execution graph of TDD triplets (RED/GREEN/REFACTOR) with dependency tracking from a spec or source code. ALWAYS use this skill when the user wants to create a plan, generate a plan, break down work into tasks, create an implementation plan, generate an execution graph, plan a TDD approach, or figure out the order to implement things. Also trigger when the user has a spec and wants to know "what do I build first?", wants test cases generated from requirements, or asks to break a feature into implementable steps with dependencies.
 argument-hint: [path-to-spec-or-source]
 ---
 
