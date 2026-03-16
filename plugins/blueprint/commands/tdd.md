@@ -1,21 +1,64 @@
 ---
 name: tdd
-description: Show the TDD workflow steps for building features with the blueprint plugin.
+description: Full TDD workflow orchestrator. Chains /spec → /plan → /run → /refactor → /commit with human approval gates. Use to start a feature from scratch or jump to any step.
 ---
 
-Read `../references/tdd-workflow.md` and present its contents to the user in a clear, actionable format.
+If invoked **without arguments**, display this workflow map and ask what the user wants to build:
 
-After presenting the workflow, ask the user which step they'd like to start with. If they name a step that maps to a skill, invoke that skill for them.
+```
+Blueprint TDD Workflow (v2)
 
-Step-to-skill mapping:
-- Step 1 → /design-doc
-- Step 2 → /design-doc-reviewer
-- Step 3 → /test-generator (auto-chains /test-orderer)
-- Step 5 → /implementation-plan
-- Step 6 → implement (auto-chains /post-verification)
-- Step 7 → /refactor
-- Step 8 → /git-commit-message (for committing the result)
+/spec ──→ /plan ──→ /run ──→ /refactor ──→ /commit
+  │          │         │
+  └── GATE   └── GATE  └── auto-verify
 
-Note: /test-orderer and /post-verification can still be invoked standalone.
+Standalone: /review (any artifact, any time)
+```
 
-Include the scaling guidance from the workflow doc so the user can calibrate the workflow to their task size.
+If invoked **with a description** (e.g., `/tdd "add coupon validation to orders"`), begin immediately at Step 1.
+
+## Detect task size first
+
+Before starting, assess scope and recommend the right entry point:
+
+- **Small bug fix** — Skip /spec. Start at /plan with the description inline.
+- **Single feature** — Full workflow. /spec can be lightweight (~200 words).
+- **Large feature** — Break into sub-features. Run /tdd for each one.
+- **Refactoring only** — Jump to /refactor directly (verify tests pass first).
+- **Test review only** — Jump to /review.
+
+State your size assessment and recommended path. Proceed unless the user overrides.
+
+## Workflow steps
+
+### Step 1: /spec
+Invoke `/spec` with the user's description. The spec skill generates a spec and self-reviews it.
+**GATE — Present the spec summary. Ask: "Approve spec, or revise?"** Do not continue until approved.
+
+### Step 2: /plan
+Invoke `/plan` with the approved spec path.
+**GATE — Present the execution graph. Ask: "Approve plan, or revise?"** Do not continue until approved.
+
+### Step 3: /run
+Invoke `/run` with the approved plan. `/run` analyzes the dependency graph and automatically decides whether to execute streams sequentially or in parallel (spawning one agent per independent stream). No flag needed — the graph structure determines the strategy. Verification is automatic after all streams complete.
+
+### Step 4: /refactor
+After /run completes, review the result for cleanup opportunities (duplication, naming, structure). If any exist, suggest `/refactor` with specific targets. If the code is already clean, skip.
+
+### Step 5: /commit
+Invoke `/commit` to generate a commit message from the changes.
+
+## Jumping to a step
+
+If the user says "start from step N" or provides an existing artifact path (spec, plan), skip to the appropriate step. If they provide a spec path, start at Step 2. If they provide a plan path, start at Step 3.
+
+## Step-to-skill mapping
+
+| Step | Skill |
+|------|-------|
+| 1 | `/spec` |
+| 2 | `/plan` |
+| 3 | `/run` |
+| 4 | `/refactor` |
+| 5 | `/commit` |
+| Any time | `/review` |

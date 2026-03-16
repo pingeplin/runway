@@ -1,6 +1,6 @@
 ---
-name: git-commit-message
-description: Write high-quality git commit messages following the 7 rules from Chris Beams' guide. Use when the user asks to write, generate, improve, or prepare a git commit message, or says "commit this" or "commit my changes".
+name: commit
+description: Write high-quality git commit messages following the 7 rules from Chris Beams' guide. Use when the user asks to write, generate, improve, or prepare a git commit message, or says "commit this", "commit my changes", or "/commit".
 argument-hint: [optional description of changes]
 ---
 

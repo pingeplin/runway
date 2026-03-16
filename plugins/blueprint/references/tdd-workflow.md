@@ -3,38 +3,36 @@
 The canonical blueprint workflow for building a feature with TDD. Each step is an independent skill — use as many or as few as the task warrants.
 
 ```
-/design-doc → /design-doc-reviewer → /test-generator (auto-chains /test-orderer) → human review → /implementation-plan → implement (auto-chains /post-verification) → /refactor → human review
+/spec → /plan → /run → /refactor → /commit
 ```
+
+Orchestrated by `/tdd`.
 
 ## Step-by-step
 
 | Step | Skill | Who | What happens |
 |------|-------|-----|--------------|
-| 1 | `/design-doc` | AI + Human | Generate a design doc with acceptance scenarios |
-| 2 | `/design-doc-reviewer` | AI | Review for testability, ambiguity, coverage gaps |
-| 3 | `/test-generator` → `/test-orderer` | AI | Generate skipped test cases, then auto-order for TDD implementation |
-| 4 | Human review | Human | Review generated tests and ordering; adjust sequence, cut scope if needed |
-| 5 | `/implementation-plan` | AI | Generate a task checklist from design doc + tests |
-| 6 | Implement → `/post-verification` | AI | Red-Green loop: unskip tests one phase at a time, then auto-verify against design doc and plan |
-| 7 | `/refactor` | AI + Human | Human gives direction, AI refactors with tests as safety net |
-| 8 | Design scan | Human | Quick structural review of the result |
+| 1 | `/spec` | AI + Human | Generate spec with acceptance scenarios + built-in testability review |
+| 2 | `/plan` | AI + Human | Generate execution graph — TDD triplets with dependencies, streams, critical path |
+| 3 | `/run` | AI | Execute the graph: RED→GREEN→REFACTOR per triplet, auto-verify against spec |
+| 4 | `/refactor` | AI + Human | Human gives direction, AI refactors with tests as safety net |
+| 5 | `/commit` | AI | Generate commit message following Chris Beams' 7 rules |
 
-> **Note:** `/test-orderer` and `/post-verification` can still be invoked standalone.
+Standalone: `/review` — can review any artifact (spec, plan, test, implementation) at any point.
 
 ## Human decision points
 
 The human's role is thinking clearly and quality gates:
 
-1. **Requirements** — Articulate acceptance scenarios before the AI writes anything
-2. **Design approval** — Compare the generated doc against your own thinking
-3. **Test ordering** — Control the rhythm of implementation, cut scope if needed
-4. **Verification review** — Review the post-verification report, decide whether to address gaps or defer
-5. **Refactoring direction** — Tell the AI what structural improvements to make
-6. **Design scan** — Verify the final structure makes sense
+1. **Requirements** — articulate what to build (input to /spec)
+2. **Spec approval** — review generated spec before /plan
+3. **Plan approval** — review execution graph before /run
+4. **Refactoring direction** — tell the AI what structural improvements to make
+5. **Final review** — verify the result
 
 ## Scaling to task size
 
-- **Small bug fix:** Skip steps 1-2. Write tests (step 3), implement, maybe refactor.
-- **Single feature:** Full workflow. Steps 1-2 can be lightweight (~200 words).
-- **Large feature:** Break into sub-features and run the workflow multiple times.
-- **Refactoring only:** Jump to step 7 directly (verify tests exist and pass first).
+- **Small bug fix:** Skip /spec, go straight to /plan.
+- **Single feature:** Full workflow, /spec can be lightweight.
+- **Large feature:** Break into sub-features, run workflow multiple times.
+- **Refactoring only:** Jump to /refactor (verify tests pass first).

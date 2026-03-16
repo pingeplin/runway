@@ -1,7 +1,7 @@
 {
   "name": "blueprint",
-  "description": "Full-cycle development workflow: design docs, design review, test generation, test ordering, test review, implementation planning, post-verification, refactoring, and git commits. Grounded in Kent Beck's Test Desiderata and Canon TDD principles.",
-  "version": "1.6.0",
+  "description": "Full-cycle TDD workflow: spec, plan, run, refactor, commit. Generates specs with testability review, execution graphs with TDD triplets and dependency tracking, and auto-verifies implementations. Grounded in Kent Beck's Test Desiderata and Canon TDD principles.",
+  "version": "2.0.0",
   "author": {
     "name": "@pingeplin"
   }

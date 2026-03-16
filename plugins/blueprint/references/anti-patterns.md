@@ -226,7 +226,7 @@ real I/O.
 
 ## Generator-Specific Anti-Patterns
 
-These apply specifically when generating new tests from design docs.
+These apply specifically when generating new tests from specs.
 
 ### Premature Test Concretization
 
@@ -235,7 +235,7 @@ before making any of them pass. Beck: "What happens when making the first
 test pass causes you to reconsider a decision that affects all those
 speculative tests? Rework."
 
-**For design-doc-derived tests:** This is less of a concern since we're
+**For spec-derived tests:** This is less of a concern since we're
 establishing the behavioral contract. However, mark tests that depend on
 design decisions that feel uncertain — these should be reviewed first
 during implementation.
@@ -258,8 +258,8 @@ or HOW it does it?"
 **The problem:** The test suite is green but doesn't actually predict
 production success because important behaviors are untested.
 
-**How to detect from a design doc:** After generating tests, map each
-design doc requirement to at least one test. Requirements without
+**How to detect from a spec:** After generating tests, map each
+spec requirement to at least one test. Requirements without
 corresponding tests are behavioral gaps.
 
 **Beck on Predictive:** "If the tests all pass, then the code under

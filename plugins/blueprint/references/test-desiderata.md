@@ -56,7 +56,7 @@ verifies just by reading it? Are the arrange-act-assert sections clear?
 ### 7. Behavioral ⭐
 Tests should be sensitive to changes in the BEHAVIOR of the code under test.
 If the behavior changes, the test result should change. This is the most
-important property for design-doc-derived tests.
+important property for spec-derived tests.
 
 **Checklist:** Does this test verify an observable output or side effect?
 Or does it peek into internals?
@@ -96,9 +96,9 @@ Passing the tests should inspire confidence that programming is progressing.
 **Checklist:** After this test passes, will the developer feel meaningfully
 closer to "done"?
 
-## Priority for Design-Doc-Derived Tests
+## Priority for Spec-Derived Tests
 
-When generating tests from a design doc, prioritize these properties
+When generating tests from a spec, prioritize these properties
 (in order):
 
 1. **Behavioral** — Tests MUST verify observable behavior described in the doc
@@ -109,8 +109,8 @@ When generating tests from a design doc, prioritize these properties
 5. **Deterministic** — No flaky tests
 6. **Isolated** — No test ordering dependencies
 
-Properties that may be traded off for design-doc tests:
-- **Fast** — Integration-level tests from a design doc may be slower; that's OK
+Properties that may be traded off for spec-derived tests:
+- **Fast** — Integration-level tests from a spec may be slower; that's OK
 - **Writable** — Some tests require more setup; invest the effort for coverage
 
 ## Applying Desiderata as Review Criteria
