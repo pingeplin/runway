@@ -1,0 +1,923 @@
+{
+  "model": "default",
+  "runs_per_query": 1,
+  "results": [
+    {
+      "query": "write a spec for adding OAuth2 to our API gateway \u2014 we need PKCE flow support and token refresh",
+      "target_skill": "blueprint:spec",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:spec"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "I need an RFC for migrating our postgres database from single-tenant to multi-tenant. it's a big change, lots of schema impact",
+      "target_skill": "blueprint:spec",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:spec"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "create an ADR documenting why we chose WebSocket over SSE for real-time notifications",
+      "target_skill": "blueprint:spec",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:spec"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "can you write a technical spec? we're adding a caching layer with Redis in front of our product catalog API",
+      "target_skill": "blueprint:spec",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:spec"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "I want a design doc for the new payment retry logic \u2014 should cover idempotency and failure scenarios",
+      "target_skill": "blueprint:spec",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:spec"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "write a feature spec for the coupon system, I need acceptance scenarios I can test against",
+      "target_skill": "blueprint:spec",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:spec"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "help me plan out the work for adding search to our app \u2014 I need to know what to build",
+      "target_skill": "blueprint:spec",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:plan"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "check my spec for testability issues \u2014 I wrote it yesterday and want a second opinion",
+      "target_skill": "blueprint:spec",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:review"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "review the spec at specs/2603.0001_oauth.md and tell me if the acceptance scenarios are complete",
+      "target_skill": "blueprint:spec",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:review"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "generate test cases from the spec we just wrote",
+      "target_skill": "blueprint:spec",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:plan"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "create a TDD plan from specs/2603.0002_caching.md \u2014 break it into streams with dependencies",
+      "target_skill": "blueprint:plan",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:plan"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "generate an execution graph for the payment retry feature, I want RED-GREEN-REFACTOR triplets",
+      "target_skill": "blueprint:plan",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:plan"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "break down the work in this spec into implementable tasks with test-first approach",
+      "target_skill": "blueprint:plan",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:plan"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "I have a spec for multi-tenant migration. can you create a plan with dependency tracking so I know what can parallelize?",
+      "target_skill": "blueprint:plan",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:plan"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "plan out the implementation for adding websocket support \u2014 here's the source code in src/api/",
+      "target_skill": "blueprint:plan",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:plan"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "I want to build a new feature end-to-end with TDD \u2014 let's start from scratch",
+      "target_skill": "blueprint:plan",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:tdd"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "run the plan we just generated \u2014 start implementing the triplets",
+      "target_skill": "blueprint:plan",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:run"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "check if the plan graph has any dependency cycles or missing test coverage",
+      "target_skill": "blueprint:plan",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:review"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "try adding a caching layer real quick \u2014 just want to see if it works before committing to a full plan",
+      "target_skill": "blueprint:plan",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:proto"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "write a spec for the notification system \u2014 I need acceptance scenarios before planning",
+      "target_skill": "blueprint:plan",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:spec"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "run the plan at plans/2603.0002_caching_graph.md",
+      "target_skill": "blueprint:run",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:run"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "execute the TDD graph we just generated \u2014 start with Stream A",
+      "target_skill": "blueprint:run",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:run"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "start implementing the plan \u2014 unskip the tests and make them pass one by one",
+      "target_skill": "blueprint:run",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:run"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "implement the plan we approved, go through the RED-GREEN-REFACTOR cycle for each triplet",
+      "target_skill": "blueprint:run",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:run"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "let me implement this feature myself, I'll write the code from scratch",
+      "target_skill": "blueprint:run",
+      "should_trigger": false,
+      "triggered_skills": [],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "create a plan for implementing the auth feature",
+      "target_skill": "blueprint:run",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:plan"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "run the test suite and tell me what's failing",
+      "target_skill": "blueprint:run",
+      "should_trigger": false,
+      "triggered_skills": [],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "run pytest on the tests directory",
+      "target_skill": "blueprint:run",
+      "should_trigger": false,
+      "triggered_skills": [],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "try implementing a quick WebSocket prototype to see if the approach works",
+      "target_skill": "blueprint:run",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:proto"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "just run my script at scripts/deploy.sh",
+      "target_skill": "blueprint:run",
+      "should_trigger": false,
+      "triggered_skills": [],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "review the spec at specs/2603.0001_oauth.md \u2014 check if the acceptance scenarios are testable",
+      "target_skill": "blueprint:review",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:review"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "audit the plan graph for dependency issues and missing test coverage",
+      "target_skill": "blueprint:review",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:review"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "check the test suite in tests/test_payments.py for quality \u2014 score against Beck's desiderata",
+      "target_skill": "blueprint:review",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:review"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "review my implementation against the spec \u2014 did I miss anything?",
+      "target_skill": "blueprint:review",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:review"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "I just wrote some tests, can you check them for anti-patterns like excessive mocking?",
+      "target_skill": "blueprint:review",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:review"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "review this pull request and leave comments",
+      "target_skill": "blueprint:review",
+      "should_trigger": false,
+      "triggered_skills": [
+        "code-review:code-review"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "write a spec for the new search feature",
+      "target_skill": "blueprint:review",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:spec"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "refactor the payment module to extract a service class",
+      "target_skill": "blueprint:review",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:refactor"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "create a plan from this spec with TDD triplets",
+      "target_skill": "blueprint:review",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:plan"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "review this restaurant on yelp for me",
+      "target_skill": "blueprint:review",
+      "should_trigger": false,
+      "triggered_skills": [],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "refactor the OrderController \u2014 extract the payment logic into a dedicated PaymentService",
+      "target_skill": "blueprint:refactor",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:refactor"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "inline the UserValidator back into the registration flow, the abstraction isn't worth it",
+      "target_skill": "blueprint:refactor",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:refactor"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "rename the 'process' method to something more descriptive across the notification module",
+      "target_skill": "blueprint:refactor",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:refactor"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "restructure src/api/ \u2014 move the route handlers into separate files by resource",
+      "target_skill": "blueprint:refactor",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:refactor"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "simplify the discount calculation logic, it has too many nested conditionals",
+      "target_skill": "blueprint:refactor",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:refactor"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "fix the bug where expired coupons are still being accepted",
+      "target_skill": "blueprint:refactor",
+      "should_trigger": false,
+      "triggered_skills": [],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "add a new endpoint for user profile updates",
+      "target_skill": "blueprint:refactor",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:spec"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "review the refactored code and make sure I didn't break anything",
+      "target_skill": "blueprint:refactor",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:review"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "write tests for the payment module before I refactor it",
+      "target_skill": "blueprint:refactor",
+      "should_trigger": false,
+      "triggered_skills": [],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "commit the refactoring changes",
+      "target_skill": "blueprint:refactor",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:commit"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "commit this \u2014 I just finished the OAuth feature",
+      "target_skill": "blueprint:commit",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:commit"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "write a commit message for the changes I just made",
+      "target_skill": "blueprint:commit",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:commit"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "help me prepare a good commit message, I refactored the payment module",
+      "target_skill": "blueprint:commit",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:commit"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "commit my changes with a proper conventional commit message",
+      "target_skill": "blueprint:commit",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:commit"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "git push to origin main",
+      "target_skill": "blueprint:commit",
+      "should_trigger": false,
+      "triggered_skills": [],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "show me the git diff",
+      "target_skill": "blueprint:commit",
+      "should_trigger": false,
+      "triggered_skills": [],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "create a pull request for this branch",
+      "target_skill": "blueprint:commit",
+      "should_trigger": false,
+      "triggered_skills": [],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "squash the last 3 commits into one",
+      "target_skill": "blueprint:commit",
+      "should_trigger": false,
+      "triggered_skills": [],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "undo my last commit",
+      "target_skill": "blueprint:commit",
+      "should_trigger": false,
+      "triggered_skills": [],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "write a changelog entry for the release",
+      "target_skill": "blueprint:commit",
+      "should_trigger": false,
+      "triggered_skills": [],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "let's build the notification system from scratch with TDD",
+      "target_skill": "blueprint:tdd",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:tdd"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "I want to add coupon validation to orders \u2014 full TDD workflow please",
+      "target_skill": "blueprint:tdd",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:tdd"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "start a new feature: user profile image upload. take me through the whole process",
+      "target_skill": "blueprint:tdd",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:tdd"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "I have a spec already at specs/2603.0003_search.md \u2014 start from step 2",
+      "target_skill": "blueprint:tdd",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:tdd"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "just create a plan for this, I don't need the full workflow",
+      "target_skill": "blueprint:tdd",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:plan"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "spike: try out elasticsearch vs meilisearch real quick",
+      "target_skill": "blueprint:tdd",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:proto"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "write a spec for the caching layer",
+      "target_skill": "blueprint:tdd",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:spec",
+        "blueprint:spec"
+      ],
+      "correct_rate": 0.0,
+      "runs": 2,
+      "pass": true
+    },
+    {
+      "query": "run the plan we just approved",
+      "target_skill": "blueprint:tdd",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:run"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "refactor the auth middleware",
+      "target_skill": "blueprint:tdd",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:refactor"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "I want to prototype a quick WebSocket implementation to see if it's feasible",
+      "target_skill": "blueprint:tdd",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:proto"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "spike: does Redis pub/sub work for our real-time notification use case?",
+      "target_skill": "blueprint:proto",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:proto"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "try implementing a WebSocket server real quick \u2014 I just want to see if the approach is viable",
+      "target_skill": "blueprint:proto",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:proto"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "let's experiment with using GraphQL instead of REST for the product API",
+      "target_skill": "blueprint:proto",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:proto"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "prototype a file upload feature \u2014 just the happy path, I want to see if the chunked upload approach works",
+      "target_skill": "blueprint:proto",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:proto"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "explore whether we can use SQLite instead of Postgres for the local dev environment",
+      "target_skill": "blueprint:proto",
+      "should_trigger": true,
+      "triggered_skills": [
+        "blueprint:proto"
+      ],
+      "correct_rate": 1.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "build the notification system properly with TDD \u2014 full workflow",
+      "target_skill": "blueprint:proto",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:tdd"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "create a plan with dependency tracking for the search feature",
+      "target_skill": "blueprint:proto",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:plan"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "write a spec for the caching layer",
+      "target_skill": "blueprint:proto",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:spec",
+        "blueprint:spec"
+      ],
+      "correct_rate": 0.0,
+      "runs": 2,
+      "pass": true
+    },
+    {
+      "query": "implement the plan at plans/2603.0001_graph.md",
+      "target_skill": "blueprint:proto",
+      "should_trigger": false,
+      "triggered_skills": [
+        "blueprint:run"
+      ],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "try to fix the flaky test in test_payments.py",
+      "target_skill": "blueprint:proto",
+      "should_trigger": false,
+      "triggered_skills": [],
+      "correct_rate": 0.0,
+      "runs": 1,
+      "pass": true
+    }
+  ],
+  "summary": {
+    "total": 80,
+    "passed": 80,
+    "accuracy": 100.0
+  },
+  "by_skill": {
+    "blueprint:commit": {
+      "passed": 10,
+      "total": 10,
+      "accuracy": 100.0,
+      "should_trigger_hits": "4/4",
+      "false_positives": 0
+    },
+    "blueprint:plan": {
+      "passed": 10,
+      "total": 10,
+      "accuracy": 100.0,
+      "should_trigger_hits": "5/5",
+      "false_positives": 0
+    },
+    "blueprint:proto": {
+      "passed": 10,
+      "total": 10,
+      "accuracy": 100.0,
+      "should_trigger_hits": "5/5",
+      "false_positives": 0
+    },
+    "blueprint:refactor": {
+      "passed": 10,
+      "total": 10,
+      "accuracy": 100.0,
+      "should_trigger_hits": "5/5",
+      "false_positives": 0
+    },
+    "blueprint:review": {
+      "passed": 10,
+      "total": 10,
+      "accuracy": 100.0,
+      "should_trigger_hits": "5/5",
+      "false_positives": 0
+    },
+    "blueprint:run": {
+      "passed": 10,
+      "total": 10,
+      "accuracy": 100.0,
+      "should_trigger_hits": "4/4",
+      "false_positives": 0
+    },
+    "blueprint:spec": {
+      "passed": 10,
+      "total": 10,
+      "accuracy": 100.0,
+      "should_trigger_hits": "6/6",
+      "false_positives": 0
+    },
+    "blueprint:tdd": {
+      "passed": 10,
+      "total": 10,
+      "accuracy": 100.0,
+      "should_trigger_hits": "4/4",
+      "false_positives": 0
+    }
+  }
+}

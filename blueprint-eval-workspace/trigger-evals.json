@@ -1,0 +1,124 @@
+{
+  "skills": [
+    {
+      "skill_name": "blueprint:spec",
+      "evals": [
+        {"query": "write a spec for adding OAuth2 to our API gateway — we need PKCE flow support and token refresh", "should_trigger": true},
+        {"query": "I need an RFC for migrating our postgres database from single-tenant to multi-tenant. it's a big change, lots of schema impact", "should_trigger": true},
+        {"query": "create an ADR documenting why we chose WebSocket over SSE for real-time notifications", "should_trigger": true},
+        {"query": "can you write a technical spec? we're adding a caching layer with Redis in front of our product catalog API", "should_trigger": true},
+        {"query": "I want a design doc for the new payment retry logic — should cover idempotency and failure scenarios", "should_trigger": true},
+        {"query": "write a feature spec for the coupon system, I need acceptance scenarios I can test against", "should_trigger": true},
+        {"query": "help me plan out the work for adding search to our app — I need to know what to build", "should_trigger": false, "expected_skill": "blueprint:plan or blueprint:tdd"},
+        {"query": "check my spec for testability issues — I wrote it yesterday and want a second opinion", "should_trigger": false, "expected_skill": "blueprint:review"},
+        {"query": "review the spec at specs/2603.0001_oauth.md and tell me if the acceptance scenarios are complete", "should_trigger": false, "expected_skill": "blueprint:review"},
+        {"query": "generate test cases from the spec we just wrote", "should_trigger": false, "expected_skill": "blueprint:plan"}
+      ]
+    },
+    {
+      "skill_name": "blueprint:plan",
+      "evals": [
+        {"query": "create a TDD plan from specs/2603.0002_caching.md — break it into streams with dependencies", "should_trigger": true},
+        {"query": "generate an execution graph for the payment retry feature, I want RED-GREEN-REFACTOR triplets", "should_trigger": true},
+        {"query": "break down the work in this spec into implementable tasks with test-first approach", "should_trigger": true},
+        {"query": "I have a spec for multi-tenant migration. can you create a plan with dependency tracking so I know what can parallelize?", "should_trigger": true},
+        {"query": "plan out the implementation for adding websocket support — here's the source code in src/api/", "should_trigger": true},
+        {"query": "I want to build a new feature end-to-end with TDD — let's start from scratch", "should_trigger": false, "expected_skill": "blueprint:tdd"},
+        {"query": "run the plan we just generated — start implementing the triplets", "should_trigger": false, "expected_skill": "blueprint:run"},
+        {"query": "check if the plan graph has any dependency cycles or missing test coverage", "should_trigger": false, "expected_skill": "blueprint:review"},
+        {"query": "try adding a caching layer real quick — just want to see if it works before committing to a full plan", "should_trigger": false, "expected_skill": "blueprint:proto"},
+        {"query": "write a spec for the notification system — I need acceptance scenarios before planning", "should_trigger": false, "expected_skill": "blueprint:spec"}
+      ]
+    },
+    {
+      "skill_name": "blueprint:run",
+      "evals": [
+        {"query": "run the plan at plans/2603.0002_caching_graph.md", "should_trigger": true},
+        {"query": "execute the TDD graph we just generated — start with Stream A", "should_trigger": true},
+        {"query": "start implementing the plan — unskip the tests and make them pass one by one", "should_trigger": true},
+        {"query": "implement the plan we approved, go through the RED-GREEN-REFACTOR cycle for each triplet", "should_trigger": true},
+        {"query": "let me implement this feature myself, I'll write the code from scratch", "should_trigger": false, "expected_skill": "none"},
+        {"query": "create a plan for implementing the auth feature", "should_trigger": false, "expected_skill": "blueprint:plan"},
+        {"query": "run the test suite and tell me what's failing", "should_trigger": false, "expected_skill": "none"},
+        {"query": "run pytest on the tests directory", "should_trigger": false, "expected_skill": "none"},
+        {"query": "try implementing a quick WebSocket prototype to see if the approach works", "should_trigger": false, "expected_skill": "blueprint:proto"},
+        {"query": "just run my script at scripts/deploy.sh", "should_trigger": false, "expected_skill": "none"}
+      ]
+    },
+    {
+      "skill_name": "blueprint:review",
+      "evals": [
+        {"query": "review the spec at specs/2603.0001_oauth.md — check if the acceptance scenarios are testable", "should_trigger": true},
+        {"query": "audit the plan graph for dependency issues and missing test coverage", "should_trigger": true},
+        {"query": "check the test suite in tests/test_payments.py for quality — score against Beck's desiderata", "should_trigger": true},
+        {"query": "review my implementation against the spec — did I miss anything?", "should_trigger": true},
+        {"query": "I just wrote some tests, can you check them for anti-patterns like excessive mocking?", "should_trigger": true},
+        {"query": "review this pull request and leave comments", "should_trigger": false, "expected_skill": "code-review:code-review"},
+        {"query": "write a spec for the new search feature", "should_trigger": false, "expected_skill": "blueprint:spec"},
+        {"query": "refactor the payment module to extract a service class", "should_trigger": false, "expected_skill": "blueprint:refactor"},
+        {"query": "create a plan from this spec with TDD triplets", "should_trigger": false, "expected_skill": "blueprint:plan"},
+        {"query": "review this restaurant on yelp for me", "should_trigger": false, "expected_skill": "none"}
+      ]
+    },
+    {
+      "skill_name": "blueprint:refactor",
+      "evals": [
+        {"query": "refactor the OrderController — extract the payment logic into a dedicated PaymentService", "should_trigger": true},
+        {"query": "inline the UserValidator back into the registration flow, the abstraction isn't worth it", "should_trigger": true},
+        {"query": "rename the 'process' method to something more descriptive across the notification module", "should_trigger": true},
+        {"query": "restructure src/api/ — move the route handlers into separate files by resource", "should_trigger": true},
+        {"query": "simplify the discount calculation logic, it has too many nested conditionals", "should_trigger": true},
+        {"query": "fix the bug where expired coupons are still being accepted", "should_trigger": false, "expected_skill": "none"},
+        {"query": "add a new endpoint for user profile updates", "should_trigger": false, "expected_skill": "none or blueprint:tdd"},
+        {"query": "review the refactored code and make sure I didn't break anything", "should_trigger": false, "expected_skill": "blueprint:review"},
+        {"query": "write tests for the payment module before I refactor it", "should_trigger": false, "expected_skill": "blueprint:plan"},
+        {"query": "commit the refactoring changes", "should_trigger": false, "expected_skill": "blueprint:commit"}
+      ]
+    },
+    {
+      "skill_name": "blueprint:commit",
+      "evals": [
+        {"query": "commit this — I just finished the OAuth feature", "should_trigger": true},
+        {"query": "write a commit message for the changes I just made", "should_trigger": true},
+        {"query": "help me prepare a good commit message, I refactored the payment module", "should_trigger": true},
+        {"query": "commit my changes with a proper conventional commit message", "should_trigger": true},
+        {"query": "git push to origin main", "should_trigger": false, "expected_skill": "none"},
+        {"query": "show me the git diff", "should_trigger": false, "expected_skill": "none"},
+        {"query": "create a pull request for this branch", "should_trigger": false, "expected_skill": "none"},
+        {"query": "squash the last 3 commits into one", "should_trigger": false, "expected_skill": "none"},
+        {"query": "undo my last commit", "should_trigger": false, "expected_skill": "none"},
+        {"query": "write a changelog entry for the release", "should_trigger": false, "expected_skill": "none"}
+      ]
+    },
+    {
+      "skill_name": "blueprint:tdd",
+      "evals": [
+        {"query": "let's build the notification system from scratch with TDD", "should_trigger": true},
+        {"query": "I want to add coupon validation to orders — full TDD workflow please", "should_trigger": true},
+        {"query": "start a new feature: user profile image upload. take me through the whole process", "should_trigger": true},
+        {"query": "I have a spec already at specs/2603.0003_search.md — start from step 2", "should_trigger": true},
+        {"query": "just create a plan for this, I don't need the full workflow", "should_trigger": false, "expected_skill": "blueprint:plan"},
+        {"query": "spike: try out elasticsearch vs meilisearch real quick", "should_trigger": false, "expected_skill": "blueprint:proto"},
+        {"query": "write a spec for the caching layer", "should_trigger": false, "expected_skill": "blueprint:spec"},
+        {"query": "run the plan we just approved", "should_trigger": false, "expected_skill": "blueprint:run"},
+        {"query": "refactor the auth middleware", "should_trigger": false, "expected_skill": "blueprint:refactor"},
+        {"query": "I want to prototype a quick WebSocket implementation to see if it's feasible", "should_trigger": false, "expected_skill": "blueprint:proto"}
+      ]
+    },
+    {
+      "skill_name": "blueprint:proto",
+      "evals": [
+        {"query": "spike: does Redis pub/sub work for our real-time notification use case?", "should_trigger": true},
+        {"query": "try implementing a WebSocket server real quick — I just want to see if the approach is viable", "should_trigger": true},
+        {"query": "let's experiment with using GraphQL instead of REST for the product API", "should_trigger": true},
+        {"query": "prototype a file upload feature — just the happy path, I want to see if the chunked upload approach works", "should_trigger": true},
+        {"query": "explore whether we can use SQLite instead of Postgres for the local dev environment", "should_trigger": true},
+        {"query": "build the notification system properly with TDD — full workflow", "should_trigger": false, "expected_skill": "blueprint:tdd"},
+        {"query": "create a plan with dependency tracking for the search feature", "should_trigger": false, "expected_skill": "blueprint:plan"},
+        {"query": "write a spec for the caching layer", "should_trigger": false, "expected_skill": "blueprint:spec"},
+        {"query": "implement the plan at plans/2603.0001_graph.md", "should_trigger": false, "expected_skill": "blueprint:run"},
+        {"query": "try to fix the flaky test in test_payments.py", "should_trigger": false, "expected_skill": "none"}
+      ]
+    }
+  ]
+}

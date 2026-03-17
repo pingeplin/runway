@@ -1,7 +1,7 @@
 {
   "name": "blueprint",
   "description": "Full-cycle TDD workflow: spec, plan, run, refactor, commit. Generates specs with testability review, execution graphs with TDD triplets and dependency tracking, and auto-verifies implementations. Grounded in Kent Beck's Test Desiderata and Canon TDD principles.",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "author": {
     "name": "@pingeplin"
   }

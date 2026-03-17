@@ -172,21 +172,38 @@ Show progress as execution proceeds:
 
 **Resumability:** If execution is interrupted (user stops, error escalation, etc.), the plan file's checkbox state records progress. When `/run` is invoked again on the same plan, it detects completed triplets and resumes from the first incomplete node.
 
-## Step 3 — Auto-Verification
+## Step 3 — Auto-Verification Loop
 
-After all triplets are executed, verify the implementation against the spec. This absorbs what was previously the `/post-verification` skill.
+After all triplets are executed, verify the implementation by reading and
+applying `../../references/review-impl.md` (Phases 1–4: Spec Cross-Check,
+Plan Cross-Check, Code Quality Flags, Summary). This is a fix loop — not
+a one-shot report. Fix what you can autonomously, stop when you need the
+human.
 
-1. **Locate the spec file** — follow the plan's spec link (in the plan header).
-2. **Read acceptance scenarios** (S1, S2, S3...) from the spec.
-3. **Cross-check each scenario against active tests:**
-   - Find a test that covers the scenario's behavior.
-   - Confirm the test is active (not skipped).
-   - Confirm the implementation satisfies the scenario.
-4. **Check for remaining issues:**
-   - Skipped tests that were not unskipped during execution.
-   - Acceptance scenarios with no test coverage.
-   - Implementation deviations from the spec.
-   - Reverted refactorings from Step 2.
+**Loop:**
+
+1. Apply the implementation review phases from `../../references/review-impl.md`
+   against the code you just wrote. Cross-check acceptance scenarios,
+   plan task completion, and code quality.
+2. For each gap, decide: **can I fix this without the human?**
+   - **Yes** — fix it. Write the missing test, implement the missing
+     behavior, unskip the forgotten test, remove the stub. Then re-run
+     verification.
+   - **No** — the gap involves ambiguous spec language, a design
+     trade-off, or a scope decision. Collect into the report.
+3. Repeat until no more autonomous fixes remain.
+
+**Examples of autonomous fixes:**
+- Acceptance scenario S5 has no test → write a test, implement minimal code, run suite
+- A test was left skipped by mistake → unskip it, verify it passes
+- Implementation returns `null` where spec says "return empty list" → fix the implementation
+- `TODO` or `NotImplementedError` stub left in code → implement it
+- Plan task marked incomplete but code exists → check off the task
+
+**Examples that need the human:**
+- Spec says "fast response" but doesn't define a threshold → ask
+- Implementation deviates from spec but both behaviors seem valid → ask which is correct
+- A scenario can't be tested without infrastructure the project doesn't have → ask how to proceed
 
 ### Lightweight Verification (< 5 scenarios)
 
@@ -194,9 +211,17 @@ After all triplets are executed, verify the implementation against the spec. Thi
 ## Verification: {feature}
 
 **Status:** {N}/{M} scenarios verified
-**Gaps:** {list or "none"}
-**Reverted refactorings:** {list or "none"}
-**Next:** /refactor or address gaps
+
+### Autonomous Fixes Applied
+- {e.g., "Added test for S3 (was missing coverage), implemented handler"}
+- {e.g., "Unskipped test_empty_input — was left skipped by mistake"}
+*(If none: "All scenarios verified on first pass.")*
+
+### Needs Human Input
+- {e.g., "S4 says 'respond quickly' — what's the threshold?"}
+*(If none: "No unresolved items.")*
+
+**Next:** /refactor or /commit
 ```
 
 ### Full Verification (5+ scenarios)
@@ -210,24 +235,20 @@ After all triplets are executed, verify the implementation against the spec. Thi
 
 | # | Scenario | Status | Test | Notes |
 |---|----------|--------|------|-------|
-| S1 | {summary} | Verified / Missing / Partial | {test name} | {evidence} |
+| S1 | {summary} | Verified / Fixed / Needs Input | {test name} | {evidence} |
 | S2 | ... | ... | ... | ... |
 
-### Skipped Tests
+### Autonomous Fixes Applied
 
-| Test | File | Reason |
-|------|------|--------|
-| {name} | {path} | {reason} |
+- {what the verification loop fixed — missing tests added, skipped tests unskipped, implementation corrected}
 
-*(If none: "All tests are active.")*
+*(If none: "All scenarios verified on first pass.")*
 
-### Implementation Deviations
+### Needs Human Input
 
-| Area | Spec Says | Implementation Does | Intentional? |
-|------|-----------|---------------------|--------------|
-| {area} | {spec} | {reality} | {Yes/No} |
+- {only unresolvable items — ambiguous spec, design trade-offs, scope decisions}
 
-*(If none: "Implementation matches spec.")*
+*(If none: "No unresolved items.")*
 
 ### Reverted Refactorings
 
@@ -240,18 +261,18 @@ After all triplets are executed, verify the implementation against the spec. Thi
 ### Summary
 
 - **Scenarios:** {N}/{M} verified
-- **Skipped tests:** {N} remaining
-- **Deviations:** {N} found
+- **Auto-fixed:** {N} gaps resolved autonomously
+- **Needs human:** {N} items
 - **Reverted refactorings:** {N}
 ```
 
 ## Escalation Policy
 
-After verification, determine next steps:
+After the verification loop stabilizes, determine next steps:
 
-- **All green, all scenarios verified** — suggest `/refactor` if there is cleanup direction remaining, or `/commit` if the code is clean.
-- **Minor gaps (1-2 partial scenarios)** — present gaps. Ask the user whether to fix them now or proceed to refactoring.
-- **Significant gaps (missing scenarios, multiple failures)** — recommend fixing gaps before refactoring. Do not suggest proceeding with known missing functionality.
+- **All green, all scenarios verified, no human input needed** — suggest `/refactor` if there is cleanup direction remaining, or `/commit` if the code is clean.
+- **All scenarios verified after autonomous fixes** — present what was fixed, then suggest `/refactor` or `/commit`.
+- **Unresolved items that need human input** — present the "Needs Human Input" list. Wait for the human to resolve before suggesting next steps.
 - **Test failure unresolved after 2 attempts** — already escalated during Step 2. Summarize unresolved items and wait for user guidance.
 
 ## Scaling

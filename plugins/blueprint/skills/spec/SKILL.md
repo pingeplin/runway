@@ -54,9 +54,32 @@ This ensures the spec uses real file paths, function names, and data shapes — 
 
 Use the template below. Omit sections that the Section Guide marks as skippable — do not include empty sections with placeholder text.
 
-### Step 3 — Self-Review
+### Step 3 — Self-Review Loop
 
-After writing the spec body, append the Self-Review section. Evaluate every requirement and acceptance scenario for testability using Beck's behavioral testing principles (see Self-Review section below).
+After writing the spec body, review it by reading and applying `../../references/review-spec.md` (Phases 1–5: Structural Completeness, Testability Analysis, Acceptance Scenario Audit, Ambiguity and Contradiction Detection, Summary). This is not a one-shot appendix — it is a fix loop.
+
+**Loop:**
+
+1. Apply the spec review phases from `../../references/review-spec.md` against the spec you just wrote.
+2. For each finding, decide: **can I fix this without new information from the human?**
+   - **Yes** — fix it in the spec body now. Rewrite the vague requirement, add the missing edge case, restructure the implementation-coupled scenario. Then re-run the review on the updated spec.
+   - **No** — the finding requires a decision, clarification, or domain knowledge only the human has. Collect it into the Self-Review section.
+3. Repeat until no more autonomous fixes remain.
+4. Present the spec with only the unresolvable findings in the Self-Review section.
+
+**Examples of autonomous fixes (do not ask the human):**
+- "Handles errors gracefully" → rewrite to "Returns 400 with a JSON body containing field-level validation errors"
+- Missing edge case for empty input → add an acceptance scenario
+- Requirement describes HOW not WHAT → rewrite as behavioral: "Users see updated totals within 1 second" instead of "Use WebSocket to push updates"
+- Ambiguous language ("should", "might", "ideally") → commit to specific behavior
+
+**Examples of findings that need the human (stop and ask):**
+- Contradictory business rules that could go either way
+- Scope decisions ("should this also handle X?")
+- Domain-specific behavior the codebase doesn't clarify ("are expired coupons soft-deleted or hard-deleted?")
+- Security/compliance trade-offs with no obvious default
+
+When the loop stops, the Self-Review section should contain **only** items that need human input — not a laundry list of problems you could have fixed yourself.
 
 ## Template
 
@@ -168,39 +191,30 @@ After writing the spec body, append the Self-Review section. Evaluate every requ
 
 ## Self-Review
 
-### Testability Assessment
+### Autonomous Fixes Applied
 
-#### Fully Testable Requirements
-- [Requirement]: can be verified via [approach]
+{List what the self-review loop fixed. Brief — just enough for the human to see what changed.}
 
-#### Needs Clarification (vague or ambiguous)
-- [Requirement]: unclear because [reason]. Suggest: [specific question]
+- {e.g., "Rewrote S3 from implementation-coupled ('uses Redis cache') to behavioral ('responds within 50ms for repeated queries')"}
+- {e.g., "Added S7 for empty input edge case (was missing)"}
+- {e.g., "Removed hedge word 'should' in Proposed Solution — committed to specific behavior"}
 
-#### Implementation-Coupled (rewrite needed)
-- [Requirement]: describes HOW not WHAT. Suggest rewriting as: [behavioral version]
+*(If no fixes were needed: "All requirements were testable as written.")*
 
-#### Untestable (missing interface)
-- [Requirement]: cannot be verified without accessing internals. Consider: [interface suggestion]
+### Needs Human Input
 
-### Ambiguity Flags
+{Only items you could NOT resolve autonomously. Each item is a question, not a statement.}
 
-{Flag uses of: "should", "might", "ideally", "as appropriate", "etc.", "handles gracefully", or other hedge words that create undefined behavior.}
+- {e.g., "S4 says expired coupons are 'rejected' — does that mean return an error, or silently ignore? This affects whether we need an error scenario."}
+- {e.g., "Sections 'Proposed Solution' and 'Migration' imply different ordering for the schema change. Which takes priority?"}
 
-### Missing Edge Cases
-
-{List edge cases NOT covered by the acceptance scenarios that probably need coverage: empty/null inputs, boundary values, concurrency, permissions, timeouts, unicode/special characters.}
-
-### Contradictions
-
-{Any two sections that imply different behavior for the same scenario, or implicit requirements never explicitly stated.}
+*(If none: "No unresolved items. Ready for /plan.")*
 
 ### Verdict
 
 **Overall testability:** {High / Medium / Low}
 
-**Ready for /plan:** {Yes / No}
-
-{If No, list what must be fixed before proceeding.}
+**Ready for /plan:** {Yes / Yes, after resolving the above}
 ```
 
 ## Section Guide
@@ -222,35 +236,7 @@ After writing the spec body, append the Self-Review section. Evaluate every requ
 
 ## Self-Review Guidelines
 
-The Self-Review section is not optional. It replaces the old separate `/design-doc-reviewer` step. When writing it, apply these checks:
-
-**For each requirement in the spec, ask:**
-
-1. **Is it behavioral?** Does it describe WHAT the system does (observable output/state change), not HOW it works (implementation detail)?
-   - Good: "Returns a 404 when the resource doesn't exist"
-   - Bad: "Uses a HashMap for O(1) lookup"
-
-2. **Is it specific enough to write a test?** Can you derive a Given/When/Then scenario from it?
-   - Good: "Expired coupons are rejected with a validation error"
-   - Bad: "Handles errors gracefully"
-
-3. **Is it structure-insensitive?** Can you verify it without knowing the internal architecture?
-   - Good: "Search returns results ranked by relevance"
-   - Bad: "The cache is invalidated when data changes"
-
-**For the acceptance scenarios, check:**
-
-- Every behavior in Proposed Solution maps to at least one scenario — flag behaviors without scenarios
-- No scenario asserts implementation details (method calls, internal state, call order)
-- Common edge cases are covered: empty/null inputs, boundary values (0, 1, max), concurrent operations, permission boundaries, timeout/failure modes, unicode/special characters
-- No redundant scenarios testing the same behavior with trivially different inputs
-
-**For the prose, scan for:**
-
-- Ambiguous language: "should", "might", "ideally", "as appropriate", "etc."
-- Contradictions between sections
-- Implicit requirements (behaviors implied but never stated, e.g., creation described but duplicate creation unaddressed)
-- Missing error handling (happy path described but failure modes absent)
+The full review methodology is in `../../references/review-spec.md`. Read that file and apply its five phases during the self-review loop. The Self-Review section in the output captures only what you could NOT fix autonomously — everything else should already be fixed in the spec body.
 
 ## General Guidelines
 

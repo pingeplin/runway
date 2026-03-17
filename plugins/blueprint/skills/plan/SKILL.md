@@ -383,85 +383,59 @@ score `fail` on either must be rewritten before finalizing the plan.
 
 ---
 
-### Phase 5 — Plan Self-Review
+### Phase 5 — Plan Self-Review Loop
 
-Before presenting the plan to the user, validate the graph and auto-fix
-what you can. This phase is the plan's quality gate — it catches issues
-that would cause `/run` to fail or produce incomplete results.
+Before presenting the plan to the user, validate the graph by reading
+and applying `../../references/review-plan.md` (Phases 1–6: Dependency
+Graph Validation, Triplet Completeness, Scenario Coverage, Stream
+Independence, RED Node Quality, Plan Summary). This is a loop — keep
+iterating until only human-dependent issues remain.
 
-**Run these checks in order:**
+**Loop:** Run the plan review checks → fix what you can autonomously →
+re-run checks → repeat until stable. Stop when remaining issues need
+human input.
 
-#### 5a. Scenario Coverage
+**Autonomous fixes (do not ask the human):**
 
-Map every acceptance scenario ID from the spec (S1, S2, S3...) to at
-least one RED node in the graph. If a scenario has no corresponding RED
-node, **generate the missing triplet** and insert it into the
-appropriate stream.
+- Missing scenario coverage → generate the missing triplet and insert
+  into the appropriate stream
+- Dependency cycle → restructure dependencies to break the cycle
+- Orphaned node reference → fix the dependency pointer
+- Missing GREEN node after a RED → add it with inferred target
+- Wrong TDD ordering (edge case before happy path) → reorder within
+  stream, preserving cross-stream dependencies
+- RED node with implementation-coupled test → rewrite as behavioral
 
-```
-Coverage check:
-  S1 → A1 ✅
-  S2 → A4 ✅
-  S3 → (none) ❌ — generating triplet B4/B5/B6
-  S4 → C1 ✅
-```
+**Findings that need the human (stop and ask):**
 
-#### 5b. Dependency Validity
-
-Verify the dependency graph is executable:
-
-- **No cycles** — if A depends on B and B depends on A, restructure.
-- **No orphaned references** — every `Depends: X` must reference a node
-  that exists in the graph.
-- **No missing GREEN nodes** — every RED node must have a corresponding
-  GREEN node immediately after it.
-
-Auto-fix: restructure dependencies to break cycles; add missing GREEN
-nodes with inferred implementation targets.
-
-#### 5c. Stream Balance
-
-Check for imbalanced streams that hurt parallelism:
-
-- **Overloaded stream** (10+ triplets) — suggest splitting into
-  sub-streams. Ask the user where to split.
-- **Trivial stream** (1 triplet) — consider merging into a related
-  stream to reduce coordination overhead.
-
-This check suggests rather than auto-fixes — stream boundaries are a
-design decision.
-
-#### 5d. Ordering Sanity
-
-Within each stream, verify TDD ordering discipline:
-
-- Degenerate cases come before happy paths
-- Happy paths come before edge cases
-- Edge cases come before error handling
-- Each step builds on the previous one
-
-Auto-fix: reorder triplets within a stream if the ordering violates
-these principles. Preserve cross-stream dependencies.
-
-#### 5e. File Conflict Detection
-
-Check whether parallel streams target the same production files:
-
-- Extract all `**Target:**` paths from GREEN nodes
-- If two independent streams write to the same file, parallel execution
-  risks merge conflicts
-
-If conflicts are found, present options to the user:
-1. Merge the conflicting streams into one (sequential safety)
-2. Sequence the conflicting triplets (partial parallelism)
-3. Proceed anyway (the developer will handle conflicts manually)
+- Stream balance decisions (where to split an overloaded stream, whether
+  to merge a trivial stream)
+- File conflict resolution (merge streams, sequence triplets, or proceed
+  with risk)
+- Ambiguous scenario mapping (a spec scenario could map to multiple
+  streams)
 
 #### Self-Review Output
 
-Append a summary to the plan before presenting it:
+After the loop stabilizes, append a summary to the plan:
 
 ```markdown
 ## Self-Review
+
+### Autonomous Fixes Applied
+
+- {e.g., "Generated triplets C4/C5/C6 for missing scenario S3"}
+- {e.g., "Reordered Stream B — moved edge case B7 after happy path B4"}
+- {e.g., "Broke dependency cycle between A4 and B2 by restructuring B2 to depend on A2 instead"}
+
+*(If none: "All checks passed on first review.")*
+
+### Needs Human Input
+
+- {e.g., "Streams A and C both target `src/models/order.py` — merge into one stream (safe) or keep parallel (faster but risk conflicts)?"}
+- {e.g., "Stream D has 12 triplets — suggest splitting at D7 (after core validation). Where do you want the split?"}
+
+*(If none: "No unresolved items. Ready for /run.")*
 
 | Check | Status | Action |
 |-------|--------|--------|
@@ -472,8 +446,8 @@ Append a summary to the plan before presenting it:
 | File conflicts | {pass/warning} | {conflict details or "no conflicts"} |
 ```
 
-If any check required user input (stream balance, file conflicts), ask
-before finalizing. Otherwise, present the validated plan directly.
+Present the validated plan. If "Needs Human Input" has items, ask the
+human to resolve them before proceeding to `/run`.
 
 ---
 
@@ -535,6 +509,12 @@ C1 ─> C2 ─> C3 ───┘
 {desiderata table}
 
 ## Self-Review
+
+### Autonomous Fixes Applied
+- {what the loop fixed, or "All checks passed on first review."}
+
+### Needs Human Input
+- {unresolved items, or "No unresolved items. Ready for /run."}
 
 | Check | Status | Action |
 |-------|--------|--------|
