@@ -204,53 +204,34 @@ Show progress as execution proceeds:
 
 **Resumability:** If execution is interrupted (user stops, error escalation, etc.), the plan file's checkbox state records progress. When `/run` is invoked again on the same plan, it detects completed triplets and resumes from the first incomplete node.
 
-## Step 3 — Auto-Verification Loop
+## Step 3 — Verification
 
-After all triplets are executed, verify the implementation by reading and
-applying `../../references/review-impl.md` (Phases 1–4: Spec Cross-Check,
-Plan Cross-Check, Code Quality Flags, Summary). This is a fix loop — not
-a one-shot report. Fix what you can autonomously, stop when you need the
-human.
+After all triplets are executed, verify the implementation with two objective checks. The agent that wrote the code does not review its own quality — verification is limited to factual, pass/fail signals.
 
-**Loop:**
+**Checks:**
 
-1. Apply the implementation review phases from `../../references/review-impl.md`
-   against the code you just wrote. Cross-check acceptance scenarios,
-   plan task completion, and code quality.
-2. For each gap, decide: **can I fix this without the human?**
-   - **Yes** — fix it. Write the missing test, implement the missing
-     behavior, unskip the forgotten test, remove the stub. Then re-run
-     verification.
-   - **No** — the gap involves ambiguous spec language, a design
-     trade-off, or a scope decision. Collect into the report.
-3. Repeat until no more autonomous fixes remain.
+1. **Run the full test suite** — this is the honest signal. Report pass/fail with a count of passing and failing tests.
+2. **Cross-check scenario coverage** — read the spec's acceptance scenarios (S1, S2, S3...) and map each one to a test. This is a factual check: does a test exist for each scenario? Report which scenarios have tests and which don't.
 
-**Examples of autonomous fixes:**
-- Acceptance scenario S5 has no test → write a test, implement minimal code, run suite
-- A test was left skipped by mistake → unskip it, verify it passes
-- Implementation returns `null` where spec says "return empty list" → fix the implementation
-- `TODO` or `NotImplementedError` stub left in code → implement it
-- Plan task marked incomplete but code exists → check off the task
-
-**Examples that need the human:**
-- Spec says "fast response" but doesn't define a threshold → ask
-- Implementation deviates from spec but both behaviors seem valid → ask which is correct
-- A scenario can't be tested without infrastructure the project doesn't have → ask how to proceed
+**Do NOT self-fix.** If tests fail or scenarios are uncovered, report them to the human. The agent that wrote the code should not also be the one evaluating and patching it — that is the self-evaluation trap.
 
 ### Lightweight Verification (< 5 scenarios)
 
 ```markdown
 ## Verification: {feature}
 
-**Status:** {N}/{M} scenarios verified
+**Test Suite:** {pass_count} passing, {fail_count} failing
 
-### Autonomous Fixes Applied
-- {e.g., "Added test for S3 (was missing coverage), implemented handler"}
-- {e.g., "Unskipped test_empty_input — was left skipped by mistake"}
-*(If none: "All scenarios verified on first pass.")*
+### Scenario Coverage
+
+- S1 {summary} — covered by {test_name}
+- S2 {summary} — covered by {test_name}
+- S3 {summary} — **NOT COVERED**
+*(List every acceptance scenario with its coverage status.)*
 
 ### Needs Human Input
-- {e.g., "S4 says 'respond quickly' — what's the threshold?"}
+- {e.g., "S3 has no test — should I add one, or is it out of scope?"}
+- {e.g., "2 tests failing — see errors above. Need guidance."}
 *(If none: "No unresolved items.")*
 
 **Next:** /refactor or /commit
@@ -263,22 +244,23 @@ human.
 
 **Spec:** {path} | **Plan:** {path} | **Date:** {YYYY-MM-DD}
 
-### Acceptance Scenarios
+### Test Suite Results
 
-| # | Scenario | Status | Test | Notes |
-|---|----------|--------|------|-------|
-| S1 | {summary} | Verified / Fixed / Needs Input | {test name} | {evidence} |
-| S2 | ... | ... | ... | ... |
+- **Passing:** {N}
+- **Failing:** {N}
+- **Skipped:** {N}
 
-### Autonomous Fixes Applied
+### Scenario Coverage
 
-- {what the verification loop fixed — missing tests added, skipped tests unskipped, implementation corrected}
-
-*(If none: "All scenarios verified on first pass.")*
+| # | Scenario | Covered? | Test | Notes |
+|---|----------|----------|------|-------|
+| S1 | {summary} | Yes | {test name} | |
+| S2 | {summary} | No | — | No test exists |
+| S3 | ... | ... | ... | ... |
 
 ### Needs Human Input
 
-- {only unresolvable items — ambiguous spec, design trade-offs, scope decisions}
+- {uncovered scenarios, failing tests, ambiguous spec items}
 
 *(If none: "No unresolved items.")*
 
@@ -292,20 +274,20 @@ human.
 
 ### Summary
 
-- **Scenarios:** {N}/{M} verified
-- **Auto-fixed:** {N} gaps resolved autonomously
+- **Test suite:** {pass_count} passing, {fail_count} failing
+- **Scenario coverage:** {covered}/{total} scenarios have tests
 - **Needs human:** {N} items
 - **Reverted refactorings:** {N}
 ```
 
 ## Escalation Policy
 
-After the verification loop stabilizes, determine next steps:
+Based on the verification results, determine next steps:
 
-- **All green, all scenarios verified, no human input needed** — suggest `/refactor` if there is cleanup direction remaining, or `/commit` if the code is clean.
-- **All scenarios verified after autonomous fixes** — present what was fixed, then suggest `/refactor` or `/commit`.
-- **Unresolved items that need human input** — present the "Needs Human Input" list. Wait for the human to resolve before suggesting next steps.
-- **Test failure unresolved after 2 attempts** — already escalated during Step 2. Summarize unresolved items and wait for user guidance.
+- **All tests pass, all scenarios covered** — suggest `/refactor` if there is cleanup direction remaining, or `/commit` if the code is clean.
+- **All tests pass, but some scenarios lack test coverage** — present the uncovered scenarios to the human. Wait for the human to decide whether to add tests or proceed.
+- **Tests failing** — present the failures to the human. Wait for guidance before suggesting next steps.
+- **Test failure unresolved after 2 attempts during Step 2** — already escalated during Step 2. Summarize unresolved items and wait for user guidance.
 
 ## Scaling
 
