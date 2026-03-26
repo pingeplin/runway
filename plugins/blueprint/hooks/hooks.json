@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PLUGIN_DIR\"/hooks/post-skill-review.sh",
+            "timeout": 10,
+            "statusMessage": "Review gate..."
+          }
+        ]
+      }
+    ]
+  }
+}
