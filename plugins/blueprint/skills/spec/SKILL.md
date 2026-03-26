@@ -6,7 +6,7 @@ argument-hint: [feature-name] [optional-description]
 
 # Spec
 
-Write a technical spec and self-review it for testability in a single pass. Specs capture the *why* and *how* of a feature or system change before implementation begins, with structured acceptance scenarios that feed directly into `/plan`.
+Write a technical spec with structured acceptance scenarios. Specs capture the *why* and *how* of a feature or system change before implementation begins, with acceptance scenarios that feed directly into `/plan`. Testability review is handled by an independent evaluator hook after the spec is written.
 
 ## ID System
 
@@ -53,33 +53,6 @@ This ensures the spec uses real file paths, function names, and data shapes — 
 ### Step 2 — Write the Spec
 
 Use the template below. Omit sections that the Section Guide marks as skippable — do not include empty sections with placeholder text.
-
-### Step 3 — Self-Review Loop
-
-After writing the spec body, review it by reading and applying `../../references/review-spec.md` (Phases 1–5: Structural Completeness, Testability Analysis, Acceptance Scenario Audit, Ambiguity and Contradiction Detection, Summary). This is not a one-shot appendix — it is a fix loop.
-
-**Loop:**
-
-1. Apply the spec review phases from `../../references/review-spec.md` against the spec you just wrote.
-2. For each finding, decide: **can I fix this without new information from the human?**
-   - **Yes** — fix it in the spec body now. Rewrite the vague requirement, add the missing edge case, restructure the implementation-coupled scenario. Then re-run the review on the updated spec.
-   - **No** — the finding requires a decision, clarification, or domain knowledge only the human has. Collect it into the Self-Review section.
-3. Repeat until no more autonomous fixes remain.
-4. Present the spec with only the unresolvable findings in the Self-Review section.
-
-**Examples of autonomous fixes (do not ask the human):**
-- "Handles errors gracefully" → rewrite to "Returns 400 with a JSON body containing field-level validation errors"
-- Missing edge case for empty input → add an acceptance scenario
-- Requirement describes HOW not WHAT → rewrite as behavioral: "Users see updated totals within 1 second" instead of "Use WebSocket to push updates"
-- Ambiguous language ("should", "might", "ideally") → commit to specific behavior
-
-**Examples of findings that need the human (stop and ask):**
-- Contradictory business rules that could go either way
-- Scope decisions ("should this also handle X?")
-- Domain-specific behavior the codebase doesn't clarify ("are expired coupons soft-deleted or hard-deleted?")
-- Security/compliance trade-offs with no obvious default
-
-When the loop stops, the Self-Review section should contain **only** items that need human input — not a laundry list of problems you could have fixed yourself.
 
 ## Template
 
@@ -189,32 +162,6 @@ When the loop stops, the Self-Review section should contain **only** items that 
 - {Link or reference 1}
 - {Link or reference 2}
 
-## Self-Review
-
-### Autonomous Fixes Applied
-
-{List what the self-review loop fixed. Brief — just enough for the human to see what changed.}
-
-- {e.g., "Rewrote S3 from implementation-coupled ('uses Redis cache') to behavioral ('responds within 50ms for repeated queries')"}
-- {e.g., "Added S7 for empty input edge case (was missing)"}
-- {e.g., "Removed hedge word 'should' in Proposed Solution — committed to specific behavior"}
-
-*(If no fixes were needed: "All requirements were testable as written.")*
-
-### Needs Human Input
-
-{Only items you could NOT resolve autonomously. Each item is a question, not a statement.}
-
-- {e.g., "S4 says expired coupons are 'rejected' — does that mean return an error, or silently ignore? This affects whether we need an error scenario."}
-- {e.g., "Sections 'Proposed Solution' and 'Migration' imply different ordering for the schema change. Which takes priority?"}
-
-*(If none: "No unresolved items. Ready for /plan.")*
-
-### Verdict
-
-**Overall testability:** {High / Medium / Low}
-
-**Ready for /plan:** {Yes / Yes, after resolving the above}
 ```
 
 ## Section Guide
@@ -232,11 +179,6 @@ When the loop stops, the Self-Review section should contain **only** items that 
 | Security Considerations | Threat surface | No auth, data exposure, or compliance impact |
 | Open Questions | Track unknowns | All questions resolved |
 | References | Link related material | No related material |
-| Self-Review | Testability gate | Never — always include |
-
-## Self-Review Guidelines
-
-The full review methodology is in `../../references/review-spec.md`. Read that file and apply its five phases during the self-review loop. The Self-Review section in the output captures only what you could NOT fix autonomously — everything else should already be fixed in the spec body.
 
 ## General Guidelines
 

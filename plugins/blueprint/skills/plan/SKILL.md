@@ -344,74 +344,6 @@ Each step should drive exactly one design decision forward.
 
 ---
 
-### Phase 4 — Plan Self-Review Loop
-
-Before presenting the plan to the user, validate the graph by reading
-and applying `../../references/review-plan.md` (Phases 1–6: Dependency
-Graph Validation, Triplet Completeness, Scenario Coverage, Stream
-Independence, RED Node Quality, Plan Summary). This is a loop — keep
-iterating until only human-dependent issues remain.
-
-**Loop:** Run the plan review checks → fix what you can autonomously →
-re-run checks → repeat until stable. Stop when remaining issues need
-human input.
-
-**Autonomous fixes (do not ask the human):**
-
-- Missing scenario coverage → generate the missing triplet and insert
-  into the appropriate stream
-- Dependency cycle → restructure dependencies to break the cycle
-- Orphaned node reference → fix the dependency pointer
-- Missing GREEN node after a RED → add it with inferred outcome
-- Wrong TDD ordering (edge case before happy path) → reorder within
-  stream, preserving cross-stream dependencies
-- RED node with implementation-coupled description → rewrite as behavioral
-
-**Findings that need the human (stop and ask):**
-
-- Stream balance decisions (where to split an overloaded stream, whether
-  to merge a trivial stream)
-- Module conflict risk (parallel streams likely to touch the same area
-  of the codebase — merge streams, sequence triplets, or accept risk?)
-- Ambiguous scenario mapping (a spec scenario could map to multiple
-  streams)
-
-#### Self-Review Output
-
-After the loop stabilizes, append a summary to the plan:
-
-```markdown
-## Self-Review
-
-### Autonomous Fixes Applied
-
-- {e.g., "Generated triplets C4/C5/C6 for missing scenario S3"}
-- {e.g., "Reordered Stream B — moved edge case B7 after happy path B4"}
-- {e.g., "Broke dependency cycle between A4 and B2 by restructuring B2 to depend on A2 instead"}
-
-*(If none: "All checks passed on first review.")*
-
-### Needs Human Input
-
-- {e.g., "Streams A and C both target `src/models/order.py` — merge into one stream (safe) or keep parallel (faster but risk conflicts)?"}
-- {e.g., "Stream D has 12 triplets — suggest splitting at D7 (after core validation). Where do you want the split?"}
-
-*(If none: "No unresolved items. Ready for /run.")*
-
-| Check | Status | Action |
-|-------|--------|--------|
-| Scenario coverage | {N}/{M} covered | {auto-generated N missing triplets / "all covered"} |
-| Dependency validity | {pass/fixed} | {what was fixed or "no issues"} |
-| Stream balance | {pass/warning} | {suggestion or "balanced"} |
-| Ordering sanity | {pass/fixed} | {what was reordered or "correct"} |
-| File conflicts | {pass/warning} | {conflict details or "no conflicts"} |
-```
-
-Present the validated plan. If "Needs Human Input" has items, ask the
-human to resolve them before proceeding to `/run`.
-
----
-
 ## Output Format
 
 The final artifact combines all phases into a single document. Use this
@@ -461,22 +393,6 @@ C1 ─> C2 ─> C3 ───┘
 ## Stream B: {Stream Name}
 
 ...
-
-## Self-Review
-
-### Autonomous Fixes Applied
-- {what the loop fixed, or "All checks passed on first review."}
-
-### Needs Human Input
-- {unresolved items, or "No unresolved items. Ready for /run."}
-
-| Check | Status | Action |
-|-------|--------|--------|
-| Scenario coverage | {N}/{M} | {details} |
-| Dependency validity | {pass/fixed} | {details} |
-| Stream balance | {pass/warning} | {details} |
-| Ordering sanity | {pass/fixed} | {details} |
-| File conflicts | {pass/warning} | {details} |
 
 ## Design Feedback
 
