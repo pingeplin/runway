@@ -4,3 +4,6 @@ node_modules/
 
 # Eval workspace (local eval artifacts)
 blueprint-eval-workspace/
+
+# Local Claude Code config (hooks, logs)
+.claude/
