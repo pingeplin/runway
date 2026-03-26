@@ -6,7 +6,9 @@ argument-hint: [feature-name] [optional-description]
 
 # Spec
 
-Write a technical spec with structured acceptance scenarios. Specs capture the *why* and *how* of a feature or system change before implementation begins, with acceptance scenarios that feed directly into `/plan`. Testability review is handled by an independent evaluator hook after the spec is written.
+Write a technical spec with structured acceptance scenarios. Specs capture the *why* and *how* of a feature or system change before implementation begins, with acceptance scenarios that feed directly into `/plan`.
+
+After the spec is written, an independent evaluator hook fires automatically. The evaluator — a fresh agent with no sunk-cost bias — reviews the spec for testability, fixes what it can directly in the file, and surfaces only items needing human input.
 
 ## ID System
 

@@ -69,7 +69,7 @@ For large test suites or multi-file reviews: ask the user to scope to specific f
 
 **1. Shared methodology** — The review reference files (`references/review-*.md`) are the single source of truth for review logic. The independent evaluator hooks (defined in `hooks/hooks.json`) and this standalone skill both read the same files. Update a reference file once, all consumers benefit.
 
-**2. Independent evaluator hooks** — After `/spec`, `/plan`, and `/run` complete, an agent hook automatically spawns a fresh evaluator that applies the relevant review methodology. This follows Anthropic's harness design principle: separate the generator from the evaluator. The hook evaluator produces a report without modifying the artifact.
+**2. Independent evaluator hooks** — After `/spec`, `/plan`, and `/run` complete, an agent hook automatically spawns a fresh evaluator that applies the relevant review methodology. This follows Anthropic's harness design principle: separate the generator from the evaluator. For `/spec` and `/plan`, the evaluator runs a fix loop — it edits the artifact directly to fix autonomous issues and only surfaces items needing human input. For `/run`, the evaluator runs /simplify, the test suite, scenario coverage checks, and desiderata scoring.
 
 **3. Standalone quality gate** — `/review` can also be invoked directly at any point for an on-demand audit:
 
@@ -87,7 +87,7 @@ The main workflow chain:
   └── independent evaluator hooks fire automatically after each skill
 ```
 
-The difference: evaluator hooks fire automatically via the harness and use a fresh agent context (no sunk-cost bias). Standalone `/review` is invoked manually for on-demand audits. Both produce reports without modifying artifacts.
+The difference: evaluator hooks fire automatically via the harness and use a fresh agent context (no sunk-cost bias). For spec/plan, evaluators fix what they can and only ask the human about what they can't. Standalone `/review` is invoked manually for on-demand audits and produces a read-only report.
 
 ## General Guidelines
 
