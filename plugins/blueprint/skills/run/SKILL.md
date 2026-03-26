@@ -1,12 +1,12 @@
 ---
 name: run
-description: Execute a plan's TDD execution graph — walk RED/GREEN/REFACTOR triplets in dependency order, writing tests and implementation code guided by the plan's behavioral descriptions, then auto-verify against the spec when complete. ALWAYS use this skill when the user wants to run a plan, execute a plan, start implementing from a plan, implement the plan, begin the TDD cycle, execute the graph, or says anything like "let's start building" when a plan graph file exists. Also trigger when the user references a plans/*_graph.md file and wants to begin implementation.
+description: Execute a plan's TDD execution graph — walk RED/GREEN/REFACTOR triplets in dependency order, writing tests and implementation code guided by the plan's behavioral descriptions. Verification is handled by an independent evaluator hook after completion. ALWAYS use this skill when the user wants to run a plan, execute a plan, start implementing from a plan, implement the plan, begin the TDD cycle, execute the graph, or says anything like "let's start building" when a plan graph file exists. Also trigger when the user references a plans/*_graph.md file and wants to begin implementation.
 argument-hint: [path-to-plan-graph-file]
 ---
 
 # Run
 
-Execute a plan graph by walking its TDD triplets in dependency order, enforcing RED-GREEN-REFACTOR discipline at every step, and auto-verifying against the spec when complete.
+Execute a plan graph by walking its TDD triplets in dependency order, enforcing RED-GREEN-REFACTOR discipline at every step. Verification is handled by an independent evaluator hook — `/run` is a pure builder.
 
 ## When to Use
 
@@ -204,129 +204,30 @@ Show progress as execution proceeds:
 
 **Resumability:** If execution is interrupted (user stops, error escalation, etc.), the plan file's checkbox state records progress. When `/run` is invoked again on the same plan, it detects completed triplets and resumes from the first incomplete node.
 
-## Step 3 — Verification
+## Post-Run Evaluation (Hook-Driven)
 
-After all triplets are executed, verify the implementation with three objective checks. Verification is limited to factual, pass/fail signals and rubric-based scoring.
+After all triplets are executed, `/run` is done — it is a pure builder.
 
-**Checks:**
+Verification is owned by the **post-run evaluation hook** (defined in
+`hooks/hooks.json`). The hook spawns an independent evaluator agent that
+runs automatically after `/run` completes. The evaluator performs:
 
-1. **Run the full test suite** — this is the honest signal. Report pass/fail with a count of passing and failing tests.
-2. **Cross-check scenario coverage** — read the spec's acceptance scenarios (S1, S2, S3...) and map each one to a test. This is a factual check: does a test exist for each scenario? Report which scenarios have tests and which don't.
-3. **Desiderata Review** — score every test written during this run against Kent Beck's Test Desiderata (`../../references/test-desiderata.md`). Read that file now. This is a rubric-based quality check on the actual test code, not a subjective review.
+1. **`/simplify`** — review changed code for reuse, quality, efficiency
+2. **Test suite** — run all tests, report pass/fail counts
+3. **Scenario coverage** — map spec acceptance scenarios to tests
+4. **Desiderata Review** — score tests against Kent Beck's Test Desiderata
 
-   For each test, score the priority properties:
+The evaluator is a separate agent with fresh context — it does not share
+the builder's sunk-cost bias. This follows Anthropic's harness design
+principle: separate the generator from the evaluator.
 
-   | Property | What to check |
-   |----------|--------------|
-   | **Behavioral** | Does it test observable behavior, not internals? |
-   | **Structure-insensitive** | Would it survive a refactoring that preserves behavior? |
-   | **Deterministic** | No flaky sources (time, random, network)? |
-   | **Specific** | Does a failure point to exactly what broke? |
-   | **Readable** | Can a reader understand the scenario without jumping to other code? |
-
-   Flag any test scoring `warn` on Behavioral or Structure-insensitive — these are the two properties Beck emphasizes most. A `fail` on either means the test should be rewritten.
-
-   Also check against `../../references/anti-patterns.md` for common mistakes (AP-1 through AP-8).
-
-**Do NOT self-fix.** If tests fail, scenarios are uncovered, or Desiderata flags are raised, report them to the human. The agent that wrote the code should not also be the one evaluating and patching it — that is the self-evaluation trap.
-
-### Lightweight Verification (< 5 scenarios)
-
-```markdown
-## Verification: {feature}
-
-**Test Suite:** {pass_count} passing, {fail_count} failing
-
-### Scenario Coverage
-
-- S1 {summary} — covered by {test_name}
-- S2 {summary} — covered by {test_name}
-- S3 {summary} — **NOT COVERED**
-*(List every acceptance scenario with its coverage status.)*
-
-### Desiderata Review
-
-| Test | Behavioral | Struct-Insensitive | Deterministic | Specific | Readable | Notes |
-|------|:----------:|:------------------:|:-------------:|:--------:|:--------:|-------|
-| {test_name} | pass | pass | pass | pass | pass | — |
-
-*(Flag any warn/fail on Behavioral or Structure-insensitive.)*
-
-### Needs Human Input
-- {e.g., "S3 has no test — should I add one, or is it out of scope?"}
-- {e.g., "2 tests failing — see errors above. Need guidance."}
-- {e.g., "test_X scores warn on Structure-insensitive — mocks internal method. Rewrite?"}
-*(If none: "No unresolved items.")*
-
-**Next:** /refactor or /commit
-```
-
-### Full Verification (5+ scenarios)
-
-```markdown
-## Verification Report: {feature}
-
-**Spec:** {path} | **Plan:** {path} | **Date:** {YYYY-MM-DD}
-
-### Test Suite Results
-
-- **Passing:** {N}
-- **Failing:** {N}
-- **Skipped:** {N}
-
-### Scenario Coverage
-
-| # | Scenario | Covered? | Test | Notes |
-|---|----------|----------|------|-------|
-| S1 | {summary} | Yes | {test name} | |
-| S2 | {summary} | No | — | No test exists |
-| S3 | ... | ... | ... | ... |
-
-### Desiderata Review
-
-| Test | Behavioral | Struct-Insensitive | Deterministic | Specific | Readable | Notes |
-|------|:----------:|:------------------:|:-------------:|:--------:|:--------:|-------|
-| {test_name} | pass | pass | pass | pass | pass | — |
-| {test_name} | pass | warn | pass | pass | pass | Mocks internal method |
-
-*(Flag any warn/fail on Behavioral or Structure-insensitive.)*
-
-### Needs Human Input
-
-- {uncovered scenarios, failing tests, ambiguous spec items, Desiderata flags}
-
-*(If none: "No unresolved items.")*
-
-### Reverted Refactorings
-
-| Node | Direction | Failure Reason |
-|------|-----------|----------------|
-| {id} | {direction} | {what broke} |
-
-*(If none: "All refactorings applied successfully.")*
-
-### Summary
-
-- **Test suite:** {pass_count} passing, {fail_count} failing
-- **Scenario coverage:** {covered}/{total} scenarios have tests
-- **Desiderata:** {N} tests reviewed, {N} flags raised
-- **Needs human:** {N} items
-- **Reverted refactorings:** {N}
-```
-
-## Escalation Policy
-
-Based on the verification results, determine next steps:
-
-- **All tests pass, all scenarios covered** — suggest `/refactor` if there is cleanup direction remaining, or `/commit` if the code is clean.
-- **All tests pass, but some scenarios lack test coverage** — present the uncovered scenarios to the human. Wait for the human to decide whether to add tests or proceed.
-- **Tests failing** — present the failures to the human. Wait for guidance before suggesting next steps.
-- **Test failure unresolved after 2 attempts during Step 2** — already escalated during Step 2. Summarize unresolved items and wait for user guidance.
+If the hook does not fire (e.g., plugin not loaded, hooks disabled),
+verification falls back to the human reviewing the output manually.
 
 ## Scaling
 
-- **Small plan** (1 stream, < 6 triplets): Sequential execution. Lightweight verification.
-- **Medium plan** (2-3 streams, 6-15 triplets): Auto-parallelize independent streams. Full verification.
+- **Small plan** (1 stream, < 6 triplets): Sequential execution.
+- **Medium plan** (2-3 streams, 6-15 triplets): Auto-parallelize independent streams.
 - **Large plan** (4+ streams, 15+ triplets): Auto-parallelize. If the plan has more than 20 triplets, suggest breaking into phases — run the foundational streams first, verify, then run the dependent streams.
 
 ## General Guidelines

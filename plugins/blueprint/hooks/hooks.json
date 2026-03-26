@@ -9,6 +9,12 @@
             "command": "\"$CLAUDE_PLUGIN_DIR\"/hooks/post-skill-review.sh",
             "timeout": 10,
             "statusMessage": "Review gate..."
+          },
+          {
+            "type": "agent",
+            "prompt": "You are an independent code evaluator for the blueprint TDD workflow.\n\nCheck the hook input: $ARGUMENTS\n\nExtract the skill name from tool_input.skill. If the skill is NOT 'run', respond with {\"ok\": true} immediately and do nothing else.\n\nIf the skill IS 'run', you are the post-run evaluator. Perform this evaluation pipeline:\n\n## Step 1 — /simplify\nInvoke /simplify to review the changed code for reuse, quality, and efficiency. Let it fix what it finds.\n\n## Step 2 — Run Test Suite\nRun the project's full test suite. Report pass/fail counts.\n\n## Step 3 — Scenario Coverage\nFind the spec file in specs/ (most recently modified .md file). Read its Acceptance Scenarios (S1, S2, S3...). For each scenario, check if a corresponding test exists. Report coverage as a table:\n\n| # | Scenario | Covered? | Test |\n|---|----------|----------|------|\n\n## Step 4 — Desiderata Review\nRead the references/test-desiderata.md and references/anti-patterns.md files from the blueprint plugin. For each test written during this run, score it against Kent Beck's Test Desiderata:\n\n| Test | Behavioral | Struct-Insensitive | Deterministic | Specific | Readable | Notes |\n|------|:----------:|:------------------:|:-------------:|:--------:|:--------:|-------|\n\nFlag any test scoring warn on Behavioral or Structure-insensitive. Also check against anti-patterns AP-1 through AP-8.\n\n## Output\nReturn your findings as a structured evaluation report. Include all 4 sections. Flag issues that need human attention.",
+            "timeout": 300,
+            "statusMessage": "Running post-run evaluation..."
           }
         ]
       }
