@@ -19,7 +19,7 @@ Every TDD cycle should have a complete RED-GREEN-REFACTOR triplet. Check:
 
 1. **Every RED has a GREEN** — A failing test (RED) must be followed by an implementation task (GREEN) that makes it pass
 2. **REFACTOR is explicit** — Every GREEN should be followed by either a REFACTOR task with specific direction, or an explicit skip notation (e.g., "REFACTOR: skip — minimal implementation, nothing to clean up")
-3. **RED tasks contain test specifications** — RED nodes should describe what test to write and what behavior it verifies, not just "write test"
+3. **RED tasks contain behavioral descriptions** — RED nodes should describe the behavior to verify with concrete input/output examples and key assertions, not just "write test". They should NOT contain test code — `/run` writes the actual tests after reading the codebase
 
 Flag incomplete triplets as warnings.
 
@@ -46,11 +46,12 @@ If the plan defines parallel streams:
 
 For each RED task, apply test desiderata principles (see `test-desiderata.md`):
 
-- Does the test description specify **observable behavior** (not implementation details)?
-- Is the test **specific** enough to write directly from the description?
-- Is the test **structure-insensitive** — will it survive refactoring?
+- Does the behavioral description specify **observable behavior** (not implementation details)?
+- Is the description **specific** enough — with concrete input/output examples — for `/run` to write a test from it?
+- Is it **structure-insensitive** — would the described test survive refactoring?
+- Does it avoid prescribing implementation details (specific files, class names, libraries)?
 
-Flag RED tasks that describe implementation-coupled tests.
+Flag RED tasks that are implementation-coupled or too vague to write a test from.
 
 ## Phase 6 — Plan Summary
 

@@ -1,12 +1,12 @@
 ---
 name: run
-description: Execute a plan's TDD execution graph — walk RED/GREEN/REFACTOR triplets in dependency order, auto-verify against the spec when complete. ALWAYS use this skill when the user wants to run a plan, execute a plan, start implementing from a plan, implement the plan, begin the TDD cycle, execute the graph, or says anything like "let's start building" when a plan graph file exists. Also trigger when the user references a plans/*_graph.md file and wants to begin implementation, or says "unskip the tests and make them pass".
+description: Execute a plan's TDD execution graph — walk RED/GREEN/REFACTOR triplets in dependency order, writing tests and implementation code guided by the plan's behavioral descriptions. Verification is handled by an independent evaluator hook after completion. ALWAYS use this skill when the user wants to run a plan, execute a plan, start implementing from a plan, implement the plan, begin the TDD cycle, execute the graph, or says anything like "let's start building" when a plan graph file exists. Also trigger when the user references a plans/*_graph.md file and wants to begin implementation.
 argument-hint: [path-to-plan-graph-file]
 ---
 
 # Run
 
-Execute a plan graph by walking its TDD triplets in dependency order, enforcing RED-GREEN-REFACTOR discipline at every step, and auto-verifying against the spec when complete.
+Execute a plan graph by walking its TDD triplets in dependency order, enforcing RED-GREEN-REFACTOR discipline at every step. Verification is handled by an independent evaluator hook — `/run` is a pure builder.
 
 ## When to Use
 
@@ -37,7 +37,8 @@ Read the plan graph file and build the execution model:
    - **ID** (e.g., A1)
    - **Type**: RED, GREEN, or REFACTOR
    - **Dependencies**: `depends: A2, B2` or none
-   - **Payload**: test code location (RED), implementation target (GREEN), or refactor direction (REFACTOR)
+   - **Payload**: behavioral description and assertions (RED), done-when
+     outcome (GREEN), or refactor direction (REFACTOR)
    - **Skip marker**: whether a REFACTOR node is marked `(skip)` or `(optional)`
 3. **Build the dependency DAG** and compute a topological ordering.
 4. **Identify ready nodes** — those with no unmet dependencies.
@@ -94,7 +95,7 @@ After parsing the graph, analyze stream independence to choose the execution str
 
 **When NOT to parallelize** (fall back to sequential even if streams look independent):
 - The plan has fewer than 6 total triplets (overhead not worth it)
-- Multiple streams target the same file
+- Multiple streams are likely to touch the same module area
 - The user explicitly asks for sequential execution
 
 Process each triplet in dependency order. After each GREEN node, update the plan file to check off the completed triplet.
@@ -103,9 +104,34 @@ Process each triplet in dependency order. After each GREEN node, update the plan
 
 A RED node introduces a failing test. The expectation is that the test FAILS.
 
-1. **Unskip the test** — remove the skip marker (`pytest.mark.skip`, `it.skip`, `t.Skip`, `@Disabled`, etc.) from the test identified in the node's payload.
-2. **Run the test suite.**
-3. **Evaluate results:**
+The plan provides a **behavioral description**, not test code. You write
+the actual test by reading the codebase first.
+
+1. **Read the codebase** — before writing the test, examine:
+   - Existing test files: naming conventions, directory structure, import
+     patterns, test framework, helper utilities
+   - The module(s) related to the behavior under test: public APIs, data
+     shapes, existing patterns
+   - Match the project's conventions exactly. If the project has no
+     existing tests, ask the user which framework to use.
+
+2. **Write the failing test** — translate the plan's behavioral
+   description into executable test code:
+   - Use AAA structure (Arrange/Act/Assert) with clear inline setup
+   - Apply Test Desiderata priorities: Behavioral > Structure-insensitive
+     > Readable > Specific > Deterministic > Isolated (see
+     `../../references/test-desiderata.md`)
+   - Apply Anti-patterns checklist (see `../../references/anti-patterns.md`):
+     no structure-sensitive assertions (AP-1), meaningful assertions
+     (AP-2), no non-deterministic sources (AP-3), mocking only at
+     external boundaries (AP-5), inline setup over shared fixtures (AP-6),
+     organize by behavior not class (AP-7), descriptive names (AP-8)
+   - For `[property]` type hints: use property-based testing (Hypothesis,
+     fast-check, etc.)
+
+3. **Run the test suite.**
+
+4. **Evaluate results:**
    - The target test FAILS, all other tests PASS — this is correct. Proceed.
    - The target test PASSES unexpectedly — the behavior is already implemented or the test is trivially true. Flag it:
      ```
@@ -116,7 +142,7 @@ A RED node introduces a failing test. The expectation is that the test FAILS.
      Ask the user how to proceed.
    - Other tests BREAK — a dependency issue or test isolation problem. Stop and report:
      ```
-     STOP: {N} unrelated test(s) broke when unskipping {test_name}.
+     STOP: {N} unrelated test(s) broke when adding {test_name}.
      This indicates a dependency or isolation issue.
      Broken tests: {list}
      ```
@@ -126,8 +152,14 @@ A RED node introduces a failing test. The expectation is that the test FAILS.
 
 A GREEN node implements the minimal code to make the test pass. The expectation is that ALL tests PASS.
 
-1. **Read the implementation target** from the node's payload (file path and description).
-2. **Implement the minimal code** to make the RED test pass. Follow the principle of simplest thing that could work — do not gold-plate.
+The plan provides a **"Done when" outcome**, not implementation
+instructions. You decide where and how to implement.
+
+1. **Read the codebase** — identify where the change belongs by examining
+   existing module structure, naming conventions, and related code. Choose
+   the implementation target based on what you find, not on assumptions.
+2. **Implement the minimal code** to make the RED test pass. Follow the
+   principle of simplest thing that could work — do not gold-plate.
 3. **Run the test suite.**
 4. **Evaluate results:**
    - ALL tests pass — success. Update the plan file checkbox. Proceed.
@@ -172,113 +204,30 @@ Show progress as execution proceeds:
 
 **Resumability:** If execution is interrupted (user stops, error escalation, etc.), the plan file's checkbox state records progress. When `/run` is invoked again on the same plan, it detects completed triplets and resumes from the first incomplete node.
 
-## Step 3 — Auto-Verification Loop
+## Post-Run Evaluation (Hook-Driven)
 
-After all triplets are executed, verify the implementation by reading and
-applying `../../references/review-impl.md` (Phases 1–4: Spec Cross-Check,
-Plan Cross-Check, Code Quality Flags, Summary). This is a fix loop — not
-a one-shot report. Fix what you can autonomously, stop when you need the
-human.
+After all triplets are executed, `/run` is done — it is a pure builder.
 
-**Loop:**
+Verification is owned by the **post-run evaluation hook** (defined in
+`hooks/hooks.json`). The hook spawns an independent evaluator agent that
+runs automatically after `/run` completes. The evaluator performs:
 
-1. Apply the implementation review phases from `../../references/review-impl.md`
-   against the code you just wrote. Cross-check acceptance scenarios,
-   plan task completion, and code quality.
-2. For each gap, decide: **can I fix this without the human?**
-   - **Yes** — fix it. Write the missing test, implement the missing
-     behavior, unskip the forgotten test, remove the stub. Then re-run
-     verification.
-   - **No** — the gap involves ambiguous spec language, a design
-     trade-off, or a scope decision. Collect into the report.
-3. Repeat until no more autonomous fixes remain.
+1. **`/simplify`** — review changed code for reuse, quality, efficiency
+2. **Test suite** — run all tests, report pass/fail counts
+3. **Scenario coverage** — map spec acceptance scenarios to tests
+4. **Desiderata Review** — score tests against Kent Beck's Test Desiderata
 
-**Examples of autonomous fixes:**
-- Acceptance scenario S5 has no test → write a test, implement minimal code, run suite
-- A test was left skipped by mistake → unskip it, verify it passes
-- Implementation returns `null` where spec says "return empty list" → fix the implementation
-- `TODO` or `NotImplementedError` stub left in code → implement it
-- Plan task marked incomplete but code exists → check off the task
+The evaluator is a separate agent with fresh context — it does not share
+the builder's sunk-cost bias. This follows Anthropic's harness design
+principle: separate the generator from the evaluator.
 
-**Examples that need the human:**
-- Spec says "fast response" but doesn't define a threshold → ask
-- Implementation deviates from spec but both behaviors seem valid → ask which is correct
-- A scenario can't be tested without infrastructure the project doesn't have → ask how to proceed
-
-### Lightweight Verification (< 5 scenarios)
-
-```markdown
-## Verification: {feature}
-
-**Status:** {N}/{M} scenarios verified
-
-### Autonomous Fixes Applied
-- {e.g., "Added test for S3 (was missing coverage), implemented handler"}
-- {e.g., "Unskipped test_empty_input — was left skipped by mistake"}
-*(If none: "All scenarios verified on first pass.")*
-
-### Needs Human Input
-- {e.g., "S4 says 'respond quickly' — what's the threshold?"}
-*(If none: "No unresolved items.")*
-
-**Next:** /refactor or /commit
-```
-
-### Full Verification (5+ scenarios)
-
-```markdown
-## Verification Report: {feature}
-
-**Spec:** {path} | **Plan:** {path} | **Date:** {YYYY-MM-DD}
-
-### Acceptance Scenarios
-
-| # | Scenario | Status | Test | Notes |
-|---|----------|--------|------|-------|
-| S1 | {summary} | Verified / Fixed / Needs Input | {test name} | {evidence} |
-| S2 | ... | ... | ... | ... |
-
-### Autonomous Fixes Applied
-
-- {what the verification loop fixed — missing tests added, skipped tests unskipped, implementation corrected}
-
-*(If none: "All scenarios verified on first pass.")*
-
-### Needs Human Input
-
-- {only unresolvable items — ambiguous spec, design trade-offs, scope decisions}
-
-*(If none: "No unresolved items.")*
-
-### Reverted Refactorings
-
-| Node | Direction | Failure Reason |
-|------|-----------|----------------|
-| {id} | {direction} | {what broke} |
-
-*(If none: "All refactorings applied successfully.")*
-
-### Summary
-
-- **Scenarios:** {N}/{M} verified
-- **Auto-fixed:** {N} gaps resolved autonomously
-- **Needs human:** {N} items
-- **Reverted refactorings:** {N}
-```
-
-## Escalation Policy
-
-After the verification loop stabilizes, determine next steps:
-
-- **All green, all scenarios verified, no human input needed** — suggest `/refactor` if there is cleanup direction remaining, or `/commit` if the code is clean.
-- **All scenarios verified after autonomous fixes** — present what was fixed, then suggest `/refactor` or `/commit`.
-- **Unresolved items that need human input** — present the "Needs Human Input" list. Wait for the human to resolve before suggesting next steps.
-- **Test failure unresolved after 2 attempts** — already escalated during Step 2. Summarize unresolved items and wait for user guidance.
+If the hook does not fire (e.g., plugin not loaded, hooks disabled),
+verification falls back to the human reviewing the output manually.
 
 ## Scaling
 
-- **Small plan** (1 stream, < 6 triplets): Sequential execution. Lightweight verification.
-- **Medium plan** (2-3 streams, 6-15 triplets): Auto-parallelize independent streams. Full verification.
+- **Small plan** (1 stream, < 6 triplets): Sequential execution.
+- **Medium plan** (2-3 streams, 6-15 triplets): Auto-parallelize independent streams.
 - **Large plan** (4+ streams, 15+ triplets): Auto-parallelize. If the plan has more than 20 triplets, suggest breaking into phases — run the foundational streams first, verify, then run the dependent streams.
 
 ## General Guidelines

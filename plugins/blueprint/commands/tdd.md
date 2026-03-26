@@ -6,11 +6,12 @@ description: Full TDD workflow orchestrator. Chains /spec → /plan → /run →
 If invoked **without arguments**, display this workflow map and ask what the user wants to build:
 
 ```
-Blueprint TDD Workflow (v2)
+Blueprint TDD Workflow (v3)
 
 /spec ──→ /plan ──→ /run ──→ /refactor ──→ /commit
   │          │         │
-  └── GATE   └── GATE  └── auto-verify
+  └── GATE   └── GATE  └── evaluator hook
+                              (/simplify, tests, coverage, Desiderata)
 
 Standalone: /review (any artifact, any time)
 ```
@@ -41,7 +42,7 @@ Invoke `/plan` with the approved spec path.
 **GATE — Present the execution graph. Ask: "Approve plan, or revise?"** Do not continue until approved.
 
 ### Step 3: /run
-Invoke `/run` with the approved plan. `/run` analyzes the dependency graph and automatically decides whether to execute streams sequentially or in parallel (spawning one agent per independent stream). No flag needed — the graph structure determines the strategy. Verification is automatic after all streams complete.
+Invoke `/run` with the approved plan. `/run` analyzes the dependency graph and automatically decides whether to execute streams sequentially or in parallel (spawning one agent per independent stream). No flag needed — the graph structure determines the strategy. After `/run` completes, the post-run evaluator hook fires automatically — it runs `/simplify`, the test suite, scenario coverage check, and Desiderata Review via an independent agent.
 
 ### Step 4: /refactor
 After /run completes, review the result for cleanup opportunities (duplication, naming, structure). If any exist, suggest `/refactor` with specific targets. If the code is already clean, skip.
