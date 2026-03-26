@@ -206,14 +206,29 @@ Show progress as execution proceeds:
 
 ## Step 3 — Verification
 
-After all triplets are executed, verify the implementation with two objective checks. The agent that wrote the code does not review its own quality — verification is limited to factual, pass/fail signals.
+After all triplets are executed, verify the implementation with three objective checks. Verification is limited to factual, pass/fail signals and rubric-based scoring.
 
 **Checks:**
 
 1. **Run the full test suite** — this is the honest signal. Report pass/fail with a count of passing and failing tests.
 2. **Cross-check scenario coverage** — read the spec's acceptance scenarios (S1, S2, S3...) and map each one to a test. This is a factual check: does a test exist for each scenario? Report which scenarios have tests and which don't.
+3. **Desiderata Review** — score every test written during this run against Kent Beck's Test Desiderata (`../../references/test-desiderata.md`). Read that file now. This is a rubric-based quality check on the actual test code, not a subjective review.
 
-**Do NOT self-fix.** If tests fail or scenarios are uncovered, report them to the human. The agent that wrote the code should not also be the one evaluating and patching it — that is the self-evaluation trap.
+   For each test, score the priority properties:
+
+   | Property | What to check |
+   |----------|--------------|
+   | **Behavioral** | Does it test observable behavior, not internals? |
+   | **Structure-insensitive** | Would it survive a refactoring that preserves behavior? |
+   | **Deterministic** | No flaky sources (time, random, network)? |
+   | **Specific** | Does a failure point to exactly what broke? |
+   | **Readable** | Can a reader understand the scenario without jumping to other code? |
+
+   Flag any test scoring `warn` on Behavioral or Structure-insensitive — these are the two properties Beck emphasizes most. A `fail` on either means the test should be rewritten.
+
+   Also check against `../../references/anti-patterns.md` for common mistakes (AP-1 through AP-8).
+
+**Do NOT self-fix.** If tests fail, scenarios are uncovered, or Desiderata flags are raised, report them to the human. The agent that wrote the code should not also be the one evaluating and patching it — that is the self-evaluation trap.
 
 ### Lightweight Verification (< 5 scenarios)
 
@@ -229,9 +244,18 @@ After all triplets are executed, verify the implementation with two objective ch
 - S3 {summary} — **NOT COVERED**
 *(List every acceptance scenario with its coverage status.)*
 
+### Desiderata Review
+
+| Test | Behavioral | Struct-Insensitive | Deterministic | Specific | Readable | Notes |
+|------|:----------:|:------------------:|:-------------:|:--------:|:--------:|-------|
+| {test_name} | pass | pass | pass | pass | pass | — |
+
+*(Flag any warn/fail on Behavioral or Structure-insensitive.)*
+
 ### Needs Human Input
 - {e.g., "S3 has no test — should I add one, or is it out of scope?"}
 - {e.g., "2 tests failing — see errors above. Need guidance."}
+- {e.g., "test_X scores warn on Structure-insensitive — mocks internal method. Rewrite?"}
 *(If none: "No unresolved items.")*
 
 **Next:** /refactor or /commit
@@ -258,9 +282,18 @@ After all triplets are executed, verify the implementation with two objective ch
 | S2 | {summary} | No | — | No test exists |
 | S3 | ... | ... | ... | ... |
 
+### Desiderata Review
+
+| Test | Behavioral | Struct-Insensitive | Deterministic | Specific | Readable | Notes |
+|------|:----------:|:------------------:|:-------------:|:--------:|:--------:|-------|
+| {test_name} | pass | pass | pass | pass | pass | — |
+| {test_name} | pass | warn | pass | pass | pass | Mocks internal method |
+
+*(Flag any warn/fail on Behavioral or Structure-insensitive.)*
+
 ### Needs Human Input
 
-- {uncovered scenarios, failing tests, ambiguous spec items}
+- {uncovered scenarios, failing tests, ambiguous spec items, Desiderata flags}
 
 *(If none: "No unresolved items.")*
 
@@ -276,6 +309,7 @@ After all triplets are executed, verify the implementation with two objective ch
 
 - **Test suite:** {pass_count} passing, {fail_count} failing
 - **Scenario coverage:** {covered}/{total} scenarios have tests
+- **Desiderata:** {N} tests reviewed, {N} flags raised
 - **Needs human:** {N} items
 - **Reverted refactorings:** {N}
 ```
