@@ -190,15 +190,23 @@ Critical path: A -> B
 
 ### Phase 3 — Triplet Generation
 
-For each stream, generate the full TDD triplets. Every triplet has three
-nodes: RED (write a failing test), GREEN (make it pass), REFACTOR
-(improve structure).
+For each stream, generate the TDD triplets as **behavioral milestones**.
+Every triplet has three nodes: RED (describe a failing test), GREEN
+(describe what "passing" looks like), REFACTOR (describe structural
+improvement opportunity).
 
-**Before generating test code:** Examine existing test files in the
-project to discover naming conventions, directory structure, import
-patterns, and test framework. Match these conventions in generated code.
-If the project has no existing tests, ask the user which language and
-framework to use if not already clear from context.
+**The plan stays high-level.** Triplets describe *what* to test and
+*what behavior* to implement — not *how*. No test code, no implementation
+code. `/run` reads the codebase, discovers conventions, and writes the
+actual code. This prevents cascading errors from wrong assumptions made
+at planning time and gives the executing agent room to make informed
+implementation decisions.
+
+> Anthropic's harness design research found that "if the planner tried
+> to specify granular technical details upfront and got something wrong,
+> the errors in the spec would cascade into the downstream
+> implementation. It seemed smarter to constrain the agents on the
+> deliverables to be produced and let them figure out the path."
 
 **Node ID scheme:** Stream letter + sequential number within the stream.
 RED nodes are odd-numbered starting at 1, GREEN nodes follow their RED,
@@ -208,65 +216,53 @@ REFACTOR nodes follow their GREEN:
 - A4 (RED), A5 (GREEN), A6 (REFACTOR)
 - B1 (RED), B2 (GREEN), B3 (REFACTOR)
 
-#### RED Nodes — Write a Failing Test
+#### RED Nodes — Behavioral Test Description
 
-Each RED node contains executable, skipped test code following these
-conventions:
+Each RED node describes the test to write in behavioral terms — **no
+test code**. The description must be specific enough for `/run` to write
+the test after reading the codebase.
 
-**All tests are generated as skipped.** Use the framework's skip
-mechanism. The skip reason describes the behavior being tested.
+Each RED node specifies:
 
-| Framework   | Skip syntax                                          |
-|-------------|------------------------------------------------------|
-| pytest      | `@pytest.mark.skip(reason="...")`                    |
-| Jest/Vitest | `it.skip("...", () => { ... })` or `xit("...", ...)` |
-| Go testing  | `t.Skip("...")`                                      |
-| JUnit       | `@Disabled("...")`                                   |
-| RSpec       | `xit "..." do ... end` or `pending("...")`           |
+- **Behavior under test:** What observable behavior to verify (in
+  Given/When/Then or equivalent prose)
+- **Key assertions:** What the test should check — expressed as expected
+  outcomes, not code
+- **Test type hint:** `[example]` for standard example-based tests,
+  `[property]` for property-based tests (roundtrip, invariant, etc.)
 
-**Naming:** `test_[action]_[scenario]_[expected_outcome]`
+**Quality criteria for RED descriptions** (from `../../references/test-desiderata.md`
+and `../../references/anti-patterns.md` — read both files now):
 
-**Structure:** Every test uses AAA (Arrange/Act/Assert) with clear inline
-setup. Prefer a bit of repetition over indirection — keep the full
-context visible within each test function.
+- Describes **observable behavior**, not implementation details (AP-1)
+- Specific enough to write a test from, with concrete input/output
+  examples (AP-2, AP-8)
+- Structure-insensitive — would survive refactoring (Desiderata #2)
+- No assumptions about internal data structures, private methods, or
+  specific libraries
+- For async behaviors: describe command-side and query-side separately;
+  assert on eventual state, not timing
 
-**Test Desiderata:** Apply the checklist from
-`../../references/test-desiderata.md` to every RED node. Read that file
-now. Prioritize: Behavioral > Structure-insensitive > Readable > Specific
-> Deterministic > Isolated.
+#### GREEN Nodes — Expected Outcome
 
-**Anti-patterns:** Apply every item from `../../references/anti-patterns.md`.
-Read that file now. In particular:
-
-- No structure-sensitive assertions (AP-1)
-- Every test has meaningful assertions (AP-2)
-- No non-deterministic sources (AP-3)
-- Expected values derived from the spec, not copy-pasted (AP-4)
-- Mocking only at external boundaries (AP-5)
-- Inline setup over shared fixtures (AP-6)
-- Organize by behavior, not by class (AP-7)
-- Descriptive test names with scenario and outcome (AP-8)
-
-**Async behaviors:** When the spec describes async operations, test
-command side and query side separately. Assert on eventual state, never
-on timing.
-
-**Property-based tests:** For items marked `[property]` in the Test List,
-generate property-based tests using the project's property-based testing
-library (Hypothesis, fast-check, etc.).
-
-#### GREEN Nodes — Make It Pass
+Each GREEN node describes what "done" looks like — **not how to build
+it**. The executing agent reads the codebase and decides the
+implementation approach.
 
 Each GREEN node specifies:
 
-- **Target file(s):** Where to write or modify production code
-- **Size estimate:** `[S]` (a few lines), `[M]` (file-sized change),
-  `[L]` (multi-file, should be broken down further if possible)
-- **Guidance:** What minimal implementation makes the RED test pass.
-  Describe the approach without writing full production code — the
-  developer (or `/run`) implements it.
+- **Done when:** The observable outcome that signals completion (e.g.,
+  "the RED test passes and all existing tests remain green")
+- **Scope hint:** `[S]` (a few lines of change), `[M]` (file-sized
+  change), `[L]` (multi-file — consider splitting the triplet)
+- **Constraints** (only if critical): Boundary conditions the
+  implementation must respect, e.g., "must not break the existing
+  `/api/orders` contract" or "must work without adding new dependencies"
 
-#### REFACTOR Nodes — Improve Structure
+Do NOT specify target files, function names, or implementation approach.
+`/run` discovers these by reading the codebase.
+
+#### REFACTOR Nodes — Structural Improvement Opportunity
 
 Each REFACTOR node is optional — include it when there is a concrete
 refactoring opportunity. Skip it (mark as "no refactoring needed") when
@@ -282,58 +278,45 @@ When included, describe:
 
 #### Triplet Format
 
-Use this exact format for machine-parseability by `/run`:
+Use this exact format for parseability by `/run`:
 
 ````markdown
-### A1: RED — test_reject_expired_coupon
+### A1: RED — reject expired coupon
 **Depends:** (none)
 **Scenario:** S3
-```python
-@pytest.mark.skip(reason="expired coupon is rejected with validation error")
-def test_reject_expired_coupon():
-    order = Order(items=[Item("widget", 10.00)])
-    expired = Coupon("SAVE10", expired=True)
-    result = order.apply_coupon(expired)
-    assert result.error == "Coupon expired"
-    assert order.total == 10.00
-```
+**Behavior:** Given an order with items, when applying an expired coupon,
+then the operation fails with a validation error and the order total
+remains unchanged.
+**Assertions:** Error indicates coupon is expired; total is unaffected.
 
-### A2: GREEN — implement CouponValidator.validate()
+### A2: GREEN — expired coupon validation
 **Depends:** A1
-**Target:** `src/validators/coupon.py`
-**Size:** [S]
-Make the failing test pass. Add an `expired` check to `Coupon` and return
-a validation error when `expired=True`. Minimal implementation — do not
-add other validation logic yet.
+**Done when:** The RED test passes. Applying an expired coupon returns
+an error without modifying the order.
+**Scope:** [S]
 
 ### A3: REFACTOR — (none needed)
 **Depends:** A2
 No refactoring needed at this stage.
 
-### A4: RED — test_apply_valid_coupon_reduces_total
+### A4: RED — valid coupon reduces total
 **Depends:** A2
 **Scenario:** S5
-```python
-@pytest.mark.skip(reason="valid coupon reduces order total by discount amount")
-def test_apply_valid_coupon_reduces_total():
-    order = Order(items=[Item("widget", 10.00)])
-    coupon = Coupon("SAVE10", discount_pct=10)
-    order.apply_coupon(coupon)
-    assert order.total == 9.00
-```
+**Behavior:** Given an order with items, when applying a valid
+percentage-discount coupon, then the order total is reduced by the
+discount percentage.
+**Assertions:** A 10% coupon on a $10 order yields a $9 total.
 
-### A5: GREEN — implement Coupon.apply() discount logic
+### A5: GREEN — coupon discount application
 **Depends:** A4
-**Target:** `src/models/coupon.py`
-**Size:** [S]
-Apply the percentage discount to the order total. Handle the case where
-the coupon is valid (not expired).
+**Done when:** The RED test passes. Valid coupons reduce the order total
+by their discount percentage.
+**Scope:** [S]
 
 ### A6: REFACTOR — extract discount calculation
 **Depends:** A5
-Extract discount calculation into a `DiscountCalculator` if the method
-is growing. Only if warranted — if `apply_coupon` is still simple,
-skip this.
+Extract discount calculation into its own unit if the method is growing.
+Only if warranted — if the code is still simple, skip this.
 ````
 
 **Dependency declarations are explicit:**
@@ -361,29 +344,7 @@ Each step should drive exactly one design decision forward.
 
 ---
 
-### Phase 4 — Desiderata Self-Review
-
-After generating all triplets, perform a self-review of every RED node.
-Score each test against the priority Desiderata properties:
-
-```markdown
-## Desiderata Review
-
-| Node | Test Name                        | Behavioral | Struct-Insensitive | Deterministic | Specific | Readable | Notes        |
-|------|----------------------------------|:----------:|:------------------:|:-------------:|:--------:|:--------:|--------------|
-| A1   | test_reject_expired_coupon       | pass       | pass               | pass          | pass     | pass     | --           |
-| A4   | test_apply_valid_coupon_...      | pass       | pass               | pass          | pass     | pass     | --           |
-| B1   | test_save_order_persists_...     | pass       | warn               | pass          | pass     | pass     | Uses DB fake |
-```
-
-**Flag any test scoring `warn` on Behavioral or Structure-insensitive** —
-these are the two properties Beck emphasizes most. A `warn` on either
-requires explicit justification in the Notes column. A test that would
-score `fail` on either must be rewritten before finalizing the plan.
-
----
-
-### Phase 5 — Plan Self-Review Loop
+### Phase 4 — Plan Self-Review Loop
 
 Before presenting the plan to the user, validate the graph by reading
 and applying `../../references/review-plan.md` (Phases 1–6: Dependency
@@ -401,17 +362,17 @@ human input.
   into the appropriate stream
 - Dependency cycle → restructure dependencies to break the cycle
 - Orphaned node reference → fix the dependency pointer
-- Missing GREEN node after a RED → add it with inferred target
+- Missing GREEN node after a RED → add it with inferred outcome
 - Wrong TDD ordering (edge case before happy path) → reorder within
   stream, preserving cross-stream dependencies
-- RED node with implementation-coupled test → rewrite as behavioral
+- RED node with implementation-coupled description → rewrite as behavioral
 
 **Findings that need the human (stop and ask):**
 
 - Stream balance decisions (where to split an overloaded stream, whether
   to merge a trivial stream)
-- File conflict resolution (merge streams, sequence triplets, or proceed
-  with risk)
+- Module conflict risk (parallel streams likely to touch the same area
+  of the codebase — merge streams, sequence triplets, or accept risk?)
 - Ambiguous scenario mapping (a spec scenario could map to multiple
   streams)
 
@@ -461,7 +422,6 @@ exact structure for the output file:
 
 **Date:** {YYYY-MM-DD}
 **Spec:** [{yymm.xxxx}](../specs/{yymm.xxxx}_{feature_name}.md)
-**Test file:** {path to test file}
 
 ## Summary
 - **Streams:** {N}
@@ -481,18 +441,16 @@ C1 ─> C2 ─> C3 ───┘
 
 ## Stream A: {Stream Name}
 
-### A1: RED — {test_name}
+### A1: RED — {behavioral description}
 **Depends:** (none)
 **Scenario:** {scenario_id}
-```{language}
-{skipped test code}
-```
+**Behavior:** Given {precondition}, when {action}, then {expected outcome}.
+**Assertions:** {key outcomes to verify}
 
-### A2: GREEN — {implementation_description}
+### A2: GREEN — {outcome description}
 **Depends:** A1
-**Target:** `{file_path}`
-**Size:** [{S|M|L}]
-{implementation guidance}
+**Done when:** {observable outcome that signals completion}
+**Scope:** [{S|M|L}]
 
 ### A3: REFACTOR — {refactoring_description or "(none needed)"}
 **Depends:** A2
@@ -503,10 +461,6 @@ C1 ─> C2 ─> C3 ───┘
 ## Stream B: {Stream Name}
 
 ...
-
-## Desiderata Review
-
-{desiderata table}
 
 ## Self-Review
 
@@ -535,8 +489,7 @@ C1 ─> C2 ─> C3 ───┘
   unrelated setup (suggests decomposition)
 ````
 
-Omit `**Spec:**` if no spec exists. Omit `**Test file:**` if not yet
-determined (it may be decided during Phase 3 based on project conventions).
+Omit `**Spec:**` if no spec exists.
 Omit `## Design Feedback` if there are no issues to report.
 
 For small bug fixes (single stream, 1-3 triplets), omit the Execution
@@ -565,7 +518,8 @@ Next: /run plans/{filename}_graph.md
 ```
 
 `/run` will parse the execution graph and execute triplets in dependency
-order, unskipping tests and implementing code one node at a time.
+order — reading the codebase, writing tests, and implementing code
+guided by the plan's behavioral descriptions.
 
 ## Key Principles
 

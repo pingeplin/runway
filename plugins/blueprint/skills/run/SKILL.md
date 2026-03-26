@@ -1,6 +1,6 @@
 ---
 name: run
-description: Execute a plan's TDD execution graph — walk RED/GREEN/REFACTOR triplets in dependency order, auto-verify against the spec when complete. ALWAYS use this skill when the user wants to run a plan, execute a plan, start implementing from a plan, implement the plan, begin the TDD cycle, execute the graph, or says anything like "let's start building" when a plan graph file exists. Also trigger when the user references a plans/*_graph.md file and wants to begin implementation, or says "unskip the tests and make them pass".
+description: Execute a plan's TDD execution graph — walk RED/GREEN/REFACTOR triplets in dependency order, writing tests and implementation code guided by the plan's behavioral descriptions, then auto-verify against the spec when complete. ALWAYS use this skill when the user wants to run a plan, execute a plan, start implementing from a plan, implement the plan, begin the TDD cycle, execute the graph, or says anything like "let's start building" when a plan graph file exists. Also trigger when the user references a plans/*_graph.md file and wants to begin implementation.
 argument-hint: [path-to-plan-graph-file]
 ---
 
@@ -37,7 +37,8 @@ Read the plan graph file and build the execution model:
    - **ID** (e.g., A1)
    - **Type**: RED, GREEN, or REFACTOR
    - **Dependencies**: `depends: A2, B2` or none
-   - **Payload**: test code location (RED), implementation target (GREEN), or refactor direction (REFACTOR)
+   - **Payload**: behavioral description and assertions (RED), done-when
+     outcome (GREEN), or refactor direction (REFACTOR)
    - **Skip marker**: whether a REFACTOR node is marked `(skip)` or `(optional)`
 3. **Build the dependency DAG** and compute a topological ordering.
 4. **Identify ready nodes** — those with no unmet dependencies.
@@ -94,7 +95,7 @@ After parsing the graph, analyze stream independence to choose the execution str
 
 **When NOT to parallelize** (fall back to sequential even if streams look independent):
 - The plan has fewer than 6 total triplets (overhead not worth it)
-- Multiple streams target the same file
+- Multiple streams are likely to touch the same module area
 - The user explicitly asks for sequential execution
 
 Process each triplet in dependency order. After each GREEN node, update the plan file to check off the completed triplet.
@@ -103,9 +104,34 @@ Process each triplet in dependency order. After each GREEN node, update the plan
 
 A RED node introduces a failing test. The expectation is that the test FAILS.
 
-1. **Unskip the test** — remove the skip marker (`pytest.mark.skip`, `it.skip`, `t.Skip`, `@Disabled`, etc.) from the test identified in the node's payload.
-2. **Run the test suite.**
-3. **Evaluate results:**
+The plan provides a **behavioral description**, not test code. You write
+the actual test by reading the codebase first.
+
+1. **Read the codebase** — before writing the test, examine:
+   - Existing test files: naming conventions, directory structure, import
+     patterns, test framework, helper utilities
+   - The module(s) related to the behavior under test: public APIs, data
+     shapes, existing patterns
+   - Match the project's conventions exactly. If the project has no
+     existing tests, ask the user which framework to use.
+
+2. **Write the failing test** — translate the plan's behavioral
+   description into executable test code:
+   - Use AAA structure (Arrange/Act/Assert) with clear inline setup
+   - Apply Test Desiderata priorities: Behavioral > Structure-insensitive
+     > Readable > Specific > Deterministic > Isolated (see
+     `../../references/test-desiderata.md`)
+   - Apply Anti-patterns checklist (see `../../references/anti-patterns.md`):
+     no structure-sensitive assertions (AP-1), meaningful assertions
+     (AP-2), no non-deterministic sources (AP-3), mocking only at
+     external boundaries (AP-5), inline setup over shared fixtures (AP-6),
+     organize by behavior not class (AP-7), descriptive names (AP-8)
+   - For `[property]` type hints: use property-based testing (Hypothesis,
+     fast-check, etc.)
+
+3. **Run the test suite.**
+
+4. **Evaluate results:**
    - The target test FAILS, all other tests PASS — this is correct. Proceed.
    - The target test PASSES unexpectedly — the behavior is already implemented or the test is trivially true. Flag it:
      ```
@@ -116,7 +142,7 @@ A RED node introduces a failing test. The expectation is that the test FAILS.
      Ask the user how to proceed.
    - Other tests BREAK — a dependency issue or test isolation problem. Stop and report:
      ```
-     STOP: {N} unrelated test(s) broke when unskipping {test_name}.
+     STOP: {N} unrelated test(s) broke when adding {test_name}.
      This indicates a dependency or isolation issue.
      Broken tests: {list}
      ```
@@ -126,8 +152,14 @@ A RED node introduces a failing test. The expectation is that the test FAILS.
 
 A GREEN node implements the minimal code to make the test pass. The expectation is that ALL tests PASS.
 
-1. **Read the implementation target** from the node's payload (file path and description).
-2. **Implement the minimal code** to make the RED test pass. Follow the principle of simplest thing that could work — do not gold-plate.
+The plan provides a **"Done when" outcome**, not implementation
+instructions. You decide where and how to implement.
+
+1. **Read the codebase** — identify where the change belongs by examining
+   existing module structure, naming conventions, and related code. Choose
+   the implementation target based on what you find, not on assumptions.
+2. **Implement the minimal code** to make the RED test pass. Follow the
+   principle of simplest thing that could work — do not gold-plate.
 3. **Run the test suite.**
 4. **Evaluate results:**
    - ALL tests pass — success. Update the plan file checkbox. Proceed.

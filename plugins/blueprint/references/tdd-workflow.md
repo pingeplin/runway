@@ -13,8 +13,8 @@ Orchestrated by `/tdd`.
 | Step | Skill | Who | What happens |
 |------|-------|-----|--------------|
 | 1 | `/spec` | AI + Human | Generate spec with acceptance scenarios + built-in testability review |
-| 2 | `/plan` | AI + Human | Generate execution graph — TDD triplets with dependencies, streams, critical path |
-| 3 | `/run` | AI | Execute the graph: RED→GREEN→REFACTOR per triplet, auto-verify against spec |
+| 2 | `/plan` | AI + Human | Generate execution graph — behavioral milestones with dependencies, streams, critical path |
+| 3 | `/run` | AI | Execute the graph: read codebase, write tests, implement code per triplet, auto-verify against spec |
 | 4 | `/refactor` | AI + Human | Human gives direction, AI refactors with tests as safety net |
 | 5 | `/commit` | AI | Generate commit message following Chris Beams' 7 rules |
 
