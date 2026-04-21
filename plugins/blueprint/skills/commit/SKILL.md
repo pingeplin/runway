@@ -57,20 +57,41 @@ Use scope when the type alone is ambiguous — skip it for changes that are obvi
 
 ## How to Use This Skill
 
-When asked to write, improve, or prepare a commit message:
+**Dispatch the `commit-writer` subagent** via the `Agent` tool with
+`subagent_type: commit-writer`. The subagent runs in a fresh context — it
+has not seen the implementation conversation, which is the point: the
+builder context is full of micro-decisions that don't belong in the commit
+log. The subagent reads `git diff`, `git status`, and `git log` directly
+and drafts the message from the diff alone.
 
-### Before Writing
+Pass any relevant context in the prompt:
+- A short hint about the feature or task (optional)
+- Ticket/issue numbers or required trailers
+- Whether the changes are already staged or need staging
 
-1. **Check repo conventions** — run `git log --oneline -10` to see how existing commits are formatted. Match the repo's style (casing, type prefixes, scope usage) even if it differs from these rules.
-2. **Read the actual changes** — run `git diff --staged` (or `git diff` if nothing is staged) to understand what changed.
+When the subagent returns the draft:
+1. Review the drafted message with the user (or proceed directly if the
+   user has asked for autonomous commit).
+2. Stage files if needed (`git add <paths>`).
+3. Run `git commit` with the drafted message via a HEREDOC to preserve
+   formatting.
+4. Confirm with `git status`.
 
-### Writing the Message
+### Fallback (if the subagent is unavailable)
 
-1. **Pick the right type** — from the table above.
-2. **Write the subject** — imperative mood, capitalized after the colon, aim for ~50 chars (72 hard max), no trailing period.
-3. **Decide if a body is needed** — skip it for trivial changes; add it when context helps future readers.
-4. **Write the body if needed** — explain *what* changed and *why*, not *how*. Wrap at 72 chars.
-5. **Add footer if relevant** — e.g., `Closes #123`, `BREAKING CHANGE: ...`, or `Co-Authored-By:` lines and any other team-mandated trailers.
+If the `commit-writer` subagent cannot be dispatched, fall back to writing
+the message inline using the rules above:
+
+1. **Check repo conventions** — `git log --oneline -10` for style.
+2. **Read the actual changes** — `git diff --staged` (or `git diff`).
+3. **Pick the right type** — from the table above.
+4. **Write the subject** — imperative mood, capitalized after the colon,
+   aim for ~50 chars (72 hard max), no trailing period.
+5. **Decide if a body is needed** — skip for trivial changes; add when
+   context helps future readers.
+6. **Write the body** — explain *what* and *why*, not *how*. Wrap at 72.
+7. **Add footer if relevant** — `Closes #123`, `BREAKING CHANGE: …`,
+   `Co-Authored-By:` trailers, etc.
 
 ## Examples
 

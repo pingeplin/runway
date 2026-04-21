@@ -9,7 +9,9 @@ If invoked **without arguments**, display this workflow map and ask what the use
 Blueprint TDD Workflow (v3)
 
 /spec ──→ /plan ──→ /run ──→ /refactor ──→ /commit
-  │          │         │
+  │          │         │                       │
+  │          │         │                       └── commit-writer subagent
+  │          │         │                             (fresh-context draft)
   │          │         └── run-evaluator subagent
   │          │               (/simplify, tests, coverage, Desiderata)
   │          └── plan-evaluator subagent (GATE)
@@ -50,7 +52,7 @@ Invoke `/run` with the approved plan. `/run` analyzes the dependency graph and a
 After /run completes, review the result for cleanup opportunities (duplication, naming, structure). If any exist, suggest `/refactor` with specific targets. If the code is already clean, skip.
 
 ### Step 5: /commit
-Invoke `/commit` to generate a commit message from the changes.
+Invoke `/commit`, which dispatches the `commit-writer` subagent — a fresh-context agent that drafts the message from `git diff` alone, independent of the implementation conversation. Review the draft with the user, then stage and commit.
 
 ## Jumping to a step
 
