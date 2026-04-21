@@ -10,8 +10,10 @@ Blueprint TDD Workflow (v3)
 
 /spec ──→ /plan ──→ /run ──→ /refactor ──→ /commit
   │          │         │
-  └── GATE   └── GATE  └── evaluator hook
-                              (/simplify, tests, coverage, Desiderata)
+  │          │         └── run-evaluator subagent
+  │          │               (/simplify, tests, coverage, Desiderata)
+  │          └── plan-evaluator subagent (GATE)
+  └── spec-evaluator subagent (GATE)
 
 Standalone: /review (any artifact, any time)
 ```
@@ -42,7 +44,7 @@ Invoke `/plan` with the approved spec path.
 **GATE — Present the execution graph. Ask: "Approve plan, or revise?"** Do not continue until approved.
 
 ### Step 3: /run
-Invoke `/run` with the approved plan. `/run` analyzes the dependency graph and automatically decides whether to execute streams sequentially or in parallel (spawning one agent per independent stream). No flag needed — the graph structure determines the strategy. After `/run` completes, the post-run evaluator hook fires automatically — it runs `/simplify`, the test suite, scenario coverage check, and Desiderata Review via an independent agent.
+Invoke `/run` with the approved plan. `/run` analyzes the dependency graph and automatically decides whether to execute streams sequentially or in parallel (spawning one agent per independent stream). No flag needed — the graph structure determines the strategy. After `/run` finishes the last triplet, it dispatches the `run-evaluator` subagent — an independent fresh-context agent that runs `/simplify`, the test suite, scenario coverage check, and Desiderata Review. Surface its report before moving on.
 
 ### Step 4: /refactor
 After /run completes, review the result for cleanup opportunities (duplication, naming, structure). If any exist, suggest `/refactor` with specific targets. If the code is already clean, skip.

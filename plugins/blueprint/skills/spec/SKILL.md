@@ -8,7 +8,7 @@ argument-hint: '[feature-name] [optional-description]'
 
 Write a technical spec with structured acceptance scenarios. Specs capture the *why* and *how* of a feature or system change before implementation begins, with acceptance scenarios that feed directly into `/plan`.
 
-After the spec is written, an independent evaluator hook fires automatically. The evaluator — a fresh agent with no sunk-cost bias — reviews the spec for testability, fixes what it can directly in the file, and surfaces only items needing human input.
+After the spec is written, dispatch the `spec-evaluator` subagent to review it. The evaluator is a separate agent with fresh context and no sunk-cost bias — it reviews the spec for testability, fixes what it can directly in the file, and surfaces only items needing human input.
 
 ## ID System
 
@@ -195,7 +195,7 @@ Use the template below. Omit sections that the Section Guide marks as skippable 
 
 ## Next Step
 
-After generating the spec, suggest:
+After generating the spec file, **dispatch the `spec-evaluator` subagent** using the `Agent` tool with `subagent_type: spec-evaluator`. Pass the spec file path in the prompt so the evaluator knows which file to review. Wait for its report, surface the findings to the user, and address any "Needs Human Input" items before suggesting:
 
 ```
 /plan specs/{yymm.xxxx}_{feature_name}.md

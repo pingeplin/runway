@@ -1,12 +1,12 @@
 ---
 name: run
-description: Execute a plan's TDD execution graph — walk RED/GREEN/REFACTOR triplets in dependency order, writing tests and implementation code guided by the plan's behavioral descriptions. Verification is handled by an independent evaluator hook after completion. ALWAYS use this skill when the user wants to run a plan, execute a plan, start implementing from a plan, implement the plan, begin the TDD cycle, execute the graph, or says anything like "let's start building" when a plan graph file exists. Also trigger when the user references a plans/*_graph.md file and wants to begin implementation.
+description: Execute a plan's TDD execution graph — walk RED/GREEN/REFACTOR triplets in dependency order, writing tests and implementation code guided by the plan's behavioral descriptions. Verification is handled by an independent evaluator subagent after completion. ALWAYS use this skill when the user wants to run a plan, execute a plan, start implementing from a plan, implement the plan, begin the TDD cycle, execute the graph, or says anything like "let's start building" when a plan graph file exists. Also trigger when the user references a plans/*_graph.md file and wants to begin implementation.
 argument-hint: [path-to-plan-graph-file]
 ---
 
 # Run
 
-Execute a plan graph by walking its TDD triplets in dependency order, enforcing RED-GREEN-REFACTOR discipline at every step. Verification is handled by an independent evaluator hook — `/run` is a pure builder.
+Execute a plan graph by walking its TDD triplets in dependency order, enforcing RED-GREEN-REFACTOR discipline at every step. Verification is handled by an independent evaluator subagent (`run-evaluator`) dispatched after the last triplet — `/run` itself is a pure builder.
 
 ## When to Use
 
@@ -204,25 +204,23 @@ Show progress as execution proceeds:
 
 **Resumability:** If execution is interrupted (user stops, error escalation, etc.), the plan file's checkbox state records progress. When `/run` is invoked again on the same plan, it detects completed triplets and resumes from the first incomplete node.
 
-## Post-Run Evaluation (Hook-Driven)
+## Post-Run Evaluation (Independent Subagent)
 
 After all triplets are executed, `/run` is done — it is a pure builder.
 
-Verification is owned by the **post-run evaluation hook** (defined in
-`hooks/hooks.json`). The hook spawns an independent evaluator agent that
-runs automatically after `/run` completes. The evaluator performs:
+**Dispatch the `run-evaluator` subagent** using the `Agent` tool with
+`subagent_type: run-evaluator`. Pass the plan file path in the prompt so
+the evaluator knows which plan was just executed. The evaluator has fresh
+context and no sunk-cost bias, and performs:
 
 1. **`/simplify`** — review changed code for reuse, quality, efficiency
 2. **Test suite** — run all tests, report pass/fail counts
 3. **Scenario coverage** — map spec acceptance scenarios to tests
 4. **Desiderata Review** — score tests against Kent Beck's Test Desiderata
 
-The evaluator is a separate agent with fresh context — it does not share
-the builder's sunk-cost bias. This follows Anthropic's harness design
-principle: separate the generator from the evaluator.
-
-If the hook does not fire (e.g., plugin not loaded, hooks disabled),
-verification falls back to the human reviewing the output manually.
+This separation follows Anthropic's harness-design principle: separate the
+generator from the evaluator. Surface the evaluator's report to the user
+before handing off to `/refactor` or `/commit`.
 
 ## Scaling
 

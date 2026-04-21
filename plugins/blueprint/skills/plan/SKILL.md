@@ -426,7 +426,13 @@ found, check before generating and suggest the user create one first with
 problem. However, if the user explicitly wants to plan from a description
 or source code, proceed.
 
-**After `/plan`:** Suggest the next step:
+**After `/plan`:** Before suggesting `/run`, **dispatch the `plan-evaluator`
+subagent** using the `Agent` tool with `subagent_type: plan-evaluator`.
+Pass the plan file path in the prompt. The evaluator has fresh context, no
+sunk-cost bias, and will edit the plan directly to resolve autonomous
+fixes (missing triplets, dependency issues, ordering problems). Surface
+its report to the user and address any "Needs Human Input" items, then
+suggest:
 
 ```
 Plan generated: plans/{filename}_graph.md
