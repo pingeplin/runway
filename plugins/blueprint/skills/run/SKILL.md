@@ -89,7 +89,7 @@ After parsing the graph, analyze stream independence to choose the execution str
 **Parallel execution rules:**
 - Each agent gets its own stream and runs RED→GREEN→REFACTOR sequentially within it.
 - Agents write to different files (each stream targets different modules) — no merge conflicts.
-- After all agents complete, run the full test suite once to catch cross-stream integration issues.
+- After all agents complete, dispatch the `test-runner` subagent (`Agent` tool, `subagent_type: test-runner`) to run the full test suite once and catch cross-stream integration issues. Keeping this run in a subagent keeps verbose framework output out of `/run`'s context — only the pass/fail summary comes back.
 - If any agent escalates, pause all agents and report to the user.
 - Progress tracking and plan checkbox updates still apply — each agent updates its own stream's checkboxes.
 
@@ -99,6 +99,8 @@ After parsing the graph, analyze stream independence to choose the execution str
 - The user explicitly asks for sequential execution
 
 Process each triplet in dependency order. After each GREEN node, update the plan file to check off the completed triplet.
+
+**Test runs inside the triplet loop stay in-context.** The RED/GREEN/REFACTOR steps below each say "Run the test suite" — execute these via `Bash` directly, not via the `test-runner` subagent. The TDD loop needs the raw failure message in main context to drive the next edit (GREEN) and to diagnose unexpected breakage (RED, REFACTOR). The `test-runner` subagent is reserved for verification-only runs where a pass/fail summary is enough — see the cross-stream integration check above and the `/refactor` skill.
 
 ### RED Nodes
 

@@ -34,7 +34,7 @@ If the direction is unclear, ask the user before proceeding.
 
 Before making any changes, verify the test coverage:
 
-1. **Run the existing tests** — they must all pass. If tests are failing, stop. Refactoring on a red test suite is unsafe.
+1. **Run the existing tests** — dispatch the `test-runner` subagent (`Agent` tool, `subagent_type: test-runner`) to execute the full suite. They must all pass. If tests are failing, stop. Refactoring on a red test suite is unsafe.
 
 2. **Identify coverage of the target code** — read the test files that exercise the code being refactored. Understand what behaviors are currently verified.
 
@@ -81,7 +81,7 @@ Wait for user confirmation before executing.
 
 Apply each step from the plan. After each meaningful step:
 
-1. **Verify tests still pass** — run the relevant test suite
+1. **Verify tests still pass** — dispatch the `test-runner` subagent (`Agent` tool, `subagent_type: test-runner`). If the step touches a single, well-scoped module, you may scope the run by passing the relevant test path in the dispatch prompt; otherwise run the full suite.
 2. **If a test breaks** — stop immediately. The break means either:
    - The refactoring accidentally changed behavior → undo the step and try a different approach
    - The test is structure-sensitive → flag it for the user (this is a test quality issue, not a refactoring issue). Do NOT modify the test to make it pass without user approval.
@@ -97,7 +97,7 @@ Apply each step from the plan. After each meaningful step:
 
 After completing all steps:
 
-1. **Run the full test suite** — all tests must pass
+1. **Run the full test suite** — dispatch the `test-runner` subagent (`Agent` tool, `subagent_type: test-runner`) for the final verification. All tests must pass.
 2. **Present a summary:**
 
 ```
