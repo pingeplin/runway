@@ -1,23 +1,8 @@
-from pathlib import Path
-
 from harness import sandbox
 
 
-def _make_task(tmp_path: Path) -> Path:
-    task = tmp_path / "task"
-    starter = task / "starter"
-    starter.mkdir(parents=True)
-    (starter / "hello.py").write_text("print('hi')\n")
-    (starter / "tests").mkdir()
-    (starter / "tests" / "test_hello.py").write_text("def test_x():\n    assert 1\n")
-    oracle = task / "oracle" / "tests"
-    oracle.mkdir(parents=True)
-    (oracle / "test_oracle.py").write_text("def test_o():\n    assert 1\n")
-    return task
-
-
-def test_build_copies_only_starter(tmp_path):
-    task = _make_task(tmp_path)
+def test_build_copies_only_starter(tmp_path, make_task):
+    task = make_task(with_tests=True, with_oracle=True)
     sb = sandbox.build(task, tmp_path / "run")
 
     assert sb.wt.is_dir()
@@ -30,14 +15,14 @@ def test_build_copies_only_starter(tmp_path):
         assert "oracle" not in p.name.lower()
 
 
-def test_build_initializes_git_baseline(tmp_path):
-    task = _make_task(tmp_path)
+def test_build_initializes_git_baseline(tmp_path, make_task):
+    task = make_task()
     sb = sandbox.build(task, tmp_path / "run")
     assert (sb.wt / ".git").is_dir()
 
 
-def test_capture_diff_reports_post_starter_changes(tmp_path):
-    task = _make_task(tmp_path)
+def test_capture_diff_reports_post_starter_changes(tmp_path, make_task):
+    task = make_task()
     sb = sandbox.build(task, tmp_path / "run")
 
     (sb.wt / "hello.py").write_text("print('hello world')\n")
@@ -46,12 +31,12 @@ def test_capture_diff_reports_post_starter_changes(tmp_path):
     assert "diff --git" in diff
 
 
-def test_capture_diff_survives_agent_commit(tmp_path):
+def test_capture_diff_survives_agent_commit(tmp_path, make_task):
     """The /tdd flow ends with /commit, advancing HEAD inside wt/. The
     captured diff must still show the agent's work, not zero changes."""
     import subprocess
 
-    task = _make_task(tmp_path)
+    task = make_task()
     sb = sandbox.build(task, tmp_path / "run")
 
     (sb.wt / "hello.py").write_text("print('hello world')\n")
@@ -71,8 +56,8 @@ def test_capture_diff_survives_agent_commit(tmp_path):
     assert "diff --git" in diff
 
 
-def test_build_is_idempotent(tmp_path):
-    task = _make_task(tmp_path)
+def test_build_is_idempotent(tmp_path, make_task):
+    task = make_task()
     sandbox.build(task, tmp_path / "run")
     sb2 = sandbox.build(task, tmp_path / "run")
     assert sb2.wt.is_dir()
