@@ -1,0 +1,24 @@
+[project]
+name = "blueprint-bench"
+version = "0.1.0"
+description = "Pilot harness for evaluating the blueprint plugin's /tdd workflow against held-out behavioral oracles."
+requires-python = ">=3.11"
+dependencies = [
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+blueprint-bench = "harness.runner:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-json-report>=1.5",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["harness", "scorers"]

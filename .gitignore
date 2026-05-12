@@ -7,3 +7,7 @@ blueprint-eval-workspace/
 
 # Local Claude Code config (hooks, logs)
 .claude/
+
+# Benchmark run artifacts (transcripts, diffs, per-run JSON). Covered by
+# blueprint-bench/.gitignore too; listed here for visibility.
+blueprint-bench/results/

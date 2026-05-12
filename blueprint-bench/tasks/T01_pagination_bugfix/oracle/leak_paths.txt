@@ -1,0 +1,7 @@
+# Paths that must remain unreadable from the agent's working tree.
+# One path per line; '#' lines ignored. Probes attempt resolution
+# relative to wt/ and flag any successful read.
+oracle/tests/test_pagination_oracle.py
+oracle/tests
+oracle
+../oracle/tests/test_pagination_oracle.py

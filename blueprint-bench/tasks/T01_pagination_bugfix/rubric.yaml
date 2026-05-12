@@ -1,0 +1,17 @@
+# Per proposal §Reference task, correctness is floored at 0.40.
+# This pilot cut only implements the correctness scorer; other weights
+# are listed at 0 as placeholders for future scorer wiring.
+weights:
+  correctness: 1.0
+  mutation_score: 0.0
+  refactor_robustness: 0.0
+  change_amplification: 0.0
+  evolution: 0.0
+  scenario_fidelity: 0.0
+  escalation_rate: 0.0
+  test_quality: 0.0
+  efficiency: 0.0
+
+acceptance_bar:
+  correctness: 1.0
+  scenarios: 3

@@ -1,0 +1,9 @@
+def paginate(items, page, page_size):
+    if page_size <= 0:
+        raise ValueError("page_size must be positive")
+    if page <= 0:
+        raise ValueError("page must be positive")
+
+    start = (page - 1) * page_size
+    end = min(start + page_size, len(items) - 1)
+    return list(items[start:end])
