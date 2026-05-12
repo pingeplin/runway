@@ -35,15 +35,35 @@ class ModeResult:
     usage: UsageStats | None
 
 
+_NAKED_PREAMBLE = """\
+You are running in a batch evaluation harness with no human in the loop. \
+You CANNOT ask clarifying questions — there is no one to answer. Pick \
+reasonable defaults silently and finish the task.
+
+Do NOT invoke the `blueprint` plugin's workflow skills: `/tdd`, `/spec`, \
+`/plan`, `/run`, `/refactor`, `/review`, `/commit`, or `/proto`. This \
+mode measures unscaffolded coding ability, so those skills are off-limits \
+even if they look like a natural fit. Work directly: read the codebase, \
+write the tests and code yourself, run them, and stop when the task is \
+done.
+
+Task:
+"""
+
+
 def _build_prompt(mode: str, description: str) -> str:
     if mode == "full":
-        # --headless tells the /tdd orchestrator to skip its two human
-        # approval gates (Step 1 "Approve spec?" and Step 2 "Approve plan?").
-        # Without it, claude -p exits cleanly after writing the plan and the
-        # bug never gets fixed. See plugins/blueprint/commands/tdd.md.
+        # --headless tells the /tdd orchestrator (and the /spec and /plan
+        # skills it invokes) to skip every human-in-the-loop pause —
+        # approval gates and evaluator "Needs Human Input" questions
+        # alike. See plugins/blueprint/commands/tdd.md.
         return f"/tdd --headless {description}"
     if mode == "naked":
-        return description
+        # Naked mode measures the model's unscaffolded coding ability,
+        # so we explicitly forbid invoking the blueprint workflow skills
+        # — otherwise the agent self-selects /tdd and the comparison
+        # collapses into "full vs. full".
+        return _NAKED_PREAMBLE + description
     raise ValueError(f"unknown mode: {mode!r}")
 
 

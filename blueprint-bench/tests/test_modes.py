@@ -15,9 +15,16 @@ def test_full_mode_invokes_tdd_with_headless():
     assert prompt.endswith("fix the pagination bug")
 
 
-def test_naked_mode_passes_description_verbatim():
+def test_naked_mode_forbids_blueprint_skills_and_ends_with_description():
+    """Naked mode prepends a preamble that (a) tells the agent there's no
+    human in the loop and (b) forbids the blueprint workflow skills, then
+    appends the task description verbatim. Without the ban, the agent
+    self-selects /tdd and the "naked vs. full" comparison collapses."""
     prompt = modes._build_prompt("naked", "fix the pagination bug")
-    assert prompt == "fix the pagination bug"
+    assert prompt.endswith("fix the pagination bug")
+    assert "/tdd" in prompt and "/spec" in prompt
+    assert "Do NOT invoke" in prompt
+    assert "no human in the loop" in prompt
 
 
 def test_unknown_mode_raises():
