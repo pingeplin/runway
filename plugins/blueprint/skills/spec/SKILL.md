@@ -1,7 +1,7 @@
 ---
 name: spec
 description: Write a technical spec with structured acceptance scenarios and built-in testability review. Outputs to specs/ directory. ALWAYS use this skill when the user wants to write, create, or draft any kind of spec, design doc, technical spec, RFC, ADR, architecture document, feature spec, or technical proposal. Also trigger when the user describes a feature they want to build and needs requirements, acceptance criteria, or a written specification — even if they don't explicitly say "spec". If someone says "I want to add X to our system" and the request is complex enough to need a written plan, this skill should be consulted.
-argument-hint: '[feature-name] [optional-description]'
+argument-hint: '[--headless] [feature-name] [optional-description]'
 ---
 
 # Spec
@@ -9,6 +9,15 @@ argument-hint: '[feature-name] [optional-description]'
 Write a technical spec with structured acceptance scenarios. Specs capture the *why* and *how* of a feature or system change before implementation begins, with acceptance scenarios that feed directly into `/plan`.
 
 After the spec is written, dispatch the `spec-evaluator` subagent to review it. The evaluator is a separate agent with fresh context and no sunk-cost bias — it reviews the spec for testability, fixes what it can directly in the file, and surfaces only items needing human input.
+
+## Headless mode
+
+If the arguments begin with `--headless`, the caller cannot answer prompts (batch eval harness, scheduled run). In this mode:
+
+- Do not ask the user for a feature name — derive one from the description.
+- After the spec-evaluator returns its report, **do not pause for human input on its "Needs Human Input" items**. For each open question, pick the most reasonable default (prefer simpler / more permissive options), edit the spec file in-place to record the decision (replace the question with the chosen behavior; remove the line from the "Open Questions" section), and surface a one-line note: `Q→A (rationale)`.
+- The final spec must be self-contained — no unresolved questions, no `TBD` markers, no `[needs decision]` placeholders. Downstream `/plan` will read this file and must not have to guess.
+- Strip the `--headless` token before deriving the feature name from `$ARGUMENTS`.
 
 ## ID System
 
@@ -195,7 +204,11 @@ Use the template below. Omit sections that the Section Guide marks as skippable 
 
 ## Next Step
 
-After generating the spec file, **dispatch the `spec-evaluator` subagent** using the `Agent` tool with `subagent_type: spec-evaluator`. Pass the spec file path in the prompt so the evaluator knows which file to review. Wait for its report, surface the findings to the user, and address any "Needs Human Input" items before suggesting:
+After generating the spec file, **dispatch the `spec-evaluator` subagent** using the `Agent` tool with `subagent_type: spec-evaluator`. Pass the spec file path in the prompt so the evaluator knows which file to review. Wait for its report, surface the findings to the user, and address any "Needs Human Input" items before suggesting `/plan`.
+
+**In headless mode** (caller passed `--headless`): do *not* pause to ask the user about the evaluator's "Needs Human Input" items. Self-resolve each by picking a reasonable default, edit the spec file to record your choice in-place, and emit a brief `Q→A (rationale)` note per item. Then proceed.
+
+Otherwise (interactive mode): surface the findings and wait for the user to resolve any "Needs Human Input" items before suggesting:
 
 ```
 /plan specs/{yymm.xxxx}_{feature_name}.md

@@ -24,9 +24,16 @@ If invoked **with a description** (e.g., `/tdd "add coupon validation to orders"
 
 ## Headless mode
 
-If the arguments begin with the token `--headless` (e.g., `/tdd --headless "add coupon validation to orders"`), treat the two human approval gates in Steps 1 and 2 as **automatically approved** and continue immediately. The spec-evaluator and plan-evaluator subagents still run, and you must still surface their reports inline in your output, but do not pause for user input. Strip the `--headless` token before passing the description to `/spec` or `/plan`.
+If the arguments begin with the token `--headless` (e.g., `/tdd --headless "add coupon validation to orders"`), the workflow runs **without any human-in-the-loop pause**. Use this only when the caller has signaled they cannot answer prompts — batch evaluation harnesses, scheduled runs, or automation. The default (no `--headless`) keeps the gates and waits for human approval.
 
-Use this only when the caller has signaled they cannot answer prompts — batch evaluation harnesses, scheduled runs, or automation. The default (no `--headless`) keeps the gates and waits for human approval.
+In headless mode you MUST:
+
+1. **Propagate the flag.** Pass `--headless` through to `/spec` and `/plan` as their first argument so they honor the same rules. Do NOT strip it. (`/run`, `/refactor`, `/commit` need no flag — they have no human gates.)
+2. **Skip the Step 1 and Step 2 approval gates.** Surface the spec / plan summary inline, then continue immediately without asking "Approve, or revise?".
+3. **Self-resolve evaluator "Needs Human Input" items.** When the spec-evaluator or plan-evaluator subagent returns open questions, do not stop to ask. Pick the most reasonable default for each, **edit the artifact file to record your decision in-place** (replace the open question with the chosen answer in the spec/plan body, and remove it from any "Open Questions" / "Needs Human Input" section), surface a one-line note for each — `Q→A (rationale)` — and proceed. The artifact is now self-contained and `/run` can execute it.
+4. **Never end your turn waiting on the user.** Headless callers exit on `end_turn`. If you stop mid-workflow asking a question, the entire chain dies. Always carry the workflow through to `/commit` (or to the first hard failure).
+
+When in doubt about a defensible default, pick the *simpler* and *more permissive* option — headless runs are about producing an end-to-end implementation to evaluate, not about getting every design choice perfect.
 
 ## Detect task size first
 

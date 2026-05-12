@@ -1,7 +1,7 @@
 ---
 name: plan
 description: Generate an execution graph of TDD triplets (RED/GREEN/REFACTOR) with dependency tracking from a spec or source code. ALWAYS use this skill when the user wants to create a plan, generate a plan, break down work into tasks, create an implementation plan, generate an execution graph, plan a TDD approach, or figure out the order to implement things. Also trigger when the user has a spec and wants to know "what do I build first?", wants test cases generated from requirements, or asks to break a feature into implementable steps with dependencies.
-argument-hint: [path-to-spec-or-source]
+argument-hint: '[--headless] [path-to-spec-or-source]'
 ---
 
 # Plan — TDD Execution Graph Generator
@@ -10,6 +10,24 @@ Generate a complete execution graph of TDD triplets from a spec or design
 document. Each node in the graph is one step of the RED-GREEN-REFACTOR
 cycle, with explicit dependency tracking that enables parallel execution
 of independent streams.
+
+## Headless mode
+
+If the arguments begin with `--headless`, the caller cannot answer prompts
+(batch eval harness, scheduled run). In this mode:
+
+- Do not stop between Phase 1, Phase 2, and Phase 3 — produce the full
+  artifact in a single pass.
+- If the spec is vague, do not ask the user clarifying questions. Pick a
+  reasonable interpretation, note the assumption in the plan's Design
+  Feedback section, and continue.
+- After the plan-evaluator returns its report, do not pause for human
+  input on its "Needs Human Input" items. Self-resolve each by editing
+  the plan file in-place (adjust triplets / dependencies as needed),
+  emit a brief `Q→A (rationale)` note per item, and proceed.
+- Strip the `--headless` token before resolving the spec/source argument.
+
+The final plan must be self-contained and immediately runnable by `/run`.
 
 This skill replaces the old three-skill chain (`/test-generator` ->
 `/test-orderer` -> `/implementation-plan`) with a single, integrated
@@ -51,7 +69,9 @@ IDs follow arXiv-style `yymm.xxxx` format:
 
 Follow these phases in order. Each phase produces visible output for the
 user and waits for confirmation before proceeding. If the user provides a
-test list or explicitly asks to skip analysis, begin at Phase 2.
+test list or explicitly asks to skip analysis, begin at Phase 2. In
+headless mode (see top of file), do not pause between phases — emit each
+phase's output inline and continue without waiting.
 
 ---
 
@@ -126,7 +146,7 @@ and usage patterns, then proceed with the same workflow.
 > of all the different cases in which the behavior change should work.
 > Mistake: mixing in implementation design decisions. Chill."
 
-**Wait for user confirmation before proceeding to Phase 2.**
+**Wait for user confirmation before proceeding to Phase 2.** *(In headless mode: skip the wait and continue.)*
 
 ---
 
@@ -184,7 +204,7 @@ Critical path: A -> B
 - **Large feature (10+ tests):** Multiple streams with complex
   dependencies, full graph visualization, critical path analysis.
 
-**Wait for user confirmation before proceeding to Phase 3.**
+**Wait for user confirmation before proceeding to Phase 3.** *(In headless mode: skip the wait and continue.)*
 
 ---
 
@@ -438,6 +458,10 @@ suggest:
 Plan generated: plans/{filename}_graph.md
 Next: /run plans/{filename}_graph.md
 ```
+
+*(In headless mode: do not pause for human input on the evaluator's
+"Needs Human Input" items. Self-resolve each in-place, emit a brief
+`Q→A (rationale)` note per item, and continue directly to `/run`.)*
 
 `/run` will parse the execution graph and execute triplets in dependency
 order — reading the codebase, writing tests, and implementing code
