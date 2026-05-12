@@ -82,6 +82,59 @@ def _git_init(wt: Path) -> str:
     return sha
 
 
+def _resolve_baseline(wt: Path, baseline: str | None) -> str:
+    """Resolve `baseline` to a SHA, falling back to the root commit.
+
+    New callers should pass `Sandbox.starter_sha`; the fallback exists so
+    callers without a stashed starter SHA still get a sensible default.
+    """
+    if baseline is not None:
+        return baseline
+    return subprocess.run(
+        ["git", "rev-list", "--max-parents=0", "HEAD"],
+        cwd=wt,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip().splitlines()[0]
+
+
+def changed_paths(wt: Path, baseline: str | None = None) -> list[str]:
+    """Return all paths that differ from the starter baseline, including
+    untracked files.
+
+    `git diff` alone misses untracked files — but agents who never reach
+    `/commit` leave their work untracked, and we still want to see it in
+    the artifact summary (and for "did the agent produce any code?"
+    detection). Combine `git diff --name-only` with `git ls-files
+    --others --exclude-standard`.
+    """
+    baseline = _resolve_baseline(wt, baseline)
+    tracked = subprocess.run(
+        ["git", "diff", "--name-only", baseline],
+        cwd=wt,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.splitlines()
+    untracked = subprocess.run(
+        ["git", "ls-files", "--others", "--exclude-standard"],
+        cwd=wt,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.splitlines()
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for p in tracked + untracked:
+        p = p.strip()
+        if not p or p in seen:
+            continue
+        seen.add(p)
+        ordered.append(p)
+    return ordered
+
+
 def capture_diff(wt: Path, baseline: str | None = None) -> str:
     """Return the unified diff of `wt` vs. its baseline starter commit.
 
@@ -91,16 +144,7 @@ def capture_diff(wt: Path, baseline: str | None = None) -> str:
     `git diff HEAD` would then see zero changes even though the agent
     rewrote source files.
     """
-    if baseline is None:
-        # Fall back to the root commit so older callers still see something
-        # sensible. New callers should pass Sandbox.starter_sha explicitly.
-        baseline = subprocess.run(
-            ["git", "rev-list", "--max-parents=0", "HEAD"],
-            cwd=wt,
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout.strip().splitlines()[0]
+    baseline = _resolve_baseline(wt, baseline)
     result = subprocess.run(
         ["git", "diff", baseline],
         cwd=wt,

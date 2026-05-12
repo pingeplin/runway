@@ -8,6 +8,7 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import asdict
 from pathlib import Path
+from typing import Literal
 
 from harness import artifacts, manifest, modes, probes, sandbox
 from scorers import correctness, efficiency, mutation, refactor
@@ -19,6 +20,20 @@ from scorers import correctness, efficiency, mutation, refactor
 # models that benefit from external scaffolding — that's where smaller models
 # live.
 DEFAULT_MODELS = "claude-sonnet-4-6,claude-haiku-4-5"
+
+
+# Reasons a cell did not produce a scoreable result. `None` means the cell
+# ran end-to-end and the scores in the row are the real signal. Centralized
+# so producers and downstream consumers (summary stats, dashboards) agree on
+# the spelling.
+FailureMode = Literal[
+    "pre_probe_offenders",
+    "no_code_written",
+    "harness_exception",
+]
+FM_PRE_PROBE_OFFENDERS: FailureMode = "pre_probe_offenders"
+FM_NO_CODE_WRITTEN: FailureMode = "no_code_written"
+FM_HARNESS_EXCEPTION: FailureMode = "harness_exception"
 
 
 def _resolve_repo_root() -> Path:
@@ -139,7 +154,8 @@ def _execute_cell(
             "model": model,
             "seed": seed,
             "compromised": True,
-            "reason": "pre_probe_offenders",
+            "failure_mode": FM_PRE_PROBE_OFFENDERS,
+            "reason": FM_PRE_PROBE_OFFENDERS,
             "score": None,
             "runtime_s": 0.0,
             "cell_id": cell_id,
@@ -155,6 +171,7 @@ def _execute_cell(
     )
 
     captured = artifacts.collect(sb.wt, sb.artifacts_dir, baseline=sb.starter_sha)
+    code_files_touched = captured.get("code_files_touched") or []
 
     post = probes.run_probes(
         sb.wt,
@@ -167,10 +184,22 @@ def _execute_cell(
     def _skipped(reason: str) -> dict:
         return {"score": None, "note": reason}
 
+    failure_mode: FailureMode | None = None
     if post.compromised:
         score_dict = _skipped("scoring skipped: run compromised")
         mutation_dict = _skipped("scoring skipped: run compromised")
         refactor_dict = _skipped("scoring skipped: run compromised")
+    elif not code_files_touched:
+        # The agent produced specs/plans but never wrote production code.
+        # Distinguish this from "wrote code that failed all oracle tests" —
+        # the former is a workflow failure (orchestrator stalled, asked a
+        # question the headless caller can't answer), the latter is a real
+        # 0/N correctness result. Skip the oracle suite entirely; pytest
+        # would just report an import error and we'd lose the signal.
+        failure_mode = FM_NO_CODE_WRITTEN
+        score_dict = _skipped("skipped: agent produced no production code")
+        mutation_dict = _skipped("skipped: agent produced no production code")
+        refactor_dict = _skipped("skipped: agent produced no production code")
     else:
         score = correctness.score(task_dir, sb.wt, run_dir)
         score_dict = score.to_dict()
@@ -192,6 +221,7 @@ def _execute_cell(
         "model": model,
         "seed": seed,
         "compromised": post.compromised,
+        "failure_mode": failure_mode,
         "scores": {
             "correctness": {
                 "score": score_dict.get("score"),
@@ -288,6 +318,7 @@ def main(argv: list[str] | None = None) -> int:
                     "model": model,
                     "seed": seed,
                     "compromised": False,
+                    "failure_mode": FM_HARNESS_EXCEPTION,
                     "scores": _empty_scores(),
                     "runtime_s": 0.0,
                     "error": repr(exc),
@@ -305,10 +336,13 @@ def main(argv: list[str] | None = None) -> int:
             err_str = " ERROR" if usage.get("is_error") else ""
             mut_str = f" mut={mut:.2f}" if isinstance(mut, (int, float)) else ""
             ref_str = f" ref={ref:.2f}" if isinstance(ref, (int, float)) else ""
+            failure_mode = row.get("failure_mode")
+            fail_str = f" failure={failure_mode}" if failure_mode else ""
             print(
                 f"[{completed}/{len(cells)}] {row['cell_id']} score={corr}"
                 f"{mut_str}{ref_str} "
-                f"compromised={row.get('compromised')} runtime={row.get('runtime_s', 0):.1f}s "
+                f"compromised={row.get('compromised')}{fail_str} "
+                f"runtime={row.get('runtime_s', 0):.1f}s "
                 f"cost={cost_str}{err_str}",
                 file=sys.stderr,
             )
