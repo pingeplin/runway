@@ -22,6 +22,12 @@ Standalone: /review (any artifact, any time)
 
 If invoked **with a description** (e.g., `/tdd "add coupon validation to orders"`), begin immediately at Step 1.
 
+## Headless mode
+
+If the arguments begin with the token `--headless` (e.g., `/tdd --headless "add coupon validation to orders"`), treat the two human approval gates in Steps 1 and 2 as **automatically approved** and continue immediately. The spec-evaluator and plan-evaluator subagents still run, and you must still surface their reports inline in your output, but do not pause for user input. Strip the `--headless` token before passing the description to `/spec` or `/plan`.
+
+Use this only when the caller has signaled they cannot answer prompts — batch evaluation harnesses, scheduled runs, or automation. The default (no `--headless`) keeps the gates and waits for human approval.
+
 ## Detect task size first
 
 Before starting, assess scope and recommend the right entry point:
@@ -39,11 +45,11 @@ State your size assessment and recommended path. Proceed unless the user overrid
 
 ### Step 1: /spec
 Invoke `/spec` with the user's description. The spec skill generates a spec and self-reviews it.
-**GATE — Present the spec summary. Ask: "Approve spec, or revise?"** Do not continue until approved.
+**GATE — Present the spec summary. Ask: "Approve spec, or revise?"** Do not continue until approved. *(In headless mode: surface the summary, then proceed without pausing.)*
 
 ### Step 2: /plan
 Invoke `/plan` with the approved spec path.
-**GATE — Present the execution graph. Ask: "Approve plan, or revise?"** Do not continue until approved.
+**GATE — Present the execution graph. Ask: "Approve plan, or revise?"** Do not continue until approved. *(In headless mode: surface the graph summary, then proceed without pausing.)*
 
 ### Step 3: /run
 Invoke `/run` with the approved plan. `/run` analyzes the dependency graph and automatically decides whether to execute streams sequentially or in parallel (spawning one agent per independent stream). No flag needed — the graph structure determines the strategy. After `/run` finishes the last triplet, it dispatches the `run-evaluator` subagent — an independent fresh-context agent that runs `/simplify`, the test suite, scenario coverage check, and Desiderata Review. Surface its report before moving on.
