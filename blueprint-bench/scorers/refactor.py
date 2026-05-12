@@ -40,6 +40,12 @@ class _RenameLocalsTransformer(cst.CSTTransformer):
     This is conservative: we only rename names that are *assigned* inside the
     function (and aren't function parameters). Imported names, globals, and
     method-resolution names stay put.
+
+    Limitation: the assigned-name discovery is hand-rolled (see
+    `_AssignedNameCollector`). It does not understand `nonlocal`/`global`
+    declarations, walrus operators in comprehensions, lambda-only locals, or
+    nested-scope shadowing. Pilot fixtures don't exercise these. A proper
+    rewrite would use `cst.metadata.ScopeProvider`; deferred to a follow-up.
     """
 
     def __init__(self) -> None:

@@ -4,7 +4,7 @@ from scorers import efficiency
 def _row(mode: str, score, cost, in_tok=100, out_tok=100):
     return {
         "mode": mode,
-        "score": score,
+        "scores": {"correctness": {"score": score}},
         "usage": {
             "cost_usd": cost,
             "input_tokens": in_tok,
@@ -22,7 +22,11 @@ def test_empty_rows_returns_empty():
 def test_drops_rows_missing_score_or_usage():
     rows = [
         _row("full", None, 1.0),
-        {"mode": "full", "score": 1.0, "usage": None},
+        {
+            "mode": "full",
+            "scores": {"correctness": {"score": 1.0}},
+            "usage": None,
+        },
     ]
     assert efficiency.compute(rows) == {}
 

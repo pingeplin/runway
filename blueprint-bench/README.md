@@ -142,7 +142,7 @@ results/<run_id>/
 │   ├── mutation.json             # mutation scorer output (sampled mutants + kill rate)
 │   ├── refactor.json             # refactor-robustness per-refactoring pass rates
 │   ├── pytest_report.json        # raw correctness scorer report
-│   └── result.json               # per-cell row (correctness + mutation + refactor + usage)
+│   └── result.json               # per-cell row: scores{correctness,mutation,refactor} + usage
 └── summary.json                  # rows + manifest + total_cost_usd + efficiency_by_mode
 ```
 

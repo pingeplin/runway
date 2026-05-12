@@ -58,6 +58,14 @@ def _cell_id(task_name: str, mode: str, model: str, seed: int) -> str:
     return f"{task_name}__{mode}__{_model_slug(model)}__seed{seed}"
 
 
+def _empty_scores() -> dict:
+    return {
+        "correctness": {"score": None, "passed": None, "total": None},
+        "mutation": {"score": None},
+        "refactor": {"score": None},
+    }
+
+
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(prog="blueprint-bench")
     p.add_argument(
@@ -156,11 +164,13 @@ def _execute_cell(
     )
     probes.write_probe_report(post, run_dir / "probes.json")
 
-    skipped_dict = lambda reason: {"score": None, "note": reason}
+    def _skipped(reason: str) -> dict:
+        return {"score": None, "note": reason}
+
     if post.compromised:
-        score_dict = skipped_dict("scoring skipped: run compromised")
-        mutation_dict = skipped_dict("scoring skipped: run compromised")
-        refactor_dict = skipped_dict("scoring skipped: run compromised")
+        score_dict = _skipped("scoring skipped: run compromised")
+        mutation_dict = _skipped("scoring skipped: run compromised")
+        refactor_dict = _skipped("scoring skipped: run compromised")
     else:
         score = correctness.score(task_dir, sb.wt, run_dir)
         score_dict = score.to_dict()
@@ -170,8 +180,8 @@ def _execute_cell(
             mutation_dict = mutation.score(sb.wt).to_dict()
             refactor_dict = refactor.score(task_dir, sb.wt, run_dir).to_dict()
         else:
-            mutation_dict = skipped_dict("skipped: correctness baseline failed")
-            refactor_dict = skipped_dict("skipped: correctness baseline failed")
+            mutation_dict = _skipped("skipped: correctness baseline failed")
+            refactor_dict = _skipped("skipped: correctness baseline failed")
     (run_dir / "score.json").write_text(json.dumps(score_dict, indent=2))
     (run_dir / "mutation.json").write_text(json.dumps(mutation_dict, indent=2))
     (run_dir / "refactor.json").write_text(json.dumps(refactor_dict, indent=2))
@@ -182,11 +192,15 @@ def _execute_cell(
         "model": model,
         "seed": seed,
         "compromised": post.compromised,
-        "score": score_dict.get("score"),
-        "passed": score_dict.get("passed"),
-        "total": score_dict.get("total"),
-        "mutation_score": mutation_dict.get("score"),
-        "refactor_score": refactor_dict.get("score"),
+        "scores": {
+            "correctness": {
+                "score": score_dict.get("score"),
+                "passed": score_dict.get("passed"),
+                "total": score_dict.get("total"),
+            },
+            "mutation": {"score": mutation_dict.get("score")},
+            "refactor": {"score": refactor_dict.get("score")},
+        },
         "runtime_s": mode_result.runtime_s,
         "timed_out": mode_result.timed_out,
         "returncode": mode_result.returncode,
@@ -274,24 +288,25 @@ def main(argv: list[str] | None = None) -> int:
                     "model": model,
                     "seed": seed,
                     "compromised": False,
-                    "score": None,
+                    "scores": _empty_scores(),
                     "runtime_s": 0.0,
                     "error": repr(exc),
                     "cell_id": _cell_id(task.name, mode, model, seed),
                 }
             rows.append(row)
             completed += 1
-            score = row.get("score")
+            scores = row.get("scores") or {}
+            corr = (scores.get("correctness") or {}).get("score")
+            mut = (scores.get("mutation") or {}).get("score")
+            ref = (scores.get("refactor") or {}).get("score")
             usage = row.get("usage") or {}
             cost = usage.get("cost_usd")
             cost_str = f"${cost:.3f}" if cost is not None else "$?"
             err_str = " ERROR" if usage.get("is_error") else ""
-            mut = row.get("mutation_score")
-            ref = row.get("refactor_score")
             mut_str = f" mut={mut:.2f}" if isinstance(mut, (int, float)) else ""
             ref_str = f" ref={ref:.2f}" if isinstance(ref, (int, float)) else ""
             print(
-                f"[{completed}/{len(cells)}] {row['cell_id']} score={score}"
+                f"[{completed}/{len(cells)}] {row['cell_id']} score={corr}"
                 f"{mut_str}{ref_str} "
                 f"compromised={row.get('compromised')} runtime={row.get('runtime_s', 0):.1f}s "
                 f"cost={cost_str}{err_str}",

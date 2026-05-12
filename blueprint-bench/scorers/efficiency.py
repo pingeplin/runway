@@ -53,7 +53,8 @@ def compute(rows: list[dict], resolve_threshold: float = 1.0) -> dict[str, dict]
     cleaned: list[tuple[str, float, int, bool]] = []
     for r in rows:
         mode = r.get("mode")
-        score = r.get("score")
+        scores = r.get("scores") or {}
+        score = (scores.get("correctness") or {}).get("score")
         usage = r.get("usage") or {}
         cost = usage.get("cost_usd")
         if mode is None or score is None or cost is None:
