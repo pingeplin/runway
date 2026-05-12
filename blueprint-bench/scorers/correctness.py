@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 import tomllib
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -82,8 +83,8 @@ def _invoke_pytest(oracle_tests: Path, wt: Path, run_dir: Path) -> Path:
     }
 
     cmd = [
-        "uv",
-        "run",
+        sys.executable,
+        "-m",
         "pytest",
         str(oracle_tests),
         "--json-report",

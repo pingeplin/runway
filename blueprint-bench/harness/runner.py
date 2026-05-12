@@ -10,7 +10,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from harness import artifacts, manifest, modes, probes, sandbox
-from scorers import correctness
+from scorers import correctness, efficiency, mutation, refactor
 
 
 # Opus is deliberately excluded. The pilot tasks are sized for small-to-medium
@@ -156,18 +156,25 @@ def _execute_cell(
     )
     probes.write_probe_report(post, run_dir / "probes.json")
 
+    skipped_dict = lambda reason: {"score": None, "note": reason}
     if post.compromised:
-        score_dict = {
-            "score": None,
-            "passed": None,
-            "total": None,
-            "failures": [],
-            "note": "scoring skipped: run compromised",
-        }
+        score_dict = skipped_dict("scoring skipped: run compromised")
+        mutation_dict = skipped_dict("scoring skipped: run compromised")
+        refactor_dict = skipped_dict("scoring skipped: run compromised")
     else:
         score = correctness.score(task_dir, sb.wt, run_dir)
         score_dict = score.to_dict()
+        # Mutation and refactor both depend on a working oracle baseline.
+        # If the agent's code failed correctness their signal is noise.
+        if score.total > 0 and score.score > 0:
+            mutation_dict = mutation.score(sb.wt).to_dict()
+            refactor_dict = refactor.score(task_dir, sb.wt, run_dir).to_dict()
+        else:
+            mutation_dict = skipped_dict("skipped: correctness baseline failed")
+            refactor_dict = skipped_dict("skipped: correctness baseline failed")
     (run_dir / "score.json").write_text(json.dumps(score_dict, indent=2))
+    (run_dir / "mutation.json").write_text(json.dumps(mutation_dict, indent=2))
+    (run_dir / "refactor.json").write_text(json.dumps(refactor_dict, indent=2))
 
     row = {
         "task": task_dir.name,
@@ -178,6 +185,8 @@ def _execute_cell(
         "score": score_dict.get("score"),
         "passed": score_dict.get("passed"),
         "total": score_dict.get("total"),
+        "mutation_score": mutation_dict.get("score"),
+        "refactor_score": refactor_dict.get("score"),
         "runtime_s": mode_result.runtime_s,
         "timed_out": mode_result.timed_out,
         "returncode": mode_result.returncode,
@@ -277,8 +286,13 @@ def main(argv: list[str] | None = None) -> int:
             cost = usage.get("cost_usd")
             cost_str = f"${cost:.3f}" if cost is not None else "$?"
             err_str = " ERROR" if usage.get("is_error") else ""
+            mut = row.get("mutation_score")
+            ref = row.get("refactor_score")
+            mut_str = f" mut={mut:.2f}" if isinstance(mut, (int, float)) else ""
+            ref_str = f" ref={ref:.2f}" if isinstance(ref, (int, float)) else ""
             print(
-                f"[{completed}/{len(cells)}] {row['cell_id']} score={score} "
+                f"[{completed}/{len(cells)}] {row['cell_id']} score={score}"
+                f"{mut_str}{ref_str} "
                 f"compromised={row.get('compromised')} runtime={row.get('runtime_s', 0):.1f}s "
                 f"cost={cost_str}{err_str}",
                 file=sys.stderr,
@@ -291,6 +305,7 @@ def main(argv: list[str] | None = None) -> int:
     summary = {
         "manifest": asdict(mf),
         "total_cost_usd": round(total_cost, 4),
+        "efficiency_by_mode": efficiency.compute(rows),
         "rows": sorted(rows, key=lambda r: r["cell_id"]),
     }
     (run_root / "summary.json").write_text(json.dumps(summary, indent=2))

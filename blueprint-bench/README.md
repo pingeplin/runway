@@ -12,9 +12,22 @@ order in `blueprint-eval-workspace/benchmark-proposal.html` (v2.2):
 - **Harness skeleton** at `harness/` — sandboxed per-run working tree,
   oracle leak probes, mode invocation, artifact capture, manifest with
   plugin/harness git SHAs.
-- **Correctness scorer** at `scorers/correctness.py` — runs each task's
-  hidden oracle tests against the agent's output and returns
-  `passed / total`.
+- **Four primary scorers** at `scorers/` — all four axes from
+  proposal §Build-order step 2:
+  - `correctness.py` — runs the task's hidden oracle tests against the
+    agent's working tree; `passed / total`.
+  - `mutation.py` — libcst-based mutators (arith / compare / boolean /
+    int swap) applied to the agent's SUT; the agent's own tests are run
+    against each mutant; score = `killed / total`. Up to 30 mutants
+    sampled per cell with per-mutant and total timeouts. Surfaces
+    tautological test suites.
+  - `refactor.py` — applies trusted behavior-preserving refactorings
+    (rename locals, reorder adjacent top-level functions) to the agent's
+    SUT; reruns oracle tests; score = avg pass rate. Inverse of mutation
+    testing — surfaces brittle tests that over-fit to implementation.
+  - `efficiency.py` — suite-level EuCB (resolve-rate vs cost) and EuTB
+    (resolve-rate vs total tokens) per mode, AUC over a budget axis
+    shared across modes. From SWE-Effi 2025.
 - **3 pilot tasks** at `tasks/`:
   - `T01_pagination_bugfix` — bug-fix bucket (1–3 hidden tests, trap:
     visible suite passes on broken code).
@@ -53,10 +66,12 @@ they are diagnostics for *the benchmark*, not for *the plugin*.
 
 ## What's deliberately out of scope
 
-Everything outside step 1 of the build order. Specifically:
+Everything outside build-order steps 1–2. Specifically:
 
-- **Other primary scorers**: mutation score, refactor robustness,
-  `change_amplification`, `evolution`, EuTB / EuCB efficiency.
+- **Cross-mode maintainability scorers**: `change_amplification`,
+  `evolution`. Both need a pre-authored delta/follow-up task per fixture
+  + a 3-person independent-implementer panel for normalization. Not in
+  this cut.
 - **Other modes**: `naked-equalized`, `no-evaluators`, `sequential-only`,
   `plan-from-code`, `tdd-vs-joint`.
 - **Independent-implementer 3-person panel** and pre-validation gate.
@@ -124,9 +139,11 @@ results/<run_id>/
 │   │   └── plans/                # if blueprint wrote any
 │   ├── probes.json               # pre/post/liveness probe results + compromised flag
 │   ├── score.json                # correctness scorer output
-│   ├── pytest_report.json        # raw scorer report
-│   └── result.json               # per-cell row (score, runtime, model, usage{cost_usd,tokens,turns})
-└── summary.json                  # all rows + manifest + total_cost_usd
+│   ├── mutation.json             # mutation scorer output (sampled mutants + kill rate)
+│   ├── refactor.json             # refactor-robustness per-refactoring pass rates
+│   ├── pytest_report.json        # raw correctness scorer report
+│   └── result.json               # per-cell row (correctness + mutation + refactor + usage)
+└── summary.json                  # rows + manifest + total_cost_usd + efficiency_by_mode
 ```
 
 Model slugs in cell ids strip the `claude-` prefix, so a cell looks like
@@ -156,7 +173,7 @@ blueprint-bench/
 ├── .python-version               # 3.11
 ├── uv.lock                       # committed
 ├── harness/                      # sandbox, probes, modes, artifacts, manifest, runner
-├── scorers/                      # correctness only, for this cut
+├── scorers/                      # correctness, mutation, refactor-robustness, efficiency
 ├── tasks/                        # T01 / T02 / T03
 ├── tests/                        # harness smoke tests
 └── results/                      # gitignored

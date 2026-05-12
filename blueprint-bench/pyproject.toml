@@ -5,6 +5,7 @@ description = "Pilot harness for evaluating the blueprint plugin's /tdd workflow
 requires-python = ">=3.11"
 dependencies = [
     "pyyaml>=6.0",
+    "libcst>=1.4",
 ]
 
 [project.scripts]
