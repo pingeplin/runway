@@ -32,7 +32,7 @@ If `$ARGUMENTS` contains a file path, read that file. Otherwise check for the mo
 2. **Read the methodology file** — the reference file contains the full phase-by-phase review process.
 3. **Read supporting references** as needed:
    - Test reviews: also read `../../references/test-desiderata.md` and `../../references/anti-patterns.md`
-   - Plan reviews: also read `../../references/test-desiderata.md` (for RED node quality checks)
+   - Plan reviews: also read `../../references/test-desiderata.md` (for test description quality checks)
 4. **Apply all phases** from the methodology file in order.
 5. **Output findings** using the shared output structure below.
 
