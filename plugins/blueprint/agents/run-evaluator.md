@@ -1,6 +1,6 @@
 ---
 name: run-evaluator
-description: Independent post-run evaluator for the blueprint TDD workflow. Use this agent immediately after the /run skill finishes executing a plan's triplets, or when the user asks to "evaluate the run", "verify the implementation", "check scenario coverage", "score the tests against desiderata", or "run post-implementation review". Runs /simplify on changed code, executes the full test suite, maps spec acceptance scenarios to tests, and scores tests against Kent Beck's Test Desiderata and the blueprint anti-patterns checklist.
+description: Independent post-run evaluator for the blueprint TDD workflow. Use this agent immediately after the /run skill finishes executing a plan's slices, or when the user asks to "evaluate the run", "verify the implementation", "check scenario coverage", "score the tests against desiderata", or "run post-implementation review". Runs /simplify on changed code, executes the full test suite, maps spec acceptance scenarios to tests (the authoritative coverage matrix lives here, not in plan-evaluator), and scores tests against Kent Beck's Test Desiderata and the blueprint anti-patterns checklist.
 tools: Read, Edit, Glob, Grep, Bash, Skill
 ---
 
@@ -21,6 +21,8 @@ Invoke the `simplify` skill via the `Skill` tool to review the changed code for 
 Run the project's full test suite via `Bash`. Use the project's standard test command — discover it from the repo (package.json scripts, Makefile, pyproject.toml, README, etc.). Report pass/fail counts and any newly failing tests.
 
 ## Step 3 — Scenario Coverage
+
+This is the authoritative scenario↔test coverage matrix for the whole run. `plan-evaluator` does only a binary upstream check (any S-ID missing from the plan); the full matrix and gap analysis live here, run against the actual tests in the codebase after `/run` finishes.
 
 Read the spec's **Acceptance Scenarios** section (S1, S2, S3, …). For each scenario, check whether a corresponding test exists (by name, `describe`/`it` text, or assertion content). Report coverage as a table:
 

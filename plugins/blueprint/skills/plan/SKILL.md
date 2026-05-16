@@ -1,19 +1,21 @@
 ---
 name: plan
-description: Generate an execution graph of TDD triplets (RED/GREEN/REFACTOR) with dependency tracking from a spec or source code. ALWAYS use this skill when the user wants to create a plan, generate a plan, break down work into tasks, create an implementation plan, generate an execution graph, plan a TDD approach, or figure out the order to implement things. Also trigger when the user has a spec and wants to know "what do I build first?", wants test cases generated from requirements, or asks to break a feature into implementable steps with dependencies.
+description: Generate an execution graph of behavioral slices with dependency tracking from a spec or source code. ALWAYS use this skill when the user wants to create a plan, generate a plan, break down work into tasks, create an implementation plan, generate an execution graph, plan a TDD approach, or figure out the order to implement things. Also trigger when the user has a spec and wants to know "what do I build first?", wants test cases generated from requirements, or asks to break a feature into implementable steps with dependencies.
 argument-hint: [path-to-spec-or-source]
 ---
 
-# Plan — TDD Execution Graph Generator
+# Plan — Sliced Execution Graph Generator
 
-Generate a complete execution graph of TDD triplets from a spec or design
-document. Each node in the graph is one step of the RED-GREEN-REFACTOR
-cycle, with explicit dependency tracking that enables parallel execution
-of independent streams.
+Generate a complete execution graph of **behavioral slices** from a spec or
+design document. Each slice in the graph bundles a small set of related
+tests with their implementation target, with explicit dependency tracking
+that enables parallel execution of independent streams.
 
-This skill replaces the old three-skill chain (`/test-generator` ->
-`/test-orderer` -> `/implementation-plan`) with a single, integrated
-workflow that produces one artifact: the execution graph.
+A *slice* is a single behavioral surface — 1 to 6 acceptance scenarios that
+share enough context that the same agent can write the tests, then the
+implementation, in one pass. The slice — not the individual test — is the
+unit of TDD discipline in this plugin: tests are batched within a slice,
+written before implementation, committed once failing, then made green.
 
 ## Output Artifact
 
@@ -133,8 +135,8 @@ and usage patterns, then proceed with the same workflow.
 ### Phase 2 — Stream Decomposition
 
 Group related tests into **streams**. A stream is a sequence of related
-TDD triplets that can be developed as a coherent unit — typically
-organized by component, feature area, or concern.
+slices that can be developed as a coherent unit — typically organized by
+component, feature area, or concern.
 
 **How to identify streams:**
 
@@ -147,8 +149,8 @@ organized by component, feature area, or concern.
 
 **Build the dependency graph:**
 
-- Within each stream: order from degenerate -> happy path -> edge cases
-  -> error handling (the TDD ordering principle)
+- Within each stream: order from degenerate → happy path → edge cases
+  → error handling (the TDD ordering principle)
 - Across streams: identify which streams depend on behaviors established
   by other streams
 - Identify parallelizable streams — streams with no cross-dependencies
@@ -159,43 +161,42 @@ Present the stream structure for user review:
 ```markdown
 ## Stream Structure
 
-### Stream A: Coupon Validation (4 triplets)
-Tests: S3, S5, S8, S12
+### Stream A: Coupon Validation (2 slices, 7 tests)
+Slices: A1 (S3, S5, S8), A2 (S12, S15)
 Depends: (none) — can start immediately
 
-### Stream B: Order Persistence (3 triplets)
-Tests: S1, S2, S4
-Depends: Stream A (needs CouponValidator from A2)
+### Stream B: Order Persistence (1 slice, 3 tests)
+Slices: B1 (S1, S2, S4)
+Depends: A1 (needs coupon validation behavior)
 
-### Stream C: Notification Dispatch (2 triplets)
-Tests: S6, S9
+### Stream C: Notification Dispatch (1 slice, 2 tests)
+Slices: C1 (S6, S9)
 Depends: (none) — can run in parallel with A
 
 Parallelizable: Streams A and C
-Critical path: A -> B
+Critical path: A1 → B1
 ```
 
 **Scaling guidance:**
 
-- **Small bug fix (1-3 tests):** Single stream, skip the graph
-  visualization. Keep it lightweight.
-- **Single feature (4-10 tests):** 2-3 streams typical. Brief dependency
-  summary.
-- **Large feature (10+ tests):** Multiple streams with complex
-  dependencies, full graph visualization, critical path analysis.
+- **Small bug fix (1-3 tests):** Single stream, single slice. Skip the
+  graph visualization. Keep it lightweight.
+- **Single feature (4-15 tests):** 2-3 streams typical, 1-2 slices per
+  stream. Brief dependency summary.
+- **Large feature (15+ tests):** Multiple streams, multiple slices,
+  full graph visualization, critical path analysis.
 
 **Wait for user confirmation before proceeding to Phase 3.**
 
 ---
 
-### Phase 3 — Triplet Generation
+### Phase 3 — Slice Generation
 
-For each stream, generate the TDD triplets as **behavioral milestones**.
-Every triplet has three nodes: RED (describe a failing test), GREEN
-(describe what "passing" looks like), REFACTOR (describe structural
-improvement opportunity).
+For each stream, generate **slices** as behavioral milestones. Each slice
+bundles a coherent set of tests with the implementation target they drive
+out.
 
-**The plan stays high-level.** Triplets describe *what* to test and
+**The plan stays high-level.** Slices describe *what* to test and
 *what behavior* to implement — not *how*. No test code, no implementation
 code. `/run` reads the codebase, discovers conventions, and writes the
 actual code. This prevents cascading errors from wrong assumptions made
@@ -208,31 +209,91 @@ implementation decisions.
 > implementation. It seemed smarter to constrain the agents on the
 > deliverables to be produced and let them figure out the path."
 
-**Node ID scheme:** Stream letter + sequential number within the stream.
-RED nodes are odd-numbered starting at 1, GREEN nodes follow their RED,
-REFACTOR nodes follow their GREEN:
+**Node ID scheme:** Stream letter + sequential slice number within the
+stream: `A1`, `A2`, `B1`, `C1`. There is no separate RED/GREEN/REFACTOR
+node type — the slice loop (in `/run`) drives RED→GREEN internally without
+needing distinct graph nodes. Refactoring happens once at the end of the
+whole run via the `/refactor` skill, not per slice.
 
-- A1 (RED), A2 (GREEN), A3 (REFACTOR)
-- A4 (RED), A5 (GREEN), A6 (REFACTOR)
-- B1 (RED), B2 (GREEN), B3 (REFACTOR)
+#### Slice Sizing
 
-#### RED Nodes — Behavioral Test Description
+Each slice should bundle **1–6 acceptance scenarios** that share a
+behavioral surface. Hard limits:
 
-Each RED node describes the test to write in behavioral terms — **no
-test code**. The description must be specific enough for `/run` to write
-the test after reading the codebase.
+- **1 scenario per slice is fine** for high-risk or foundational behaviors
+  where you want the smallest possible step.
+- **6 scenarios per slice is the soft cap.** Beyond that, the batched
+  test-writing pass loses anchoring (the writing agent starts forgetting
+  earlier tests' assumptions).
+- **8 scenarios is the hard cap.** A slice with 8 must split into two.
 
-Each RED node specifies:
+If a stream contains more behaviors than fit in one slice, create multiple
+slices: `A1`, `A2`, `A3` … each with its own scenarios and its own
+implementation target.
 
-- **Behavior under test:** What observable behavior to verify (in
-  Given/When/Then or equivalent prose)
-- **Key assertions:** What the test should check — expressed as expected
-  outcomes, not code
-- **Test type hint:** `[example]` for standard example-based tests,
-  `[property]` for property-based tests (roundtrip, invariant, etc.)
+#### Slice Format
 
-**Quality criteria for RED descriptions** (from `../../references/test-desiderata.md`
-and `../../references/anti-patterns.md` — read both files now):
+Use this exact format for parseability by `/run`:
+
+````markdown
+### A1: Coupon expiry validation
+**Depends:** (none)
+**Scenarios:** S3, S5
+**Tests:**
+- [example] Given an order with items, when applying an expired coupon,
+  then the operation fails with a validation error and the order total
+  remains unchanged. (S3)
+- [example] Given an order with items, when applying a coupon past the
+  grace period, then the operation fails with a validation error. (S3)
+- [example] Given an order with items, when applying a coupon within the
+  grace period, then the discount is applied normally. (S5)
+**Implementation:**
+- A coupon validator that rejects coupons past their expiry date,
+  honoring the configured grace period.
+- The order's `apply_coupon` path consults the validator before
+  mutating the total.
+**Done when:** All three tests pass; pre-existing tests still pass.
+**Scope:** [M] (a file-sized change in the coupon module)
+
+### A2: Coupon discount application
+**Depends:** A1
+**Scenarios:** S12, S15
+**Tests:**
+- [example] Given an order with eligible items, when applying a 10%
+  percentage coupon, then the order total is reduced by 10%. (S12)
+- [example] Given an order, when applying a fixed-amount coupon, then
+  the order total is reduced by that amount, floored at zero. (S15)
+**Implementation:**
+- Discount calculator handling percentage and fixed-amount coupons,
+  invoked from `apply_coupon` after validation succeeds.
+**Done when:** Both tests pass; the percentage and fixed-amount paths
+both reduce the total correctly.
+**Scope:** [S]
+````
+
+**Each slice specifies:**
+
+- **`Depends:`** — `(none)` for slices that can start immediately;
+  otherwise the slice IDs that must complete first (e.g. `A1, B2`).
+- **`Scenarios:`** — comma-separated S-IDs from the spec. Every scenario
+  in the slice must appear here.
+- **`Tests:`** — one bullet per test the slice will produce. Each test
+  has a type hint (`[example]` or `[property]`) and a behavioral
+  description in Given/When/Then prose. **No test code.** Reference the
+  relevant S-IDs in parentheses at the end of each test line. Multiple
+  tests may cover one scenario; one test may cover multiple scenarios.
+- **`Implementation:`** — bullet list describing the implementation
+  target in behavioral terms. Describe what the code must achieve, not
+  the specific file, class, or function names — `/run` discovers those.
+- **`Done when:`** — the observable outcome that signals the slice is
+  complete. Usually "all slice tests pass and pre-existing tests still
+  pass", with any slice-specific addenda.
+- **`Scope:`** — `[S]` (a few lines of change), `[M]` (file-sized
+  change), `[L]` (multi-file — consider splitting the slice).
+
+**Quality criteria for test descriptions** (from
+`../../references/test-desiderata.md` and `../../references/anti-patterns.md`
+— read both files now):
 
 - Describes **observable behavior**, not implementation details (AP-1)
 - Specific enough to write a test from, with concrete input/output
@@ -243,95 +304,20 @@ and `../../references/anti-patterns.md` — read both files now):
 - For async behaviors: describe command-side and query-side separately;
   assert on eventual state, not timing
 
-#### GREEN Nodes — Expected Outcome
+#### Dependency Rules
 
-Each GREEN node describes what "done" looks like — **not how to build
-it**. The executing agent reads the codebase and decides the
-implementation approach.
+- `(none)` for root slices that can start immediately
+- Single dependency: `A1`
+- Multiple dependencies: `A1, B2` (needs behaviors from two streams)
+- A slice depends on every prior slice in its stream whose behavior
+  it builds on (typically the immediately preceding slice — `A2`
+  depends on `A1`).
+- A slice may depend on slices from other streams when it needs
+  cross-stream behavior.
 
-Each GREEN node specifies:
+#### Within-stream Ordering
 
-- **Done when:** The observable outcome that signals completion (e.g.,
-  "the RED test passes and all existing tests remain green")
-- **Scope hint:** `[S]` (a few lines of change), `[M]` (file-sized
-  change), `[L]` (multi-file — consider splitting the triplet)
-- **Constraints** (only if critical): Boundary conditions the
-  implementation must respect, e.g., "must not break the existing
-  `/api/orders` contract" or "must work without adding new dependencies"
-
-Do NOT specify target files, function names, or implementation approach.
-`/run` discovers these by reading the codebase.
-
-#### REFACTOR Nodes — Structural Improvement Opportunity
-
-Each REFACTOR node is optional — include it when there is a concrete
-refactoring opportunity. Skip it (mark as "no refactoring needed") when
-the implementation is already clean.
-
-When included, describe:
-
-- What structural improvement to make (extract method, introduce
-  abstraction, consolidate duplication)
-- Why now is the right time (pattern has emerged, duplication threshold
-  reached)
-- The constraint: behavior must not change, all tests must stay green
-
-#### Triplet Format
-
-Use this exact format for parseability by `/run`:
-
-````markdown
-### A1: RED — reject expired coupon
-**Depends:** (none)
-**Scenario:** S3
-**Behavior:** Given an order with items, when applying an expired coupon,
-then the operation fails with a validation error and the order total
-remains unchanged.
-**Assertions:** Error indicates coupon is expired; total is unaffected.
-
-### A2: GREEN — expired coupon validation
-**Depends:** A1
-**Done when:** The RED test passes. Applying an expired coupon returns
-an error without modifying the order.
-**Scope:** [S]
-
-### A3: REFACTOR — (none needed)
-**Depends:** A2
-No refactoring needed at this stage.
-
-### A4: RED — valid coupon reduces total
-**Depends:** A2
-**Scenario:** S5
-**Behavior:** Given an order with items, when applying a valid
-percentage-discount coupon, then the order total is reduced by the
-discount percentage.
-**Assertions:** A 10% coupon on a $10 order yields a $9 total.
-
-### A5: GREEN — coupon discount application
-**Depends:** A4
-**Done when:** The RED test passes. Valid coupons reduce the order total
-by their discount percentage.
-**Scope:** [S]
-
-### A6: REFACTOR — extract discount calculation
-**Depends:** A5
-Extract discount calculation into its own unit if the method is growing.
-Only if warranted — if the code is still simple, skip this.
-````
-
-**Dependency declarations are explicit:**
-
-- `(none)` for root nodes that can start immediately
-- Single dependency: `A2` (the GREEN node that must complete first)
-- Multiple dependencies: `A2, B2` (needs behaviors from two streams)
-- RED nodes typically depend on the prior GREEN node in their stream
-  (the previous behavior must be implemented before testing the next)
-- RED nodes may depend on GREEN nodes from other streams when they need
-  cross-stream behavior
-- GREEN nodes always depend on their RED node
-- REFACTOR nodes always depend on their GREEN node
-
-**Within-stream ordering:** Follow the TDD ordering principle:
+Order slices within a stream by the TDD ordering principle:
 
 1. Degenerate cases first — force the function signature and skeleton
 2. Simplest happy path — the minimal "it works" case
@@ -340,7 +326,9 @@ Only if warranted — if the code is still simple, skip this.
 5. Error handling — graceful failure modes
 6. Integration-level behaviors last — combine multiple features
 
-Each step should drive exactly one design decision forward.
+Each slice should drive forward exactly one cohesive behavior. If you
+find yourself wanting to put two unrelated behaviors in one slice,
+split it.
 
 ---
 
@@ -357,37 +345,34 @@ exact structure for the output file:
 
 ## Summary
 - **Streams:** {N}
-- **Total triplets:** {N} ({N} RED, {N} GREEN, {N} REFACTOR)
+- **Total slices:** {N}
+- **Total tests:** {N}
 - **Parallelizable:** Streams {A, C} can run in parallel
-- **Critical path:** A1->A2->B1->B2->B3
+- **Critical path:** A1 → A2 → B1 → B2
 
 ## Execution Graph
 
 ```
-A1 ─> A2 ─> A3 ─> A4 ─> A5 ─> A6
-                          │
-B1 ─> B2 ─> B3 ──────────┘
-                   │
-C1 ─> C2 ─> C3 ───┘
+A1 ─> A2
+       │
+B1 ────┘
 ```
 
 ## Stream A: {Stream Name}
 
-### A1: RED — {behavioral description}
+### A1: {slice description}
 **Depends:** (none)
-**Scenario:** {scenario_id}
-**Behavior:** Given {precondition}, when {action}, then {expected outcome}.
-**Assertions:** {key outcomes to verify}
-
-### A2: GREEN — {outcome description}
-**Depends:** A1
-**Done when:** {observable outcome that signals completion}
+**Scenarios:** {S-IDs}
+**Tests:**
+- [{example|property}] {behavioral description} ({S-IDs})
+- ...
+**Implementation:**
+- {what the code must achieve}
+- ...
+**Done when:** {observable outcome}
 **Scope:** [{S|M|L}]
 
-### A3: REFACTOR — {refactoring_description or "(none needed)"}
-**Depends:** A2
-{refactoring guidance or "No refactoring needed at this stage."}
-
+### A2: {slice description}
 ...
 
 ## Stream B: {Stream Name}
@@ -408,9 +393,9 @@ C1 ─> C2 ─> C3 ───┘
 Omit `**Spec:**` if no spec exists.
 Omit `## Design Feedback` if there are no issues to report.
 
-For small bug fixes (single stream, 1-3 triplets), omit the Execution
-Graph visualization and the Summary's parallelization/critical-path lines.
-Keep the plan proportional to the work.
+For small bug fixes (single stream, single slice with 1-3 tests), omit
+the Execution Graph visualization and the Summary's parallelization /
+critical-path lines. Keep the plan proportional to the work.
 
 ## Workflow Chain
 
@@ -430,38 +415,41 @@ or source code, proceed.
 subagent** using the `Agent` tool with `subagent_type: plan-evaluator`.
 Pass the plan file path in the prompt. The evaluator has fresh context, no
 sunk-cost bias, and will edit the plan directly to resolve autonomous
-fixes (missing triplets, dependency issues, ordering problems). Surface
-its report to the user and address any "Needs Human Input" items, then
-suggest:
+fixes (missing tests for declared scenarios, dependency issues, ordering
+problems). Surface its report to the user and address any "Needs Human
+Input" items, then suggest:
 
 ```
 Plan generated: plans/{filename}_graph.md
 Next: /run plans/{filename}_graph.md
 ```
 
-`/run` will parse the execution graph and execute triplets in dependency
-order — reading the codebase, writing tests, and implementing code
-guided by the plan's behavioral descriptions.
+`/run` will parse the slices and execute them in dependency order —
+batching test writing, running a fresh-context test-batch evaluator,
+committing failing tests, then implementing — guided by each slice's
+behavioral descriptions.
 
 ## Key Principles
 
 These principles govern every decision in this skill:
 
-1. **Behavioral, not structural.** Every RED node tests observable
-   behavior. No test peeks into internals. If a refactoring changes zero
-   behaviors, zero tests should break.
+1. **Behavioral, not structural.** Every test description specifies
+   observable behavior. No test peeks into internals. If a refactoring
+   changes zero behaviors, zero tests should break.
 
-2. **One design decision per step.** Each triplet drives exactly one
-   design decision forward. If a GREEN node requires implementing two
-   unrelated things, split the triplet.
+2. **One behavioral surface per slice.** Each slice drives forward one
+   cohesive behavior. If a slice requires implementing two unrelated
+   things, split it.
 
 3. **Dependencies are explicit.** The graph must be parseable. Any node
    with `Depends: (none)` can execute immediately. Any node listing
    dependencies must wait for all of them.
 
-4. **Small steps.** Beck: "If you can take smaller steps, take smaller
-   steps." When in doubt, split a triplet into two. A plan with too many
-   small steps is better than one with steps that are too large.
+4. **Small slices over large.** Beck: "If you can take smaller steps,
+   take smaller steps." When in doubt, split a slice. A plan with too
+   many small slices is better than one with slices that are too large
+   — the cap of 6 scenarios per slice exists for the same reason as
+   Beck's "small steps".
 
 5. **The plan is a hypothesis.** The execution graph represents the best
    ordering given current understanding. During `/run`, the developer may
@@ -471,3 +459,10 @@ These principles govern every decision in this skill:
 6. **Difficult tests signal design problems.** If a behavior is hard to
    test, report it in Design Feedback. Beck: "Difficult-to-write tests
    are the canary in the bad interface coal mine."
+
+7. **No refactor nodes in the plan.** Refactoring happens once at the
+   end of the whole run via the standalone `/refactor` skill. Per-slice
+   "pressure-relief" refactor nodes were dropped in v3.4 — they added
+   bookkeeping without clear ROI, and the failing-test commit checkpoint
+   in `/run` provides a cleaner safety net for the structure→behavior
+   discipline.
