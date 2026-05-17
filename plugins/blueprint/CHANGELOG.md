@@ -148,7 +148,18 @@ For users with in-flight work:
   worth adding only after observing failures the current pass misses.
 - **Empirical comparison** of v3.4 vs 3.3.1 on the same feature with
   the same spec — recommended before merge for confidence beyond the
-  literature evidence cited under "Why".
+  literature evidence cited under "Why". **Done (2026-05-18):** ran
+  8 tasks side-by-side across the two versions — LCD, Poker Hands,
+  Bowling, Tennis, Roman Numerals, Markdown→HTML, Bank-Account bug fix,
+  vague-spec Undo. Findings: v3.4 reliably wins on process discipline
+  (per-slice commit trail) and plan compactness (1.6×–3.2× shorter
+  plans, comparable scenario coverage). Correctness essentially tied
+  (1 task each direction, both at spec-stage edges the kata didn't
+  pin). v3.4's per-slice impl-commit pattern degrades on structurally
+  complex features (markdown task: tests committed per slice, impl
+  batched at end). Methodology preserved at
+  `plugins/blueprint/references/eval-methodology.md`; per-task evidence
+  archived locally outside the repo.
 
 ## Earlier versions
 
