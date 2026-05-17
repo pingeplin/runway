@@ -10,8 +10,8 @@ Blueprint Prototype Mode
 
 /proto ──→ discover ──→ test ──→ implement ──→ promote or discard
               │           │          │
-              read code   2-4 tests  RED-GREEN only
-              no spec     happy path no refactor
+              read code   2-4 tests  one batched pass
+              no spec     happy path no commit, no refactor
 ```
 
 If invoked **with a description** (e.g., `/proto "try WebSocket instead of polling"`), begin immediately.
@@ -21,12 +21,16 @@ If invoked **with a description** (e.g., `/proto "try WebSocket instead of polli
 | | /tdd | /proto |
 |---|---|---|
 | Spec | Required (with self-review) | Skipped |
-| Plan file | Execution graph with streams | None — tests are generated inline |
+| Plan file | Slice-based execution graph | None — tests are generated inline |
 | Scope | All scenarios, edge cases, errors | Happy path only: 2-4 tests |
-| REFACTOR | Included | Skipped |
+| Test-batch evaluator | Yes, per slice | Skipped |
+| Failing-test commit | Yes, per slice | Skipped |
+| REFACTOR | Standalone /refactor at the end | Skipped |
 | Human gates | After spec, after plan | Before implementation only |
-| Verification | Auto-verify against spec | None (there is no spec) |
+| Verification | run-evaluator at the end | None (there is no spec) |
 | Goal | Build it right | Find out if it works |
+
+`/proto` is structurally one slice with all the safety nets stripped — no spec, no plan, no evaluators, no commits. If the spike works and you want to keep it, promote it to `/tdd`.
 
 ## Workflow
 
@@ -42,12 +46,12 @@ This is quick reconnaissance, not deep analysis. Spend minimal time here.
 
 ### Step 2: Generate happy-path tests
 
-Write 2-4 skipped tests directly to a test file. No plan file, no graph, no streams.
+Write 2-4 active tests directly to a test file. No plan file, no graph, no streams, no skip markers.
 
 **Rules:**
 - **Happy path only** — test the core "does it work?" behavior. No edge cases, no error handling, no boundary conditions.
 - **Follow project conventions** — match the existing test framework, naming, and directory structure.
-- **All tests skipped** — use the framework's skip marker with a behavioral description.
+- **Tests are active, not skipped** — write the tests as you would for any real run; they will fail collectively in Step 3 because the implementation doesn't exist yet. (This aligns `/proto` with `/run`'s slice loop; v3.4 dropped the skip-marker convention.)
 - **AAA structure** — Arrange/Act/Assert, inline setup, no shared fixtures.
 - **Behavioral** — test observable output, not internals.
 
@@ -56,7 +60,6 @@ Example output:
 ```python
 # tests/test_websocket_updates.py
 
-@pytest.mark.skip(reason="client receives live update via WebSocket")
 def test_client_receives_live_update():
     ws = WebSocketClient("ws://localhost/updates")
     ws.connect()
@@ -65,7 +68,6 @@ def test_client_receives_live_update():
     assert message["item_id"] == 1
     assert message["status"] == "shipped"
 
-@pytest.mark.skip(reason="multiple clients receive the same update")
 def test_multiple_clients_receive_broadcast():
     ws1 = WebSocketClient("ws://localhost/updates")
     ws2 = WebSocketClient("ws://localhost/updates")
@@ -78,23 +80,26 @@ def test_multiple_clients_receive_broadcast():
 
 **Present the tests to the user. Ask: "Run this spike, or adjust?"**
 
-### Step 3: RED-GREEN loop
+### Step 3: Verify-and-implement
 
-For each test, sequentially:
+1. **Run the suite via `Bash`.** Expected: every new test fails / errors-as-not-implemented. Pre-existing tests remain green.
+   - If a new test passes unexpectedly: flag it ("already implemented or trivially true").
+   - If a pre-existing test breaks: stop and report — the spike introduced an unrelated issue.
 
-1. **RED** — Unskip the test. Run it. Expect failure.
-   - If it passes unexpectedly: flag it ("already implemented or trivially true")
-2. **GREEN** — Write the minimal code to make it pass. Run all tests. Expect all green.
-   - If it fails after 2 attempts: stop and report the issue.
+2. **Write the minimal implementation** to make all spike tests pass. One pass — don't dribble tests in.
+
+3. **Run the suite again.** All spike tests should pass.
+
+4. **Bounded fix loop** if some still fail: up to 3 attempts of production-code edits. Do NOT edit the tests. If still failing after 3 attempts, stop and report — the spike may not be feasible as conceived.
 
 No REFACTOR step. Structure doesn't matter in a prototype.
 
 Show progress:
 ```
-[1/3] RED  — test_client_receives_live_update — FAILED (expected)
-[1/3] GREEN — implemented WebSocketHandler — ALL PASSING
-[2/3] RED  — test_multiple_clients_receive_broadcast — FAILED (expected)
-[2/3] GREEN — added broadcast logic — ALL PASSING
+[batch] 3 tests written — running suite
+[batch] 3/3 failing as expected — implementing
+[batch] Implementation written — running suite
+[batch] 3/3 passing — spike complete
 ```
 
 ### Step 4: Decide

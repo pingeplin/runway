@@ -201,7 +201,7 @@ After generating the spec file, **dispatch the `spec-evaluator` subagent** using
 /plan specs/{yymm.xxxx}_{feature_name}.md
 ```
 
-This generates the execution graph — an ordered execution graph of TDD triplets derived from the acceptance scenarios.
+This generates the execution graph — an ordered set of behavioral slices derived from the acceptance scenarios, with explicit dependencies.
 
 The full workflow chain:
 ```

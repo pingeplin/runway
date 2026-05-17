@@ -15,9 +15,9 @@ If a spec is available (check `specs/` for a matching ID or ask the user):
 
 If a plan is available (check `plans/` for a matching ID):
 
-1. **Task completion status** — Which plan tasks appear to be implemented?
-2. **Skipped tasks** — Any tasks with no corresponding implementation
-3. **Out-of-order work** — Implementation that appears to skip RED (no test) or GREEN (no implementation for a written test)
+1. **Slice completion status** — Which plan slices appear to be implemented? Look for matching tests (from each slice's `Tests:` bullets) and matching production code (from each slice's `Implementation:` bullets).
+2. **Incomplete slices** — Slices whose tests exist but whose implementation targets are missing, or vice versa.
+3. **Missing failing-test commits** — In a well-executed `/run`, each slice produced a `test:` commit before the implementation commit. Check git log for these checkpoints; their absence may indicate tests were retro-fitted to the implementation rather than driving it.
 
 ## Phase 3 — Code Quality Flags
 
@@ -30,4 +30,4 @@ Scan the implementation for common issues regardless of spec/plan availability:
 
 ## Phase 4 — Implementation Summary
 
-Output: spec alignment (scenarios implemented/total, unimplemented list, extra behaviors), plan progress (tasks completed/total, skipped list), code quality counts (stubs, missing error handling, untested public methods), and a Ready for /commit verdict.
+Output: spec alignment (scenarios implemented/total, unimplemented list, extra behaviors), plan progress (slices completed/total, incomplete list), code quality counts (stubs, missing error handling, untested public methods), and a Ready for /commit verdict.

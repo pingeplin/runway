@@ -1,58 +1,93 @@
 # Plan Review Methodology
 
-Review an execution plan (dependency graph of TDD triplets) for validity, completeness, and executability. Apply these phases in order.
+Review an execution plan (dependency graph of behavioral slices) for
+validity, completeness, and executability. Apply these phases in order.
 
 ## Phase 1 — Dependency Graph Validation
 
-Parse the plan's task graph and check:
+Parse the plan's slice graph and check:
 
 1. **No cycles** — Follow dependency chains; report any circular dependencies
-2. **No orphaned nodes** — Every task referenced as a dependency must exist as a defined task
-3. **No dangling dependencies** — Every dependency listed for a task must be defined in the plan
+2. **No orphaned references** — Every slice referenced as a dependency must exist as a defined slice
+3. **No dangling dependencies** — Every dependency listed for a slice must be defined in the plan
 4. **Stream structure** — If the plan uses parallel streams, verify they are labeled and organized
 
 Report graph issues as critical — a broken graph blocks `/run`.
 
-## Phase 2 — Triplet Completeness
+## Phase 2 — Slice Completeness
 
-Every TDD cycle should have a complete RED-GREEN-REFACTOR triplet. Check:
+Every slice must be self-contained enough for `/run` to execute. Check:
 
-1. **Every RED has a GREEN** — A failing test (RED) must be followed by an implementation task (GREEN) that makes it pass
-2. **REFACTOR is explicit** — Every GREEN should be followed by either a REFACTOR task with specific direction, or an explicit skip notation (e.g., "REFACTOR: skip — minimal implementation, nothing to clean up")
-3. **RED tasks contain behavioral descriptions** — RED nodes should describe the behavior to verify with concrete input/output examples and key assertions, not just "write test". They should NOT contain test code — `/run` writes the actual tests after reading the codebase
+1. **Every slice has `Scenarios:`** — at least one S-ID, and every S-ID
+   listed must exist in the paired spec.
+2. **Every slice has `Tests:`** — at least one test entry. Each test is a
+   behavioral bullet with a type hint (`[example]` or `[property]`) and a
+   prose description in Given/When/Then form, with the relevant S-IDs in
+   parentheses at the end.
+3. **Every test references at least one S-ID from the slice's `Scenarios:`** —
+   no orphan tests inside the slice.
+4. **Every slice has an `Implementation:` target** — at least one bullet
+   describing what the code must achieve, in behavioral terms (no specific
+   file, class, or function names).
+5. **Every slice has `Done when:` and `Scope:`** lines.
+6. **Tests describe behavior, not test code** — slice tests are prose
+   descriptions only. If a `Tests:` bullet contains executable code (def,
+   function, assert, fixture), it must be rewritten as behavioral prose.
+   `/run` writes the actual tests after reading the codebase.
 
-Flag incomplete triplets as warnings.
+Flag incomplete slices as warnings or auto-fix where possible.
 
-## Phase 3 — Scenario Coverage
+## Phase 3 — Scenario Coverage Check (lightweight)
 
-Map plan tasks back to spec acceptance scenarios:
+For every S-ID present in the spec, verify it appears in at least one
+slice's `Scenarios:` line.
 
-1. **Parse scenario IDs** — Extract S1, S2, S3... references from plan tasks
-2. **Build coverage matrix** — Which tasks cover which scenarios?
-3. **Flag uncovered scenarios** — Any spec scenario (S1, S2...) not referenced by at least one RED task
-4. **Flag orphan tasks** — Tasks that don't map to any acceptance scenario (may be legitimate infrastructure tasks — note but don't auto-flag as errors)
+- All covered → pass.
+- Any missing → list under "Needs Human Input". **Do not auto-add a slice**
+  for the missing scenario — placement (which stream, what slice size,
+  what implementation target) requires human judgment.
 
-Output as a coverage matrix table: Scenario | RED Task(s) | GREEN Task(s) | Status (Covered/MISSING).
+This is a binary upstream check, not a full matrix. The full
+scenario↔test coverage matrix lives in `run-evaluator` (Step 3),
+which runs against actual tests after `/run` completes — that is the
+authoritative coverage check.
 
 ## Phase 4 — Stream Independence
 
 If the plan defines parallel streams:
 
-1. **Check for shared dependencies** — Two streams claiming to be parallel should not have tasks that depend on each other
-2. **Check for resource conflicts** — Parallel streams modifying the same files or modules may cause merge conflicts during `/run`
-3. **Suggest reordering** if dependencies are found between parallel streams
+1. **Check for shared dependencies** — Two streams claiming to be parallel
+   should not have slices that depend on each other.
+2. **Check for resource conflicts** — Parallel streams modifying the same
+   files or modules may cause merge conflicts during `/run`.
+3. **Suggest reordering** if cross-stream dependencies are found between
+   slices that the plan marks parallelizable.
 
-## Phase 5 — RED Node Quality
+## Phase 5 — Test Description Quality
 
-For each RED task, apply test desiderata principles (see `test-desiderata.md`):
+For each slice's `Tests:` bullets, apply test desiderata principles (see
+`test-desiderata.md`):
 
-- Does the behavioral description specify **observable behavior** (not implementation details)?
-- Is the description **specific** enough — with concrete input/output examples — for `/run` to write a test from it?
-- Is it **structure-insensitive** — would the described test survive refactoring?
-- Does it avoid prescribing implementation details (specific files, class names, libraries)?
+- Does the description specify **observable behavior** (not implementation
+  details)?
+- Is the description **specific** enough — with concrete input/output
+  examples — for `/run` to write a test from it?
+- Is it **structure-insensitive** — would the described test survive
+  refactoring?
+- Does it avoid prescribing implementation details (specific files, class
+  names, libraries)?
 
-Flag RED tasks that are implementation-coupled or too vague to write a test from.
+Flag test descriptions that are implementation-coupled or too vague to
+write a test from. Apply anti-pattern checks **AP-1** (structure-sensitive
+assertions) and **AP-8** (unclear test naming) by reading the descriptions
+as if they were already test bodies — does the prose hint at structure
+sensitivity? Does it hint at a meaningful test name?
 
 ## Phase 6 — Plan Summary
 
-Output: graph validation stats (nodes, dependencies, cycles, orphans), triplet completeness ratio, scenario coverage matrix, and a Ready for /run verdict (Yes/No with conditions).
+Output:
+
+- Graph validation stats (slices, dependencies, cycles, orphans)
+- Slice completeness ratio (slices fully specified / total)
+- Scenario coverage check result (all covered / N missing)
+- A "Ready for /run" verdict (Yes / No / Yes-with-conditions)
