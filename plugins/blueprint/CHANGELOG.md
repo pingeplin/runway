@@ -4,6 +4,51 @@ All notable changes to the `blueprint` TDD plugin are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/);
 versions follow SemVer.
 
+## [3.6.0] — 2026-05-18
+
+**Path migration.** Moves blueprint workflow artifacts into
+namespaced subdirectories: `specs/` → `blueprint/specs/` and
+`plans/` → `blueprint/plans/`. Design docs remain under
+`docs/designs/` (humans look in `docs/` for RFCs/ADRs; specs and
+plans are tooling artifacts that earn the tool-named root).
+
+### Why
+
+`specs/` and `plans/` at the repo root collide with other tools'
+conventions and read as "what is this?" to a new engineer. Putting
+them under `blueprint/` makes ownership obvious and groups the
+tooling artifacts that share IDs and feed `/run`. Designs stay in
+`docs/designs/` because they're human-facing arguments that should
+be discoverable to anyone who looks in `docs/` for design
+proposals — not just blueprint users.
+
+### Changed
+
+- **`/spec` output:** `blueprint/specs/{yymm.xxxx}_{feature}.md`
+- **`/plan` output:** `blueprint/plans/{yymm.xxxx}_{feature}_graph.md`
+- **All evaluator agents** (`spec-evaluator`, `plan-evaluator`,
+  `run-evaluator`, `test-batch-evaluator`) look in the new paths
+  with a fallback to the old paths for pre-migration repos.
+- **`/review`** auto-detection table updated; adds a `design` row.
+- **`/design`** spec back-link path updated from `../../specs/` to
+  `../../blueprint/specs/`.
+
+### Migration
+
+New **`/migrate-paths` command** (and underlying
+`scripts/migrate_paths.sh`) move existing `specs/` and `plans/`
+directories into `blueprint/specs/` and `blueprint/plans/` with
+`git mv` (history-preserving). Dry-run by default; pass `--apply`
+to actually move. Updates cross-references in moved files so design
+back-links keep resolving.
+
+### Backwards compatibility
+
+Skills and evaluators fall back to root-level `specs/`/`plans/`
+when the new paths don't exist, so v3.5 specs/plans continue to
+work without migration. Run `/migrate-paths` when you're ready to
+move; nothing is forced.
+
 ## [3.5.0] — 2026-05-18
 
 Adds a **`/design` skill** for decision-making docs (RFCs, ADRs,

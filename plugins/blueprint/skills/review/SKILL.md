@@ -14,17 +14,18 @@ Determine the artifact type from the file path, content, or explicit `--type` ov
 
 | Signal | Type | Methodology |
 |--------|------|-------------|
-| `specs/*.md` | **spec** | Read `../../references/review-spec.md` |
-| `plans/*_graph.md` | **plan** | Read `../../references/review-plan.md` |
+| `blueprint/specs/*.md` | **spec** | Read `../../references/review-spec.md` |
+| `blueprint/plans/*_graph.md` | **plan** | Read `../../references/review-plan.md` |
+| `docs/designs/*.md` | **design** | Read `../../references/review-design.md` |
 | `.test.`, `_test.`, `test_`, `tests/`, `__tests__/` in path | **test** | Read `../../references/review-test.md` |
-| `--type=spec\|plan\|test\|impl` in `$ARGUMENTS` | **explicit override** | Read the corresponding reference file |
+| `--type=spec\|plan\|design\|test\|impl` in `$ARGUMENTS` | **explicit override** | Read the corresponding reference file |
 | None of the above | **impl** | Read `../../references/review-impl.md` |
 
 If the type cannot be determined, ask the user.
 
 ## Finding the File
 
-If `$ARGUMENTS` contains a file path, read that file. Otherwise check for the most recently modified file in `specs/`, `plans/`, or `tests/`. If nothing found, ask the user.
+If `$ARGUMENTS` contains a file path, read that file. Otherwise check for the most recently modified file in `blueprint/specs/`, `blueprint/plans/`, `docs/designs/`, or `tests/`. If a pre-migration repo has files in `specs/` or `plans/` at the root, fall back to those. If nothing found, ask the user.
 
 ## Workflow
 
@@ -82,9 +83,9 @@ For large test suites or multi-file reviews: ask the user to scope to specific f
 
 The main workflow chain:
 ```
-/spec → /plan → /run → /refactor → /commit
-  ↓        ↓       ↓
-  └── each skill dispatches its evaluator subagent (fresh-context agent)
+[/design] → /spec → /plan → /run → /refactor → /commit
+    ↓         ↓       ↓       ↓
+    └── each skill dispatches its evaluator subagent (fresh-context agent)
 ```
 
 The difference: the evaluator subagents are dispatched by each skill as its final step and use a fresh agent context (no sunk-cost bias). For spec/plan, evaluators fix what they can and only ask the human about what they can't. Standalone `/review` is invoked manually for on-demand audits and produces a read-only report.

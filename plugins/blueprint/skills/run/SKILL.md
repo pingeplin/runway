@@ -1,6 +1,6 @@
 ---
 name: run
-description: Execute a plan's sliced execution graph — walk slices in dependency order, batching test writing and implementation per slice with a failing-test commit checkpoint between them. Verification is handled by an independent evaluator subagent after completion. ALWAYS use this skill when the user wants to run a plan, execute a plan, start implementing from a plan, implement the plan, begin the TDD cycle, execute the graph, or says anything like "let's start building" when a plan graph file exists. Also trigger when the user references a plans/*_graph.md file and wants to begin implementation.
+description: Execute a plan's sliced execution graph — walk slices in dependency order, batching test writing and implementation per slice with a failing-test commit checkpoint between them. Verification is handled by an independent evaluator subagent after completion. ALWAYS use this skill when the user wants to run a plan, execute a plan, start implementing from a plan, implement the plan, begin the TDD cycle, execute the graph, or says anything like "let's start building" when a plan graph file exists. Also trigger when the user references a blueprint/plans/*_graph.md file and wants to begin implementation.
 argument-hint: [path-to-plan-graph-file]
 ---
 
@@ -25,12 +25,12 @@ The full orchestrator is `/tdd`, which chains all of these.
 
 ## Inputs
 
-The skill needs a **plan graph file**: `plans/{yymm.xxxx}_{feature_name}_graph.md`
+The skill needs a **plan graph file**: `blueprint/plans/{yymm.xxxx}_{feature_name}_graph.md`
 
 **Finding the input:**
 
 - If the user provides a path as `$ARGUMENTS`, use it directly.
-- If no path is provided, scan `plans/` for the most recently modified `*_graph.md` file and confirm with the user.
+- If no path is provided, scan `blueprint/plans/` (and `plans/` as a fallback for pre-migration repos) for the most recently modified `*_graph.md` file and confirm with the user.
 - If no graph files exist, tell the user to run `/plan` first.
 
 ## Step 1 — Parse the Graph

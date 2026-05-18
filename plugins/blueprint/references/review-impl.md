@@ -4,7 +4,7 @@ Review implementation code against its spec and plan for completeness, correctne
 
 ## Phase 1 — Spec Cross-Check
 
-If a spec is available (check `specs/` for a matching ID or ask the user):
+If a spec is available (check `blueprint/specs/` — or `specs/` in pre-migration repos — for a matching ID or ask the user):
 
 1. **Map acceptance scenarios to code** — For each scenario S1, S2..., identify the code path that implements it
 2. **Flag unimplemented scenarios** — Scenarios with no corresponding code path
@@ -13,7 +13,7 @@ If a spec is available (check `specs/` for a matching ID or ask the user):
 
 ## Phase 2 — Plan Cross-Check
 
-If a plan is available (check `plans/` for a matching ID):
+If a plan is available (check `blueprint/plans/` — or `plans/` in pre-migration repos — for a matching ID):
 
 1. **Slice completion status** — Which plan slices appear to be implemented? Look for matching tests (from each slice's `Tests:` bullets) and matching production code (from each slice's `Implementation:` bullets).
 2. **Incomplete slices** — Slices whose tests exist but whose implementation targets are missing, or vice versa.

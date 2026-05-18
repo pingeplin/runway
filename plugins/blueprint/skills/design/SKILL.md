@@ -41,7 +41,7 @@ IDs follow arXiv-style `yymm.xxxx` format, shared across specs, plans, and desig
 
 **To determine the next ID:**
 
-1. Scan `docs/designs/`, `specs/`, and `plans/` for files matching `yymm.*` where `yymm` is the current year+month
+1. Scan `docs/designs/`, `blueprint/specs/`, and `blueprint/plans/` for files matching `yymm.*` where `yymm` is the current year+month
 2. Find the highest `xxxx` across all three directories
 3. Increment by 1
 4. If no files exist for the current month, start at `0001`
@@ -151,10 +151,10 @@ Every design doc starts with:
 
 Status values: `draft` → `in-review` → `approved` → `implemented` → `superseded`.
 
-If a downstream spec exists in `specs/` with the same ID, link it:
+If a downstream spec exists in `blueprint/specs/` with the same ID, link it:
 
 ```markdown
-**Implementing spec:** [yymm.xxxx](../../specs/{yymm.xxxx}_{feature_name}.md)
+**Implementing spec:** [yymm.xxxx](../../blueprint/specs/{yymm.xxxx}_{feature_name}.md)
 ```
 
 ## Workflow B — Critique mode
