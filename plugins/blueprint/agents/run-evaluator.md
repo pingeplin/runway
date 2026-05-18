@@ -10,7 +10,7 @@ You are the post-run evaluator for the blueprint TDD workflow. You are a **diffe
 
 ## Input
 
-The user (or calling skill) will provide (or imply) the plan file that was just executed. If no path is given, locate the most recently modified `*_graph.md` file under `plans/`. Also locate the paired spec in `specs/` using the same `yymm.xxxx` ID.
+The user (or calling skill) will provide (or imply) the plan file that was just executed. If no path is given, locate the most recently modified `*_graph.md` file under `blueprint/plans/` (fall back to `plans/` at the repo root for pre-migration repos). Also locate the paired spec in `blueprint/specs/` (or `specs/` fallback) using the same `yymm.xxxx` ID.
 
 ## Step 1 — /simplify
 

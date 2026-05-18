@@ -4,6 +4,116 @@ All notable changes to the `blueprint` TDD plugin are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/);
 versions follow SemVer.
 
+## [3.6.0] — 2026-05-18
+
+**Path migration.** Moves blueprint workflow artifacts into
+namespaced subdirectories: `specs/` → `blueprint/specs/` and
+`plans/` → `blueprint/plans/`. Design docs remain under
+`docs/designs/` (humans look in `docs/` for RFCs/ADRs; specs and
+plans are tooling artifacts that earn the tool-named root).
+
+### Why
+
+`specs/` and `plans/` at the repo root collide with other tools'
+conventions and read as "what is this?" to a new engineer. Putting
+them under `blueprint/` makes ownership obvious and groups the
+tooling artifacts that share IDs and feed `/run`. Designs stay in
+`docs/designs/` because they're human-facing arguments that should
+be discoverable to anyone who looks in `docs/` for design
+proposals — not just blueprint users.
+
+### Changed
+
+- **`/spec` output:** `blueprint/specs/{yymm.xxxx}_{feature}.md`
+- **`/plan` output:** `blueprint/plans/{yymm.xxxx}_{feature}_graph.md`
+- **All evaluator agents** (`spec-evaluator`, `plan-evaluator`,
+  `run-evaluator`, `test-batch-evaluator`) look in the new paths
+  with a fallback to the old paths for pre-migration repos.
+- **`/review`** auto-detection table updated; adds a `design` row.
+- **`/design`** spec back-link path updated from `../../specs/` to
+  `../../blueprint/specs/`.
+
+### Migration
+
+New **`/migrate-paths` command** (and underlying
+`scripts/migrate_paths.sh`) move existing `specs/` and `plans/`
+directories into `blueprint/specs/` and `blueprint/plans/` with
+`git mv` (history-preserving). Dry-run by default; pass `--apply`
+to actually move. Updates cross-references in moved files so design
+back-links keep resolving.
+
+### Backwards compatibility
+
+Skills and evaluators fall back to root-level `specs/`/`plans/`
+when the new paths don't exist, so v3.5 specs/plans continue to
+work without migration. Run `/migrate-paths` when you're ready to
+move; nothing is forced.
+
+## [3.5.0] — 2026-05-18
+
+Adds a **`/design` skill** for decision-making docs (RFCs, ADRs,
+design docs, PR/FAQs) — an optional upstream stage before `/spec`. The
+pipeline becomes `[/design] → /spec → /plan → /run → /refactor → /commit`.
+
+### Why
+
+`/spec`'s description previously claimed "design doc, RFC, ADR" as
+triggers, but `/spec`'s job is to define a *testable behavioral
+contract*, not to argue for one approach over alternatives. Folding
+both into one skill muddied the pipeline: a decision argument and an
+acceptance-scenario contract are different artifacts with different
+review criteria. `/plan` expects scenarios, not alternatives.
+
+Splitting cleanly lets each skill stay sharp: `/design` handles the
+*why this approach*, `/spec` handles the *what done looks like*. When
+no decision is in question, `/design` is skipped; when a decision is
+in question, `/design` runs first and `/spec` translates the chosen
+approach into scenarios.
+
+### Added
+
+- **`/design` skill** at `skills/design/SKILL.md`. Two modes: write
+  with named `[ASSUMPTION: …]` markers (default) or critique mode
+  when the user pastes a draft. Switches to interview-mode only for
+  solution-disguised-as-problem prompts or already-decided prompts.
+- **`design-evaluator` subagent** (`agents/design-evaluator.md`)
+  mirrors the `spec-evaluator` pattern. Fresh-context fix-loop against
+  a 6-phase methodology: decision clarity, alternative quality,
+  trade-off honesty, load-bearing assumption, success criteria, and
+  ambiguity/scope. Verdict: "Ready for /spec" / "Yes, after resolving"
+  / "No — fundamental rework needed."
+- **Reference files:** `references/review-design.md`,
+  `references/design-templates.md` (Mini RFC, RFC, ADR, Feature Doc,
+  SDD, PR/FAQ), `references/design-failure-modes.md` (10 common
+  failure modes with before/after fixes), and
+  `references/design-company-practices.md` (Google, Uber, Amazon,
+  Stripe approaches).
+- **`docs/designs/` output path** for design docs. IDs are shared
+  across `docs/designs/`, `specs/`, and `plans/` (arXiv-style
+  `yymm.xxxx`), so a feature's artifacts can be matched by ID.
+
+### Changed
+
+- **`/spec` description narrowed** to focus on testable behavioral
+  contracts. Removed "design doc / RFC / ADR / architecture document /
+  technical proposal" triggers — those now route to `/design`.
+- **`/spec` ID assignment** now scans `docs/designs/` in addition to
+  `specs/` and `plans/`. When an upstream design doc exists with the
+  same ID, `/spec` reuses the ID and adds a back-link to the design.
+- **`/tdd` orchestrator** adds Step 0 (`/design`, optional). The
+  workflow map, size-detection heuristics, and step-to-skill mapping
+  all updated. New heuristic: if the user can't answer "why this
+  approach over the alternatives" with a one-sentence trade-off,
+  `/design` is worth running.
+- **Marketplace + plugin description** updated to mention design docs.
+
+### Not changed
+
+- `/plan`, `/run`, `/refactor`, `/commit` — unchanged. `/spec` still
+  produces the same acceptance-scenario format `/plan` expects.
+- Existing specs/plans in `specs/` and `plans/` continue to work; the
+  new `docs/designs/` directory is additive.
+
 ## [3.4.0] — 2026-05-17
 
 A redesign of the planning/execution unit: **sliced batching replaces the

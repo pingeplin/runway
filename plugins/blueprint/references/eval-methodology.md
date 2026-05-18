@@ -188,7 +188,7 @@ strategic mutations give more signal per minute of runtime.
 
 ### Step 4: Artifact review (spec, plan)
 
-For each version's `specs/` and `plans/`:
+For each version's `blueprint/specs/` and `blueprint/plans/` (or `specs/` and `plans/` for pre-3.6 versions):
 
 - Count scenarios in the spec.
 - Count units in the plan (triplets vs slices, nodes vs slices).

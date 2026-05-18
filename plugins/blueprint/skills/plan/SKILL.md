@@ -22,10 +22,10 @@ written before implementation, committed once failing, then made green.
 A single file written to:
 
 ```
-plans/{yymm.xxxx}_{feature_name}_graph.md
+blueprint/plans/{yymm.xxxx}_{feature_name}_graph.md
 ```
 
-Create the `plans/` directory if it does not exist.
+Create the `blueprint/plans/` directory if it does not exist.
 
 ## ID System
 
@@ -38,13 +38,13 @@ IDs follow arXiv-style `yymm.xxxx` format:
 **To determine the ID:**
 
 1. **If a spec is referenced** (provided as argument, linked
-   in conversation, or discoverable in `specs/` for the current
+   in conversation, or discoverable in `blueprint/specs/` for the current
    feature) — **reuse its ID**. The plan and spec form a pair and must share
    the same ID for unambiguous cross-referencing.
 2. **Only if no spec exists** — generate a new ID:
-   1. Scan `specs/` and `plans/` for files matching `yymm.*`
-      where `yymm` is the current year+month
-   2. Find the highest `xxxx` across both directories
+   1. Scan `blueprint/specs/`, `blueprint/plans/`, and `docs/designs/` for files
+      matching `yymm.*` where `yymm` is the current year+month
+   2. Find the highest `xxxx` across the directories
    3. Increment by 1
    4. If no files exist for the current month, start at `0001`
    5. If none of the directories exist yet, start at `yymm.0001`
@@ -420,8 +420,8 @@ problems). Surface its report to the user and address any "Needs Human
 Input" items, then suggest:
 
 ```
-Plan generated: plans/{filename}_graph.md
-Next: /run plans/{filename}_graph.md
+Plan generated: blueprint/plans/{filename}_graph.md
+Next: /run blueprint/plans/{filename}_graph.md
 ```
 
 `/run` will parse the slices and execute them in dependency order —

@@ -18,10 +18,10 @@ The calling skill (`/run` sub-step 3) provides in the prompt:
 - **Test file path(s):** the file(s) the slice's batched tests were just written to. If multiple, treat them as a single logical batch.
 - **Slice ID:** e.g., `A1`.
 - **Slice `Scenarios:` line:** the S-IDs the slice promises to cover, e.g., `S3, S5, S8`.
-- **Paired spec path:** `specs/{yymm.xxxx}_*.md`. You need this to verify scenario coverage and to ground the hallucinated-API check.
+- **Paired spec path:** `blueprint/specs/{yymm.xxxx}_*.md` (or, in pre-migration repos, `specs/{yymm.xxxx}_*.md`). You need this to verify scenario coverage and to ground the hallucinated-API check.
 - **Optional codebase pointer:** the module(s) under test, so you can sanity-check API references against real symbols.
 
-If anything is missing, use `Glob` to locate the most recent matching artifact under `specs/` and `tests/` (or the project's equivalent test directory).
+If anything is missing, use `Glob` to locate the most recent matching artifact under `blueprint/specs/` (fall back to `specs/`) and `tests/` (or the project's equivalent test directory).
 
 ## Review Methodology
 

@@ -14,7 +14,7 @@
       "source": "./plugins/blueprint",
       "description": "Generate design docs and implementation plans for features or tasks. Design docs capture motivation, proposed solution, and alternatives. Implementation plans break work into parallelizable work streams for agent teams.",
       "category": "planning",
-      "tags": ["implementation-plan", "checklist", "tdd", "task-breakdown"]
+      "tags": ["design-doc", "rfc", "adr", "implementation-plan", "checklist", "tdd", "task-breakdown"]
     },
     {
       "name": "thinking-craft",
