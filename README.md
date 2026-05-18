@@ -12,7 +12,7 @@ A Claude Code plugin marketplace.
 
 | Plugin | Description |
 |--------|-------------|
-| [blueprint](./plugins/blueprint) | Generate implementation plans with progress checklists. Breaks work into parallelizable work streams for agent teams. Supports optional TDD mode. |
+| [blueprint](./plugins/blueprint/README.md) | Full-cycle TDD workflow: `design → spec → plan → run → refactor → commit`. Each stage produces a durable artifact and dispatches a fresh-context evaluator. |
 
 ### blueprint
 
@@ -22,11 +22,7 @@ Install:
 /plugin install blueprint@runway
 ```
 
-Usage:
-
-```
-/blueprint:implementation-plan <feature-name> [optional-description]
-```
+See [`plugins/blueprint/README.md`](./plugins/blueprint/README.md) for the artifact definitions (design vs spec vs plan), the pipeline, and the full skill list.
 
 ## License
 
