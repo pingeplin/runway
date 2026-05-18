@@ -1,12 +1,14 @@
 ---
 name: spec
-description: Write a technical spec with structured acceptance scenarios and built-in testability review. Outputs to specs/ directory. ALWAYS use this skill when the user wants to write, create, or draft any kind of spec, design doc, technical spec, RFC, ADR, architecture document, feature spec, or technical proposal. Also trigger when the user describes a feature they want to build and needs requirements, acceptance criteria, or a written specification — even if they don't explicitly say "spec". If someone says "I want to add X to our system" and the request is complex enough to need a written plan, this skill should be consulted.
+description: Write a technical spec with structured acceptance scenarios and built-in testability review. Outputs to specs/ directory. ALWAYS use this skill when the user wants to write, create, or draft a technical spec, feature spec, behavioral spec, or acceptance criteria. Also trigger when the user describes a feature they want to build and needs requirements, acceptance criteria, or a written specification — even if they don't explicitly say "spec". If someone says "I want to add X to our system" and the approach is already settled, this skill should be consulted to define the testable behavior. For decision-making docs (RFCs, ADRs, design docs that argue for one approach over alternatives), use /design instead — /design runs upstream of /spec.
 argument-hint: '[feature-name] [optional-description]'
 ---
 
 # Spec
 
 Write a technical spec with structured acceptance scenarios. Specs capture the *why* and *how* of a feature or system change before implementation begins, with acceptance scenarios that feed directly into `/plan`.
+
+A spec defines the **testable behavioral contract** of a feature. If the question is "which approach should we take" rather than "what should this approach do," use `/design` first — design docs argue for a decision; specs translate a chosen decision into acceptance scenarios.
 
 After the spec is written, dispatch the `spec-evaluator` subagent to review it. The evaluator is a separate agent with fresh context and no sunk-cost bias — it reviews the spec for testability, fixes what it can directly in the file, and surfaces only items needing human input.
 
@@ -20,11 +22,12 @@ IDs follow arXiv-style `yymm.xxxx` format:
 
 **To determine the next ID:**
 
-1. Scan `specs/` and `plans/` for files matching `yymm.*` where `yymm` is the current year+month
-2. Find the highest `xxxx` across both directories
+1. Scan `specs/`, `plans/`, and `docs/designs/` for files matching `yymm.*` where `yymm` is the current year+month
+2. Find the highest `xxxx` across all three directories
 3. Increment by 1
 4. If no files exist for the current month, start at `0001`
-5. If neither directory exists yet, start at `yymm.0001`
+5. If none of those directories exist yet, start at `yymm.0001`
+6. **If an upstream design doc with ID `yymm.xxxx` exists in `docs/designs/`**, reuse that ID for this spec so the feature's artifacts can be matched
 
 ## Output File
 
@@ -192,6 +195,7 @@ Use the template below. Omit sections that the Section Guide marks as skippable 
 - **Status values:** `draft` -> `accepted` -> `implemented` -> `superseded`
 - If the user provides `$ARGUMENTS`, use it as the feature name and description context
 - If no `$ARGUMENTS` are provided, ask the user for a feature name and a brief description before generating
+- **If an upstream `/design` doc exists with the same ID in `docs/designs/`, link it:** `**Design doc:** [yymm.xxxx](../docs/designs/{yymm.xxxx}_{topic}.md)` — and use its chosen approach as the starting point for the Proposed Solution
 
 ## Next Step
 
@@ -205,7 +209,7 @@ This generates the execution graph — an ordered set of behavioral slices deriv
 
 The full workflow chain:
 ```
-/spec → /plan → /run → /refactor → /commit
+[/design] → /spec → /plan → /run → /refactor → /commit
 ```
 
-Or via the orchestrator: `/tdd "feature name"`
+`/design` is optional and runs upstream when the approach itself is in question. Or via the orchestrator: `/tdd "feature name"` (which auto-detects whether `/design` is worth running).
