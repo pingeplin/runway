@@ -1,7 +1,7 @@
 {
   "name": "blueprint",
   "description": "Full-cycle TDD workflow: design, spec, plan, run, refactor, commit. Generates design docs (RFC/ADR/etc.) that argue for an approach, specs with testability review, execution graphs of sliced behavioral milestones with dependency tracking, and auto-verifies implementations. Each slice batches tests then implementation with a failing-test commit checkpoint and fresh-context evaluators between stages. Grounded in Kent Beck's Test Desiderata and Canon TDD principles.",
-  "version": "3.6.0",
+  "version": "3.6.1",
   "author": {
     "name": "@pingeplin"
   }
