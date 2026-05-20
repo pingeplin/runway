@@ -27,6 +27,13 @@ Scan the implementation for common issues regardless of spec/plan availability:
 - **Missing error handling** — Bare `except:`, `catch(e) {}`, missing null checks on external data
 - **Untested behaviors** — Public methods or exported functions with no corresponding test (check nearby test files)
 - **Dead code** — Unreachable branches, unused imports, commented-out code blocks
+- **Stale or low-value comments and docstrings** — Flag any of the following:
+  - **Stale docstring** — a function/method docstring whose described arguments, return type, raised errors, or behavior no longer match the current signature or implementation. Fix: update or delete.
+  - **Restated *what*** — comments or docstrings that paraphrase what well-named code already shows (e.g. `# increment counter` above `counter += 1`, or a docstring that just re-narrates the function body). Fix: delete; if a real *why* is buried in there, keep only that line.
+  - **Task-referential rot** — comments naming a slice, ticket, fix, or caller ("added for slice A2", "for the X migration", "used by handler Y"). Fix: delete; that context belongs in the commit message or PR description.
+  - **Commented-out code** — leftover blocks the author meant to clean up. Fix: delete (git remembers).
+
+  Function and method docstrings explaining purpose, contracts, or non-obvious behavior are still encouraged — the issue is rot, not their presence.
 
 ## Phase 4 — Implementation Summary
 

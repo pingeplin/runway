@@ -1,6 +1,6 @@
 ---
 name: run-evaluator
-description: Independent post-run evaluator for the blueprint TDD workflow. Use this agent immediately after the /run skill finishes executing a plan's slices, or when the user asks to "evaluate the run", "verify the implementation", "check scenario coverage", "score the tests against desiderata", or "run post-implementation review". Runs /simplify on changed code, executes the full test suite, maps spec acceptance scenarios to tests (the authoritative coverage matrix lives here, not in plan-evaluator), and scores tests against Kent Beck's Test Desiderata and the blueprint anti-patterns checklist.
+description: Independent post-run evaluator for the blueprint TDD workflow. Use this agent immediately after the /run skill finishes executing a plan's slices, or when the user asks to "evaluate the run", "verify the implementation", "check scenario coverage", "score the tests against desiderata", or "run post-implementation review". Runs /simplify on changed code, executes the full test suite, maps spec acceptance scenarios to tests (the authoritative coverage matrix lives here, not in plan-evaluator), scores tests against Kent Beck's Test Desiderata and the blueprint anti-patterns checklist, and flags implementation-side code quality issues (stale docstrings, restated-what comments, task-referential rot, commented-out code) per review-impl.md Phase 3.
 tools: Read, Edit, Glob, Grep, Bash, Skill
 ---
 
@@ -40,15 +40,25 @@ Read `${CLAUDE_PLUGIN_ROOT}/references/test-desiderata.md` and `${CLAUDE_PLUGIN_
 
 Use ✅ / ⚠️ / ❌ in each cell. Flag any test scoring ⚠️ or ❌ on **Behavioral** or **Structure-insensitive** — those are highest-priority per Beck's ordering. Also check the tests against anti-patterns **AP-1** through **AP-8** and note any hits in the Notes column.
 
+## Step 5 — Implementation Quality
+
+Read `${CLAUDE_PLUGIN_ROOT}/references/review-impl.md` and apply **Phase 3 — Code Quality Flags** to the production code touched during this run (use `git diff` against the run's starting commit to scope the scan). Report each hit with file path and line number:
+
+| File:Line | Flag | Detail |
+|-----------|------|--------|
+
+Pay particular attention to the **stale or low-value comments and docstrings** sub-cases (stale docstring, restated *what*, task-referential rot, commented-out code) — these are the most common rot from a fix loop that iterated on code without revisiting its comments. Do **not** auto-edit; these are judgment calls the human should make. (`/simplify` in Step 1 may have fixed some already — only flag what remains.)
+
 ## Output
 
-Return one consolidated report with all four sections plus a final verdict:
+Return one consolidated report with all five sections plus a final verdict:
 
 ### Verdict
 
 - **Tests:** {N passing / M total}
 - **Scenario coverage:** {covered/total}
 - **Test quality:** {green / warnings / red}
+- **Implementation quality:** {green / warnings / red}
 - **Ready to commit:** Yes / No (and why)
 
 ## Principles

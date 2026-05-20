@@ -4,6 +4,30 @@ All notable changes to the `blueprint` TDD plugin are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/);
 versions follow SemVer.
 
+## [3.6.1] — 2026-05-20
+
+**Curb stale comments in `/run` and flag them post-run.** Implementation
+loops in `/run` were producing verbose docstrings and inline comments
+that drifted out of sync with the code as the fix loop iterated.
+
+### Changed
+
+- **`/run` General Guidelines** add a "Docstrings and comments" rule:
+  function/method docstrings are still encouraged when they capture
+  purpose, contracts, or non-obvious behavior, but they must be updated
+  or deleted in the same edit when the fix loop changes a function's
+  signature or behavior. Inline comments only for the *why*. No
+  task-referential comments (e.g. "added for slice A2") — that context
+  belongs in the commit message.
+- **`review-impl.md` Phase 3** adds a "stale or low-value comments and
+  docstrings" scan category covering stale docstrings, restated-*what*
+  comments, task-referential rot, and commented-out code.
+- **`run-evaluator` agent** gains a new **Step 5 — Implementation
+  Quality** that applies the Phase 3 scan over the run's diff and
+  surfaces hits in a `File:Line | Flag | Detail` table. Flagging only;
+  the human decides the fix. Verdict gains an `Implementation quality`
+  line alongside `Test quality`.
+
 ## [3.6.0] — 2026-05-18
 
 **Path migration.** Moves blueprint workflow artifacts into
