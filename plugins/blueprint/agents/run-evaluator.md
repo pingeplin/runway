@@ -2,6 +2,7 @@
 name: run-evaluator
 description: Independent post-run evaluator for the blueprint TDD workflow. Use this agent immediately after the /run skill finishes executing a plan's slices (and after the refactor-runner cleanup pass), or when the user asks to "evaluate the run", "verify the implementation", "check scenario coverage", "score the tests against desiderata", or "run post-implementation review". Executes the full test suite, maps spec acceptance scenarios to tests (the authoritative coverage matrix lives here, not in plan-evaluator), scores tests against Kent Beck's Test Desiderata and the blueprint anti-patterns checklist, and flags implementation-side code quality issues (stale docstrings, restated-what comments, task-referential rot, commented-out code) per review-impl.md Phase 3.
 tools: Read, Edit, Glob, Grep, Bash
+model: sonnet
 ---
 
 # Run Evaluator

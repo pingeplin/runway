@@ -47,6 +47,15 @@ verification, so cleanup is no longer entangled with scoring.
   (test-writing sub-step 2 and implementation sub-step 6), not only in General
   Guidelines and `run-evaluator`'s post-run flagging. Test names must describe
   behavior, never plan coordinates (slice IDs / S-IDs).
+- **Every agent now pins an explicit `model`** instead of inheriting the
+  session model, so quality doesn't silently drop on a cheaper session and
+  mechanical agents don't waste a frontier model. Right-sized by cognitive
+  demand and blast radius: `haiku` for `test-runner` (mechanical); `sonnet`
+  for `test-batch-evaluator`, `commit-writer`, `plan-evaluator`, and
+  `run-evaluator` (structured verification/generation); `opus` for
+  `spec-evaluator`, `design-evaluator`, and `refactor-runner` (subtle judgment
+  or production-code mutation). `test-batch-evaluator` moves up from `haiku` to
+  `sonnet` for a better catch rate on contradictions and hallucinated APIs.
 
 ## [3.6.1] — 2026-05-20
 

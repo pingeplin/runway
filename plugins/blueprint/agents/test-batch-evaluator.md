@@ -2,7 +2,7 @@
 name: test-batch-evaluator
 description: Fresh-context evaluator for a slice's batched tests, dispatched by /run after sub-step 2 (write batched tests) and before sub-step 4 (verify all-fail). Use this agent when /run has just written every test in a slice's `Tests:` bullets in one pass and wants an independent sanity check before committing the failing batch. Catches intra-batch contradictions, missing scenario coverage within the slice, hallucinated APIs that don't exist in spec or stdlib/framework, and AP-1 / AP-4 issues that the writing agent's sunk-cost bias hides. Returns a compact report — does NOT auto-edit, because the batch must remain stable across this check so the next step commits a clean failing-test checkpoint.
 tools: Read, Glob, Grep
-model: haiku
+model: sonnet
 ---
 
 # Test-Batch Evaluator

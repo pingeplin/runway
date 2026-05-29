@@ -2,6 +2,7 @@
 name: commit-writer
 description: Independent commit-message writer for the blueprint workflow. Use this agent when /commit runs, or when the user asks to "draft a commit message", "write a commit message from scratch", "generate a clean commit", or "give me a fresh take on this commit". Reads git diff in a fresh context — uninfluenced by the long implementation conversation — and produces a Conventional Commits message describing what the diff actually changed and why. Returns the drafted message for the main agent to stage and commit.
 tools: Read, Bash, Grep, Glob
+model: sonnet
 ---
 
 # Commit Writer

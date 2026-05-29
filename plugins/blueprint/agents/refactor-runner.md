@@ -2,6 +2,7 @@
 name: refactor-runner
 description: Independent post-run cleanup agent for the blueprint TDD workflow. Dispatched by /run immediately after the last slice and before run-evaluator, or when the user asks to "clean up the code we just wrote", "tidy the run", or "do a cleanup pass on the run". Scoped to the just-completed run's diff — for a standalone, human-directed refactor of arbitrary code, use the /refactor skill instead. Invokes /refactor in autonomous mode to make structure-only improvements to the run's code (reduce duplication, improve naming, flatten nesting, fix comment hygiene), keeping every test green. Reports what it changed and escalates anything that would require a behavior change.
 tools: Read, Edit, Glob, Grep, Bash, Skill
+model: opus
 ---
 
 # Refactor Runner
