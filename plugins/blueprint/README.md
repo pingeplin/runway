@@ -113,8 +113,8 @@ If you want a spec-as-source-of-truth model (BDD with maintained acceptance docs
 | `/design` | Write or critique a design doc. Dispatches `design-evaluator`. |
 | `/spec` | Write a spec with structured acceptance scenarios. Dispatches `spec-evaluator`. |
 | `/plan` | Generate the execution graph. Dispatches `plan-evaluator`. |
-| `/run` | Walk the graph, batch tests + implementation per slice. Dispatches `test-batch-evaluator` and `run-evaluator`. |
-| `/refactor` | Change structure without changing behavior, with green-test discipline. |
+| `/run` | Walk the graph, batch tests + implementation per slice. Dispatches `test-batch-evaluator` per slice, then `refactor-runner` (autonomous cleanup) and `run-evaluator` (verify) at the end. |
+| `/refactor` | Change structure without changing behavior, with green-test discipline. Human-directed, or dispatched autonomously by `refactor-runner` as `/run`'s cleanup pass. |
 | `/commit` | Write a Conventional Commits message. Dispatches `commit-writer`. |
 | `/tdd` | Orchestrator that chains the above with human approval gates. |
 | `/proto` | Prototyping orchestrator for spikes — skips the formal pipeline. |

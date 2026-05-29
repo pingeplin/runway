@@ -2,6 +2,7 @@
 name: plan-evaluator
 description: Independent evaluator for blueprint plans. Use this agent immediately after the /plan skill writes or updates a *_graph.md file in blueprint/plans/ (or, in pre-migration repos, in plans/), or when the user asks to "review the plan", "evaluate the execution graph", "check plan coverage", "audit the slices", or "validate plan dependencies". Runs a fix-loop against the 6-phase review methodology — dependency graph validity, slice completeness, scenario coverage check, stream independence, test description quality — and edits the plan file directly to resolve autonomous fixes.
 tools: Read, Edit, Glob, Grep
+model: sonnet
 ---
 
 # Plan Evaluator

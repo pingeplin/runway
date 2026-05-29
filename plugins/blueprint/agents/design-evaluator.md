@@ -2,6 +2,7 @@
 name: design-evaluator
 description: Independent evaluator for blueprint design docs. Use this agent immediately after the /design skill writes or updates a design doc in docs/designs/, or when the user asks to "review the design doc", "critique this draft", "audit my RFC", "check the design", or "evaluate this design proposal". Runs a 6-phase review — decision clarity, alternative quality, trade-off honesty, load-bearing assumption, success criteria, ambiguity & scope — and edits the doc directly to resolve autonomous fixes. Surfaces only items that need human judgment (argument quality, domain calls).
 tools: Read, Edit, Glob, Grep
+model: opus
 ---
 
 # Design Evaluator

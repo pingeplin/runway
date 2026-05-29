@@ -9,9 +9,11 @@ argument-hint: [path-to-plan-graph-file]
 Execute a plan graph by walking its **slices** in dependency order. For
 each slice, batch the slice's tests in one writing pass, verify them all
 fail, commit the failing batch as a git checkpoint, implement, then run
-a bounded fix loop until green. Verification of the whole run is handled
-by an independent evaluator subagent (`run-evaluator`) dispatched after
-the last slice — `/run` itself is a pure builder.
+a bounded fix loop until green. After the last slice, a `refactor-runner`
+subagent cleans up the run's code (structure only, tests stay green) and
+a `run-evaluator` subagent verifies the result — `/run` itself is a pure
+builder and delegates both cleanup and verification to fresh-context
+agents.
 
 ## When to Use
 
@@ -130,6 +132,7 @@ For each test:
 - Use AAA structure (Arrange / Act / Assert) with clear inline setup.
 - Apply Test Desiderata priorities: Behavioral > Structure-insensitive > Readable > Specific > Deterministic > Isolated (see `../../references/test-desiderata.md`).
 - Apply the anti-patterns checklist (see `../../references/anti-patterns.md`): no structure-sensitive assertions (AP-1), meaningful assertions (AP-2), no non-deterministic sources (AP-3), no copy-pasted expected values (AP-4), mocking only at external boundaries (AP-5), inline setup over shared fixtures (AP-6), organize by behavior not class (AP-7), descriptive names (AP-8).
+- Name tests for the **behavior** they verify, never for the plan coordinate. `test_expired_coupon_is_rejected`, not `test_slice_A2` or `test_S3`. Slice IDs and S-IDs are build-time bookkeeping — they belong in the failing-test commit message (sub-step 5), not in test names, docstrings, or comments.
 - For `[property]` type hints: use property-based testing (Hypothesis, fast-check, etc.).
 
 This is the single batched test-writing pass for the slice — do not write tests one at a time, do not iterate against the suite here, just write the whole batch from the slice's `Tests:` bullets in one go.
@@ -193,6 +196,8 @@ Use `Bash` to run `git add` on the relevant test file(s) and `git commit -m "{me
 
 Translate every `Implementation:` bullet in the slice into production code. Read the codebase first to decide where the implementation belongs (file, module, naming). Implement the minimal code that satisfies the slice's `Done when:` outcome — do not gold-plate.
 
+**Comments as you write, not as an afterthought** (full rule in General Guidelines): a docstring only where it captures purpose, a contract, or non-obvious behavior; an inline comment only for a *why* the code can't show. Never restate *what* well-named code already says, and never write a task-referential comment — no slice IDs, S-IDs, ticket numbers, or "added for the X flow". That context lives in the commit message. Getting this right here is cheaper than letting `run-evaluator` flag it later.
+
 #### 7. Bounded fix loop (production code only)
 
 Run the suite via `Bash`.
@@ -236,24 +241,80 @@ Show progress as execution proceeds:
 
 **Resumability:** If execution is interrupted (user stops, error escalation, etc.), the plan file's checkbox state records progress at the slice level, and git records progress at the failing-test-commit level. When `/run` is invoked again on the same plan, it detects completed slices and resumes from the first incomplete slice. If a slice is mid-flight (failing-test commit present but implementation incomplete), resume at sub-step 6.
 
-## Post-Run Evaluation (Independent Subagent)
+## Post-Run: Cleanup, then Evaluation (Independent Subagents)
 
-After all slices are executed, `/run` is done — it is a pure builder.
+After all slices are executed, `/run` is done building — it is a pure
+builder, so it hands the finished code to two fresh-context subagents in
+sequence: one cleans, one verifies. Run them in this order; the evaluator
+should score a tree that has already been tidied.
 
-**Dispatch the `run-evaluator` subagent** using the `Agent` tool with
-`subagent_type: run-evaluator`. Pass the plan file path in the prompt so
-the evaluator knows which plan was just executed. The evaluator has fresh
-context and no sunk-cost bias, and performs:
+### 1. Cleanup — dispatch the `refactor-runner` subagent
 
-1. **`/simplify`** — review changed code for reuse, quality, efficiency
-2. **Test suite** — run all tests, report pass/fail counts
-3. **Scenario coverage** — map spec acceptance scenarios to tests (the
+**Dispatch the `refactor-runner` subagent** via the `Agent` tool with
+`subagent_type: refactor-runner`. Pass the plan file path and the run's
+starting commit (so it can scope its diff). It invokes the `/refactor`
+skill in autonomous mode — a structure-only pass over the code the run
+just wrote: collapse duplication, improve names, flatten nesting, fix
+comment/docstring hygiene, all while keeping every test green. This
+replaces the old `/simplify` step. Because it is a separate spawned agent
+with fresh context, it isn't anchored to whatever shape the builder
+happened to leave behind. Surface its one-paragraph report (what changed,
+any structure-sensitive tests it flagged, any behavior-change follow-ups
+it left undone).
+
+### 2. Verification — dispatch the `run-evaluator` subagent
+
+**Dispatch the `run-evaluator` subagent** via the `Agent` tool with
+`subagent_type: run-evaluator`. Pass the plan file path so the evaluator
+knows which plan was just executed. It has fresh context and no sunk-cost
+bias, and performs:
+
+1. **Test suite** — run all tests, report pass/fail counts
+2. **Scenario coverage** — map spec acceptance scenarios to tests (the
    full coverage matrix lives here, not in `plan-evaluator`)
-4. **Desiderata Review** — score tests against Kent Beck's Test Desiderata
+3. **Desiderata Review** — score tests against Kent Beck's Test Desiderata
+4. **Implementation quality** — flag stale/low-value comments and other
+   code-quality issues over the run's diff (flagging only; the human decides)
 
 This separation follows Anthropic's harness-design principle: separate the
-generator from the evaluator. Surface the evaluator's report to the user
-before handing off to `/refactor` or `/commit`.
+generator from the evaluator — and here, the refactorer from both.
+
+### 3. Recommend the next step
+
+The autonomous cleanup already ran, so the question left for the human is
+narrow: **is a human-directed `/refactor` worth it, or go straight to
+`/commit`?** Don't leave this implicit. After surfacing both reports,
+synthesize them into an explicit recommendation:
+
+- **Recommend `/refactor`** when there is concrete, named signal that a
+  structure-only pass can't or shouldn't make autonomously — `refactor-runner`'s
+  "behavior-change follow-ups left undone", structure-sensitive tests it
+  flagged, or `run-evaluator` quality flags that need a judgment call. Name the
+  specific targets and the one-line reason for each, so the human can approve
+  or redirect rather than re-derive them.
+- **Recommend skipping to `/commit`** when both reports come back clean —
+  refactor-runner reported no follow-ups and run-evaluator's verdict is green.
+  Say so plainly; don't invent refactoring work to justify a step.
+
+Format it as a short go/no-go the human can act on in one read, e.g.:
+
+```
+Recommendation: run /refactor before committing.
+  • PaymentService and OrderController still share tax-rounding logic with
+    subtly different rules — consolidating needs a behavior decision (refactor-runner follow-up).
+  • settings.py:42 — stale docstring flagged by run-evaluator.
+Otherwise the tree is green and ready to commit.
+```
+
+or:
+
+```
+Recommendation: skip /refactor — go to /commit.
+Cleanup pass made 3 structure-only changes, all tests green, no flags left open.
+```
+
+The human owns the decision; `/run`'s job is to make it a one-read decision,
+not a guess.
 
 ## Scaling
 
@@ -267,6 +328,6 @@ before handing off to `/refactor` or `/commit`.
 - **Test runs inside the slice loop stay in main context.** Use `Bash` directly for sub-steps 4, 7, and the fix loop. Use the `test-runner` subagent only for verification-only runs (cross-stream integration check, `/refactor` baseline / per-step / final).
 - **Never modify tests inside the fix loop.** The failing-test commit is the contract. If the test is wrong, stop and ask the human; do not silently rewrite. This is the single most important safeguard added in v3.4.
 - **Minimal implementation.** During implementation, write the simplest code that satisfies the slice's `Done when:` outcome. Resist the urge to implement ahead of the tests.
-- **Docstrings and comments — write only what the code can't say, and keep them current.** Function and method docstrings that capture purpose, contracts, or non-obvious behavior are valuable; write them when they help and keep them tight. Inline comments only for the *why* — a hidden constraint, a workaround, a counterintuitive invariant — never to restate *what* well-named code already shows. When the fix loop (sub-step 7) changes a function's signature, behavior, or contract, update or delete its docstring in the same edit — a stale docstring is worse than none. No task-referential comments ("added for slice A2", "for the X flow") — they rot immediately and belong in the commit message, not the source.
+- **Docstrings and comments — write only what the code can't say, and keep them current.** Function and method docstrings that capture purpose, contracts, or non-obvious behavior are valuable; write them when they help and keep them tight — one or two lines, not a paragraph that re-narrates the body. Inline comments only for the *why* — a hidden constraint, a workaround, a counterintuitive invariant — never to restate *what* well-named code already shows. When the fix loop (sub-step 7) changes a function's signature, behavior, or contract, update or delete its docstring in the same edit — a stale docstring is worse than none. **No task-referential comments** — no slice IDs, S-IDs, ticket numbers, or "added for slice A2 / for the X flow". That context rots immediately and belongs in the commit message, not the source. The same goes for test names (sub-step 2): name them for behavior, not plan coordinates.
 - **Parse gracefully** — the plan graph format may have minor variations in whitespace, header casing, or delimiter style. Match on semantic content (slice IDs, `Depends:` / `Scenarios:` / `Tests:` / `Implementation:` lines), not exact formatting.
 - **Update the plan file** — check off slices as they complete so that progress is durable across interruptions.

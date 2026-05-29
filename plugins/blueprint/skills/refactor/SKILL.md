@@ -14,6 +14,16 @@ Beck's "two hats" rule: at any moment, you are either **changing behavior** (add
 
 This skill wears the **structure hat only**. If the refactoring requires behavior changes, stop and tell the user — they need to decide whether to change behavior first (with new tests) or adjust the refactoring goal.
 
+## Two ways in
+
+- **Human-directed (default).** A person gives a direction and approves the plan before execution. This is the standalone `/refactor` and Step 4 of `/tdd`. Walk all five phases below, including the Phase 3 confirmation gate.
+- **Autonomous (post-`/run` cleanup).** The `refactor-runner` agent dispatches this skill after `/run` to tidy the code the run just wrote. There is no human at the keyboard, so adapt:
+  - **Skip the Phase 3 confirmation gate** — proceed directly from the safety-net check to execution. The green test suite is the gate.
+  - **Run tests via `Bash` directly**, not via the `test-runner` subagent — the caller is already a subagent and cannot spawn one.
+  - **Scope to the run's diff** — clean only the production code the run touched, not the wider codebase.
+  - **Escalate by reporting, not by asking** — anything that would need a behavior change, and any structure-sensitive test you hit, goes into the return report as a flagged item; you do not block waiting for an answer.
+  - The conservative rules (structure only, tests stay green, never edit a test to make it pass) are unchanged — they bind harder here, since no human reviews each step.
+
 ## Workflow
 
 ### Phase 1 — Understand the Direction
@@ -75,7 +85,7 @@ Present a concrete plan before executing. The plan should be a sequence of small
 - {Risk: "Shared state in X may cause issues when moved"}
 ```
 
-Wait for user confirmation before executing.
+Wait for user confirmation before executing. (Autonomous mode skips this gate — see "Two ways in".)
 
 ### Phase 4 — Execute the Refactoring
 
@@ -144,5 +154,10 @@ This skill runs after implementation, before committing:
 ```
 /spec → /plan → /run → /refactor → /commit
 ```
+
+It is invoked two ways (see "Two ways in"):
+
+- **Human-directed** — the standalone skill and `/tdd` Step 4, for refactorings a person decides on (e.g. "extract the payment logic into a service").
+- **Autonomous** — the `refactor-runner` agent dispatches it as `/run`'s post-build cleanup pass, replacing the old `/simplify` step. The unattended pass keeps tests green and reports its changes; the human-directed pass that follows in `/tdd` Step 4 is then free to take on the larger, opinion-bearing restructurings the autonomous pass deliberately leaves alone.
 
 If the refactoring reveals structure-sensitive tests, suggest `/review` to clean them up.

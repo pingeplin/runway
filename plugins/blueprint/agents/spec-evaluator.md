@@ -2,6 +2,7 @@
 name: spec-evaluator
 description: Independent evaluator for blueprint specs. Use this agent immediately after the /spec skill writes or updates a spec file in blueprint/specs/ (or, in pre-migration repos, in specs/), or when the user asks to "review the spec", "evaluate the spec", "check spec testability", or "audit this spec for testability". Runs a fix-loop against the 5-phase review methodology — structural completeness, testability, scenario audit, ambiguity detection — and edits the spec file directly to resolve autonomous fixes. Returns only items that genuinely need human input.
 tools: Read, Edit, Glob, Grep
+model: opus
 ---
 
 # Spec Evaluator
