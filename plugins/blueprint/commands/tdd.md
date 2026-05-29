@@ -6,7 +6,7 @@ description: Full TDD workflow orchestrator. Chains [/design] → /spec → /pla
 If invoked **without arguments**, display this workflow map and ask what the user wants to build:
 
 ```
-Blueprint TDD Workflow (v3.5)
+Blueprint TDD Workflow (v3.7)
 
 [/design] ──→ /spec ──→ /plan ──→ /run ──→ /refactor ──→ /commit
     │           │          │         │                       │
@@ -18,7 +18,9 @@ Blueprint TDD Workflow (v3.5)
     │           │          │             2. test-batch-evaluator subagent (fresh context)
     │           │          │             3. Verify all-fail, commit failing batch
     │           │          │             4. Implement, fix-loop, mark slice done
-    │           │          │             After last slice → run-evaluator subagent
+    │           │          │             After last slice →
+    │           │          │               refactor-runner subagent (autonomous /refactor cleanup)
+    │           │          │               then run-evaluator subagent (verify)
     │           │          │
     │           │          └── plan-evaluator subagent (GATE)
     │           └── spec-evaluator subagent (GATE)
@@ -78,10 +80,12 @@ Invoke `/run` with the approved plan. `/run` analyzes the dependency graph and a
 
 For each slice, `/run` internally walks: write batched tests → dispatch `test-batch-evaluator` (fresh context) → apply must-fix → verify all-fail → commit failing batch → implement → bounded fix loop → mark slice done.
 
-After the last slice, `/run` dispatches the `run-evaluator` subagent — an independent fresh-context agent that runs `/simplify`, the test suite, the authoritative scenario coverage matrix, and Desiderata Review. Surface its report before moving on.
+After the last slice, `/run` dispatches two fresh-context subagents in sequence: first `refactor-runner`, which runs `/refactor` in autonomous mode to clean up the run's code (structure only, tests stay green — this replaces the old `/simplify` step); then `run-evaluator`, which verifies the cleaned tree — test suite, the authoritative scenario coverage matrix, Desiderata Review, and implementation-quality flags. Surface both reports before moving on.
 
 ### Step 4: /refactor
-After /run completes, review the result for cleanup opportunities (duplication, naming, structure). If any exist, suggest `/refactor` with specific targets. If the code is already clean, skip. There is no per-slice refactor step in v3.4 — refactoring is a single pass at the end.
+The autonomous cleanup pass in Step 3 already handled the small stuff (duplication, naming, dead comments), and `/run` ended with an explicit **recommendation**: either "run `/refactor` on targets X, Y" (with a one-line reason each, drawn from the refactor-runner follow-ups and run-evaluator flags) or "skip to `/commit` — tree is clean".
+
+**GATE — Present that recommendation and let the human decide.** If they approve a refactor, run `/refactor` with the named targets (or whatever direction they give instead — the human owns the direction). If they accept the skip, go straight to Step 5. This is the human-directed pass for larger, opinion-bearing restructurings — extracting a service, reshaping a module boundary, consolidating logic across files — that the autonomous pass deliberately left alone. There is no per-slice refactor step; refactoring is one autonomous pass (in `/run`) plus this optional human-directed pass.
 
 ### Step 5: /commit
 Invoke `/commit`, which dispatches the `commit-writer` subagent — a fresh-context agent that drafts the message from `git diff` alone, independent of the implementation conversation. Note: the failing-test commits emitted by `/run` per slice are separate from this final commit — `/commit` writes the feature-level message.
@@ -97,10 +101,31 @@ If the user says "start from step N" or provides an existing artifact path (desi
 | 0 (optional) | `/design` | AI drafts, human approves |
 | 1 | `/spec` | AI drafts, human approves |
 | 2 | `/plan` | AI drafts, human approves |
-| 3 | `/run` | AI executes; run-evaluator verifies |
-| 4 | `/refactor` | Human gives direction, AI applies |
+| 3 | `/run` | AI executes; refactor-runner cleans, run-evaluator verifies |
+| 4 | `/refactor` | Human gives direction, AI applies (larger restructurings) |
 | 5 | `/commit` | commit-writer drafts, human reviews/edits |
 | Any time | `/review` | AI reports, human acts |
+
+## What's new in v3.7
+
+- **`/refactor` replaces `/simplify` for post-`/run` cleanup.** The cleanup
+  pass is now a structure-only `/refactor` run governed by Beck's two-hats
+  discipline and the green-test safety net — not the looser `/simplify`.
+- **New `refactor-runner` subagent.** `/run` spawns it after the last slice
+  (before `run-evaluator`) to run `/refactor` in **autonomous mode** over the
+  run's diff. Fresh context, no anchoring to the builder's shape. The
+  `run-evaluator` is now pure verification — its `/simplify` step is gone.
+- **Explicit refactor go/no-go.** `/run` ends with a one-read recommendation —
+  run `/refactor` on named targets, or skip to `/commit` — synthesized from the
+  two agents' reports. Step 4 presents it as a gate; the human decides.
+- **`/refactor` gains an autonomous mode** — when dispatched by
+  `refactor-runner` it skips the human confirmation gate, scopes to the run's
+  diff, runs tests via `Bash`, and escalates blockers by reporting rather than
+  waiting. Human-directed `/refactor` (standalone and Step 4) is unchanged.
+- **Comment hygiene moved upstream.** The no-slice-IDs / why-only / keep-
+  docstrings-current rule now appears at the point of authoring in `/run`
+  (test-writing and implementation sub-steps), not only in General Guidelines
+  and post-run flagging.
 
 ## What's new in v3.5
 

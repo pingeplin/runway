@@ -4,6 +4,50 @@ All notable changes to the `blueprint` TDD plugin are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/);
 versions follow SemVer.
 
+## [3.7.0] — 2026-05-29
+
+**`/refactor` replaces `/simplify` as `/run`'s cleanup pass, and it runs
+in its own spawned agent.** The post-`/run` cleanup was a `/simplify`
+call buried inside `run-evaluator`. It is now a structure-only
+`/refactor` run — Beck's two-hats discipline with the green test suite
+as the safety net — performed by a dedicated fresh-context agent before
+verification, so cleanup is no longer entangled with scoring.
+
+### Added
+
+- **`refactor-runner` agent** — dispatched by `/run` after the last slice
+  and before `run-evaluator`. Invokes `/refactor` in autonomous mode over
+  the run's diff (collapse duplication, improve names, flatten nesting, fix
+  comment hygiene), keeps every test green, and reports what it changed plus
+  any structure-sensitive tests or behavior-change follow-ups it left undone.
+- **`/refactor` autonomous mode** — a "Two ways in" section documents how the
+  skill adapts when dispatched by `refactor-runner`: skip the human
+  confirmation gate, scope to the run's diff, run tests via `Bash` (the caller
+  is already a subagent), and escalate blockers by reporting rather than
+  blocking. Human-directed `/refactor` is unchanged.
+
+### Changed
+
+- **`run-evaluator` is now pure verification.** Its Step 1 `/simplify` is
+  gone; remaining steps renumber to Test Suite → Scenario Coverage →
+  Desiderata → Implementation Quality. The `Skill` tool is dropped from its
+  frontmatter (no longer needed).
+- **`/run` Post-Run section** now spawns `refactor-runner` then
+  `run-evaluator`, in that order, and documents both.
+- **Explicit refactor recommendation.** After both agents report, `/run` now
+  ends with a one-read go/no-go: "run `/refactor` on targets X, Y" (with a
+  reason each, drawn from refactor-runner follow-ups and run-evaluator flags)
+  or "skip to `/commit` — tree is clean". `/tdd` Step 4 presents this as a gate
+  for the human to act on, instead of silently deciding whether to refactor.
+- **`/tdd`** workflow map, Step 3, Step 4, and step-to-skill table updated;
+  Step 4's human-directed `/refactor` is reframed as the larger restructurings
+  the autonomous pass leaves alone.
+- **Comment hygiene moved upstream.** The no-slice-IDs / why-only /
+  keep-docstrings-current rule now appears at the point of authoring in `/run`
+  (test-writing sub-step 2 and implementation sub-step 6), not only in General
+  Guidelines and `run-evaluator`'s post-run flagging. Test names must describe
+  behavior, never plan coordinates (slice IDs / S-IDs).
+
 ## [3.6.1] — 2026-05-20
 
 **Curb stale comments in `/run` and flag them post-run.** Implementation
