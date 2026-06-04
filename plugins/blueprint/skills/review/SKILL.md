@@ -14,18 +14,17 @@ Determine the artifact type from the file path, content, or explicit `--type` ov
 
 | Signal | Type | Methodology |
 |--------|------|-------------|
-| `blueprint/specs/*.md` | **spec** | Read `../../references/review-spec.md` |
-| `blueprint/plans/*_graph.md` | **plan** | Read `../../references/review-plan.md` |
+| `.blueprint/specs/*.md` | **spec** | Read `../../references/review-spec.md` |
 | `docs/designs/*.md` | **design** | Read `../../references/review-design.md` |
 | `.test.`, `_test.`, `test_`, `tests/`, `__tests__/` in path | **test** | Read `../../references/review-test.md` |
-| `--type=spec\|plan\|design\|test\|impl` in `$ARGUMENTS` | **explicit override** | Read the corresponding reference file |
+| `--type=spec\|design\|test\|impl` in `$ARGUMENTS` | **explicit override** | Read the corresponding reference file |
 | None of the above | **impl** | Read `../../references/review-impl.md` |
 
 If the type cannot be determined, ask the user.
 
 ## Finding the File
 
-If `$ARGUMENTS` contains a file path, read that file. Otherwise check for the most recently modified file in `blueprint/specs/`, `blueprint/plans/`, `docs/designs/`, or `tests/`. If a pre-migration repo has files in `specs/` or `plans/` at the root, fall back to those. If nothing found, ask the user.
+If `$ARGUMENTS` contains a file path, read that file. Otherwise check for the most recently modified file in `.blueprint/specs/`, `docs/designs/`, or `tests/`. If nothing found, ask the user.
 
 ## Workflow
 
@@ -33,7 +32,6 @@ If `$ARGUMENTS` contains a file path, read that file. Otherwise check for the mo
 2. **Read the methodology file** — the reference file contains the full phase-by-phase review process.
 3. **Read supporting references** as needed:
    - Test reviews: also read `../../references/test-desiderata.md` and `../../references/anti-patterns.md`
-   - Plan reviews: also read `../../references/test-desiderata.md` (for test description quality checks)
 4. **Apply all phases** from the methodology file in order.
 5. **Output findings** using the shared output structure below.
 
@@ -45,7 +43,7 @@ All review modes use this wrapper — mode-specific content goes in "Findings":
 ## Review: {type} -- {file name}
 
 ### Summary
-**Type:** Spec / Plan / Test / Implementation
+**Type:** Spec / Design / Test / Implementation
 **Overall quality:** High / Medium / Low
 **Critical issues:** {N}  |  **Warnings:** {N}
 
@@ -68,27 +66,26 @@ For large test suites or multi-file reviews: ask the user to scope to specific f
 
 `/review` serves two roles:
 
-**1. Shared methodology** — The review reference files (`references/review-*.md`) are the single source of truth for review logic. The independent evaluator subagents (`agents/spec-evaluator.md`, `agents/plan-evaluator.md`, `agents/run-evaluator.md`) and this standalone skill all read the same files. Update a reference file once, all consumers benefit.
+**1. Shared methodology** — The review reference files (`references/review-*.md`) are the single source of truth for review logic. The independent evaluator subagents (`agents/design-evaluator.md`, `agents/spec-evaluator.md`, `agents/referee.md`) and this standalone skill all read the same files. Update a reference file once, all consumers benefit.
 
-**2. Independent evaluator subagents** — After `/spec`, `/plan`, and `/run` complete, each skill dispatches a corresponding evaluator subagent (`spec-evaluator`, `plan-evaluator`, `run-evaluator`) via the `Agent` tool. Each subagent gets fresh context with no sunk-cost bias and applies the relevant review methodology. This follows Anthropic's harness-design principle: separate the generator from the evaluator. For `/spec` and `/plan`, the evaluator runs a fix loop — it edits the artifact directly to resolve autonomous issues and only surfaces items needing human input. For `/run`, a `refactor-runner` agent first cleans up the code (autonomous `/refactor`), then `run-evaluator` verifies it — running the test suite, scenario coverage checks, desiderata scoring, and implementation-quality flags.
+**2. Independent evaluator subagents** — Each producing/refereeing skill dispatches a fresh-context evaluator as its final step. `/design` dispatches `design-evaluator`; `/spec` dispatches `spec-evaluator`; `/verify` dispatches the `referee`. Each gets fresh context with no sunk-cost bias and applies the relevant methodology. This follows Anthropic's harness-design principle: separate the generator from the evaluator. For `/design` and `/spec`, the evaluator runs a fix loop — editing the artifact directly to resolve autonomous issues and surfacing only what needs human input. The `referee` (behind `/verify`) is read-only: it judges the produced code against the spec and reports; it never edits.
 
 **3. Standalone quality gate** — `/review` can also be invoked directly at any point for an on-demand audit:
 
 ```
-/spec  -->  /review --type=spec   (second opinion on spec testability)
-/plan  -->  /review --type=plan   (validate graph before /run)
-/run   -->  /review --type=test   (audit generated tests)
-/run   -->  /review --type=impl   (check implementation coverage)
+/spec     -->  /review --type=spec   (second opinion on spec testability)
+implement -->  /review --type=test   (audit the produced tests)
+implement -->  /review --type=impl   (check implementation coverage)
 ```
+
+For the full post-implementation gate — coverage, anti-vacuity, desiderata, and quality together — use `/verify`, not `/review`. Standalone `/review` is a lighter, single-lens, read-only audit you can run any time.
 
 The main workflow chain:
 ```
-[/design] → /spec → /plan → /run → /refactor → /commit
-    ↓         ↓       ↓       ↓
-    └── each skill dispatches its evaluator subagent (fresh-context agent)
+[/design] → /spec → ⟦ any coding agent implements ⟧ → /verify → /commit
+    ↓         ↓                                          ↓
+    └── design-evaluator, spec-evaluator, and the referee run in fresh context
 ```
-
-The difference: the evaluator subagents are dispatched by each skill as its final step and use a fresh agent context (no sunk-cost bias). For spec/plan, evaluators fix what they can and only ask the human about what they can't. Standalone `/review` is invoked manually for on-demand audits and produces a read-only report.
 
 ## General Guidelines
 
@@ -97,5 +94,4 @@ The difference: the evaluator subagents are dispatched by each skill as its fina
 - Be opinionated but fair — acknowledge when a pattern that looks like a smell is actually justified
 - For test reviews, the goal is behavioral tests that survive refactoring — this is the north star
 - For spec reviews, the goal is unambiguous, testable requirements — every requirement should map to a test
-- For plan reviews, the goal is a valid, complete graph that `/run` can execute without issues
 - For implementation reviews, the goal is verifying that the spec contract is fulfilled

@@ -12,9 +12,9 @@
     {
       "name": "blueprint",
       "source": "./plugins/blueprint",
-      "description": "Generate design docs and implementation plans for features or tasks. Design docs capture motivation, proposed solution, and alternatives. Implementation plans break work into parallelizable work streams for agent teams.",
+      "description": "Intent producer + invariant referee. Produces design docs (motivation, approach, alternatives) and agent-executable specs (interface contract, acceptance scenarios, Definition of Done), hands implementation to any coding agent, then referees the result against the spec — scenario coverage, anti-vacuity check, and Test Desiderata scoring. Tests remain the durable contract.",
       "category": "planning",
-      "tags": ["design-doc", "rfc", "adr", "implementation-plan", "checklist", "tdd", "task-breakdown"]
+      "tags": ["design-doc", "rfc", "adr", "spec", "tdd", "verification", "referee"]
     },
     {
       "name": "thinking-craft",
