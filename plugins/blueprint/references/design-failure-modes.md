@@ -156,7 +156,7 @@ Now if writes grow, someone can search for "assumption" in the doc and find the 
 
 **Too early:** the doc is written before the author understands the problem. Alternatives are speculative, trade-offs are guessed, and the doc commits the team to a path before exploration would have shown a better one.
 
-**The fix:** docs are most valuable when there's a real decision still open and the author has done enough exploration to evaluate alternatives credibly. If you're writing one and you can't honestly say "I would change my mind based on review feedback," consider whether you should be writing it at all. If you're writing one and you don't have a hypothesis yet, run `/proto` first to spike, then come back to `/design`.
+**The fix:** docs are most valuable when there's a real decision still open and the author has done enough exploration to evaluate alternatives credibly. If you're writing one and you can't honestly say "I would change my mind based on review feedback," consider whether you should be writing it at all. If you're writing one and you don't have a hypothesis yet, spike it directly with your coding agent first, then come back to `/design`.
 
 ---
 

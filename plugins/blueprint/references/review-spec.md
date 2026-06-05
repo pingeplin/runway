@@ -4,7 +4,13 @@ Review a technical spec for structural completeness, testability, and clarity. A
 
 ## Phase 1 — Structural Completeness
 
-Check the spec against standard template sections (Context, Motivation, Proposed Solution, Acceptance Scenarios, Alternatives Considered, Trade-offs and Limitations, Open Questions, Self-Review). Report a table of present/missing sections with assessment notes. If the spec uses a non-standard structure, adapt — focus on content presence, not heading names.
+Check the spec against the standard template sections (Context, Motivation, Proposed Solution, Interface Contract, Acceptance Scenarios, For the Implementing Agent, Definition of Done, Alternatives Considered, Trade-offs and Limitations, Open Questions). Report a table of present/missing sections with assessment notes. If the spec uses a non-standard structure, adapt — focus on content presence, not heading names.
+
+Because the spec is the **executable contract handed to a coding agent**, treat these three as load-bearing, not optional polish:
+
+- **Interface Contract** — the API/error/breaking-change surface the agent must honor (inherited from the design doc when one exists).
+- **For the Implementing Agent** — the explicit build instruction ("make every scenario pass with tests that would fail if the behavior were wrong") plus the test-quality principles.
+- **Definition of Done** — the `/verify` pass criteria restated as a checklist. Flag its absence as a critical gap: without it, there's nothing for the referee to check the result against.
 
 ## Phase 2 — Testability Analysis
 
@@ -68,4 +74,4 @@ Scan for:
 
 ## Phase 5 — Spec Summary
 
-Output: overall testability (High/Medium/Low), critical issues blocking downstream work, improvement suggestions, and a Ready for /plan verdict (Yes/No with conditions).
+Output: overall testability (High/Medium/Low), critical issues blocking downstream work, improvement suggestions, and a **Ready for handoff** verdict (Yes/No with conditions) — i.e., is this a self-contained, referee-able contract a coding agent could build against and `/verify` could check?

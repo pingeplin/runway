@@ -18,7 +18,7 @@ After the doc is written, dispatch the `design-evaluator` subagent to review it.
 ## Where this fits in the blueprint pipeline
 
 ```
-/design ──→ /spec ──→ /plan ──→ /run ──→ /refactor ──→ /commit
+/design ──→ /spec ──→ ⟦ any coding agent implements ⟧ ──→ /verify ──→ /commit
    │
    │  Optional — use when the approach itself is in question.
    │  Skip and go straight to /spec when the design is settled.
@@ -27,13 +27,13 @@ After the doc is written, dispatch the `design-evaluator` subagent to review it.
 `/design` is **upstream** of `/spec`. The two skills do different jobs:
 
 - `/design` argues *which approach to take*. Output is an argument with alternatives, trade-offs, and a load-bearing assumption.
-- `/spec` defines *the testable behavior* of the chosen approach. Output is acceptance scenarios that feed `/plan`.
+- `/spec` defines *the testable behavior* of the chosen approach. Output is the agent-executable contract that an implementing agent builds against and `/verify` checks.
 
 After a design is approved, run `/spec` to translate the chosen approach into a behavioral contract.
 
 ## ID System
 
-IDs follow arXiv-style `yymm.xxxx` format, shared across specs, plans, and designs so a feature's artifacts can be matched by ID.
+IDs follow arXiv-style `yymm.xxxx` format, shared across designs and specs so a feature's artifacts can be matched by ID.
 
 - `yy` — 2-digit year
 - `mm` — 2-digit month
@@ -41,8 +41,8 @@ IDs follow arXiv-style `yymm.xxxx` format, shared across specs, plans, and desig
 
 **To determine the next ID:**
 
-1. Scan `docs/designs/`, `blueprint/specs/`, and `blueprint/plans/` for files matching `yymm.*` where `yymm` is the current year+month
-2. Find the highest `xxxx` across all three directories
+1. Scan `docs/designs/` and `.blueprint/specs/` for files matching `yymm.*` where `yymm` is the current year+month
+2. Find the highest `xxxx` across both directories
 3. Increment by 1
 4. If no files exist for the current month, start at `0001`
 5. If none of those directories exist yet, start at `yymm.0001`
@@ -151,10 +151,10 @@ Every design doc starts with:
 
 Status values: `draft` → `in-review` → `approved` → `implemented` → `superseded`.
 
-If a downstream spec exists in `blueprint/specs/` with the same ID, link it:
+If a downstream spec exists in `.blueprint/specs/` with the same ID, link it:
 
 ```markdown
-**Implementing spec:** [yymm.xxxx](../../blueprint/specs/{yymm.xxxx}_{feature_name}.md)
+**Implementing spec:** [yymm.xxxx](../../.blueprint/specs/{yymm.xxxx}_{feature_name}.md)
 ```
 
 ## Workflow B — Critique mode
@@ -214,11 +214,11 @@ After generating or substantially revising the design file, **dispatch the `desi
 /spec docs/designs/{yymm.xxxx}_{topic}.md
 ```
 
-`/spec` will use the design as input to generate testable acceptance scenarios for the chosen approach.
+`/spec` will use the design as input to generate the agent-executable contract for the chosen approach.
 
 The full workflow chain:
 ```
-/design → /spec → /plan → /run → /refactor → /commit
+/design → /spec → ⟦ any coding agent implements ⟧ → /verify → /commit
 ```
 
-Or via the orchestrator: `/tdd "feature name"` (which auto-detects when `/design` is worth running).
+Or via the orchestrator: `/blueprint "feature name"` (which auto-detects when `/design` is worth running).

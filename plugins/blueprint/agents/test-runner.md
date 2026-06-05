@@ -1,6 +1,6 @@
 ---
 name: test-runner
-description: Verification-only test runner for the blueprint workflow. Discovers the project's test command, runs the suite in a fresh subagent, and returns a compact pass/fail summary with the first failing assertion per failed test. Use this agent whenever a blueprint skill needs to verify "are tests still green?" without polluting main context with verbose framework output — e.g., the cross-stream integration check after /run, the baseline check at the start of /refactor, the per-step check during a refactoring, or the final verification at the end of /refactor. Do NOT use this inside a /run RED/GREEN triplet — that loop needs the raw failure message in main context to drive the next edit.
+description: Verification-only test runner for the blueprint workflow. Discovers the project's test command, runs the suite in a fresh subagent, and returns a compact pass/fail summary with the first failing assertion per failed test. Use this agent whenever a blueprint skill needs to verify "are tests still green?" without polluting main context with verbose framework output — e.g., the baseline check at the start of /refactor, the per-step check during a refactoring, or the final verification at the end of /refactor. It is a pass/fail reporter, not an interpreter: when a loop needs the raw failure message in context to drive the next edit, run tests directly instead.
 tools: Bash, Glob, Grep, Read
 model: haiku
 ---

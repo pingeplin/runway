@@ -4,6 +4,110 @@ All notable changes to the `blueprint` TDD plugin are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/);
 versions follow SemVer.
 
+## [4.0.0] — 2026-06-05
+
+**Blueprint becomes an intent producer + invariant referee. The
+prescriptive TDD driver is deleted.** The pipeline collapses from
+`/design → /spec → /plan → /run → /refactor → /commit` to
+`/design → /spec → ⟦any coding agent implements⟧ → /verify → /commit`,
+with `/refactor` and `/review` as standalone utilities.
+Blueprint no longer drives the build; it produces the contract, hands
+implementation to any coding agent, and referees the result.
+
+Design doc: `docs/designs/2606.0001_blueprint_4_referee_architecture.md`.
+Spec: `.blueprint/specs/2606.0001_blueprint_4_referee_architecture.md`.
+Both were written with blueprint's own `/design` and `/spec`.
+
+### Why
+
+Most of `/run`'s choreography (slice DAG, batched tests, failing-test
+commit, bounded fix loop) was model-compensation for 2024–25 weaknesses
+that decays into overhead as models improve, and it bound the workflow to
+one agent that would follow the procedure. "Any coding agent" is a
+*protocol* problem: intent (design + spec + test-quality principles) is
+portable; procedure is not. The one thing the procedure bought —
+non-vacuous tests — is re-secured procedure-independently by the referee.
+
+### Added
+
+- **`/verify` skill** (`skills/verify/`) — the referee, the post-implementation
+  gate. Dispatches the `referee` subagent on code of unknown provenance and
+  runs five checks: test suite, scenario-coverage matrix, **anti-vacuity
+  thought-mutation** ("smallest change that breaks this behavior — would any
+  test catch it?"), Test Desiderata scoring, and implementation-quality flags.
+- **`referee` agent** (`agents/referee.md`) — the transformed, renamed
+  `run-evaluator`. Agent-agnostic: no plan-file dependency, no "after /run"
+  assumption, treats input adversarially. Model bumped to `opus` — it is now
+  the load-bearing quality gate and the anti-vacuity reasoning is subtle.
+
+### Changed
+
+- **`/spec` elevated to the agent-executable contract.** The output template
+  gains an **Interface Contract** section (inherited from the design), a
+  **For the Implementing Agent** instruction ("make every scenario pass with
+  tests that would fail if the behavior were wrong") with the bundled
+  test-quality principles, and a **Definition of Done** worded as exactly what
+  `/verify` checks. Next-step points to the implementing-agent handoff and
+  `/verify`, not `/plan`.
+- **`references/review-impl.md`** — slice/plan-loop phases stripped; the
+  spec cross-check and implementation-quality flags retained as the referee's
+  inputs.
+- **`references/review-spec.md`** — structural check now expects the new
+  contract sections; verdict is "Ready for handoff" rather than "Ready for
+  /plan".
+- **`references/test-desiderata.md` + `anti-patterns.md`** — unchanged in
+  content, but their role is now dual: bundled into the spec as generator
+  guidance *and* enforced by the referee as its rubric.
+- **`/refactor`** — the autonomous post-`/run` mode is gone (its dispatcher,
+  `refactor-runner`, is deleted). Now purely a human-directed standalone
+  utility.
+- **`/tdd` orchestrator renamed to `/blueprint`.** "TDD" named the
+  deleted executor loop; the orchestrator now chains produce→referee, so it
+  takes the plugin's own name. `commands/tdd.md` → `commands/blueprint.md`
+  (`name: blueprint`); all references updated.
+- **`/design`, `/review`, `/blueprint`** — all docs and pipeline diagrams
+  updated to the new flow; the v3.x "what's new" recaps removed from the
+  orchestrator.
+- **README** reframed from "TDD-pure executor" to "intent producer + invariant
+  referee." Tests-as-contract survives and is described as strengthened.
+- **Spec directory is now `.blueprint/specs/`** (was `blueprint/specs/`).
+  Hidden, so the tooling artifact stops colliding visually with a project's
+  own `blueprint/` and reads as "tooling, not primary content." Design docs
+  stay in the human-facing `docs/designs/`. All skills, agents, and
+  references updated.
+- **`plugin.json` / `marketplace.json`** — version `4.0.0`; descriptions
+  reflect the producer→referee architecture.
+
+### Removed
+
+- **`/run` skill** — the prescriptive TDD executor.
+- **`/plan` skill** — its only purpose was ordering `/run`'s execution; that
+  is now the implementing agent's job. No more plan-graph artifact.
+- **Agents** — `plan-evaluator`, `test-batch-evaluator`, `refactor-runner`
+  (all `/run`/`/plan`-internal stages).
+- **References** — `review-plan.md`, `review-test-batch.md`.
+- **`/migrate-paths` command** and `scripts/migrate_paths.sh` — a vestigial
+  v3.6 path-migration aid built around the now-deleted `plans/` concept.
+- **`/proto` command** — the prescribed spike procedure (discover → 2–4
+  tests → implement → promote/discard) is itself the kind of choreography
+  4.0 sheds. Prototyping is just using your coding agent directly; formalize
+  with `/design` or `/spec` if a decision falls out.
+
+### Breaking changes
+
+- **The whole `/plan` + `/run` surface is gone.** In-flight 3.x plan graphs
+  cannot be executed. There is no automated 3.x → 4.0 migration: finish
+  in-flight work on 3.x, start new work on 4.0. Tests written under 3.x are
+  unaffected — they were always the durable artifact.
+
+### Out of scope (named follow-ups)
+
+- Real mutation-testing integration (mutmut / Stryker / PIT) to back the
+  thought-mutation check and upgrade the verdict from advisory-strong to proven.
+- A seeded-vacuous-suite benchmark to measure the referee's catch rate.
+- Machine-readable spec serialization for programmatic external-agent ingestion.
+- Multi-agent / colony orchestration (the referee architecture enables it).
+
 ## [3.7.0] — 2026-05-29
 
 **`/refactor` replaces `/simplify` as `/run`'s cleanup pass, and it runs

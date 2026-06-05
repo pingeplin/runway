@@ -1,7 +1,7 @@
 {
   "name": "blueprint",
-  "description": "Full-cycle TDD workflow: design, spec, plan, run, refactor, commit. Generates design docs (RFC/ADR/etc.) that argue for an approach, specs with testability review, execution graphs of sliced behavioral milestones with dependency tracking, and auto-verifies implementations. Each slice batches tests then implementation with a failing-test commit checkpoint and fresh-context evaluators between stages. Grounded in Kent Beck's Test Desiderata and Canon TDD principles.",
-  "version": "3.7.0",
+  "description": "Intent producer + invariant referee: design, spec, then hand implementation to any coding agent and verify the result. Generates design docs (RFC/ADR/etc.) that argue for an approach, agent-executable specs (interface contract, acceptance scenarios, Definition of Done), and a repo-specific test-conventions doc mined from existing tests and reconciled against the Desiderata, then referees the produced code against the spec — scenario coverage, an anti-vacuity thought-mutation check, Test Desiderata scoring, and quality flags, in a fresh-context evaluator. Tests remain the durable behavioral contract. Grounded in Kent Beck's Test Desiderata and Canon TDD principles.",
+  "version": "4.0.0",
   "author": {
     "name": "@pingeplin"
   }
