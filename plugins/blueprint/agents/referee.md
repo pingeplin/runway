@@ -91,8 +91,14 @@ verdict is *advisory-strong*, not *proven*.
 ## Step 4 — Test Desiderata review
 
 Read `${CLAUDE_PLUGIN_ROOT}/references/test-desiderata.md` and
-`${CLAUDE_PLUGIN_ROOT}/references/anti-patterns.md`. Score each test that
-covers a spec scenario:
+`${CLAUDE_PLUGIN_ROOT}/references/anti-patterns.md`. If the repo has a
+test-conventions doc at `docs/testing/test-conventions.md` (produced by
+`/test-conventions`), read it too and also score against the repo's own
+conventions — naming, mocking boundary, determinism helpers, fixture style.
+The universal references stay authoritative; the conventions doc is this repo's
+projection of them, so a test that breaks a stated convention is at least a ⚠️
+(note which convention in the Notes column). Score each test that covers a spec
+scenario:
 
 | Test | Behavioral | Struct-Insensitive | Deterministic | Specific | Readable | Notes |
 |------|:----------:|:------------------:|:-------------:|:--------:|:--------:|-------|

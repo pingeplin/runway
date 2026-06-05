@@ -39,7 +39,8 @@ bias) to run five checks against the produced code + tests:
    procedure-independent one.
 4. **Test Desiderata** — scores tests against Kent Beck's properties
    (`references/test-desiderata.md`) and the anti-patterns checklist
-   (`references/anti-patterns.md`).
+   (`references/anti-patterns.md`), plus this repo's own conventions when a
+   `docs/testing/test-conventions.md` (from `/test-conventions`) exists.
 5. **Implementation quality** — flags stale docstrings, restated-*what*
    comments, dead code, stubs (`references/review-impl.md`).
 

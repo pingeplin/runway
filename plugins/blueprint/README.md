@@ -109,6 +109,7 @@ If you want a spec-as-source-of-truth model (BDD with maintained acceptance docs
 |---|---|---|
 | `/design` | producer | Write or critique a design doc. Dispatches `design-evaluator`. |
 | `/spec` | producer | Write the agent-executable contract. Dispatches `spec-evaluator`. |
+| `/test-conventions` | producer | Generate this repo's test-writing conventions by mining existing tests and projecting the Desiderata. Per-repo, regenerable. Dispatches `conventions-evaluator`. |
 | `/verify` | referee | Check produced code against the spec — coverage, anti-vacuity, desiderata, quality. Dispatches `referee`. |
 | `/commit` | utility | Write a Conventional Commits message. Dispatches `commit-writer`. |
 | `/refactor` | utility | Change structure without changing behavior, tests green. Human-directed. |
@@ -131,7 +132,7 @@ IDs follow arXiv-style `yymm.xxxx` and are shared across `docs/designs/` and `.b
 - One feature → one design doc (optional) + one spec, sharing an ID.
 - Cross-team interface changes are made in the **design doc**; the spec and tests follow downstream.
 - Specs are not maintained in sync with implementation post-build. Treat any committed spec as a snapshot of intent at build time, not a living contract.
-- Evaluator subagents (`design-evaluator`, `spec-evaluator`) run in fresh context and may edit the artifact they review, surfacing only items needing human judgment. The `referee` (behind `/verify`) is read-only — it judges and reports, never edits.
+- Evaluator subagents (`design-evaluator`, `spec-evaluator`, `conventions-evaluator`) run in fresh context and may edit the artifact they review, surfacing only items needing human judgment. The `referee` (behind `/verify`) is read-only — it judges and reports, never edits.
 
 ## Migrating from 3.x
 
