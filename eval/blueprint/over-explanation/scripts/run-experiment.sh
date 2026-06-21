@@ -24,7 +24,8 @@
 #
 # Environment:
 #   FAMILY     extractor family for assembly: openai|anthropic  (default: openai)
-#   MODEL      extractor model id                                (default: gpt-4.1)
+#   MODEL      extractor model id; empty -> per-family default
+#              (anthropic: claude-sonnet-4-6, openai: gpt-5.4)
 #   BASE_URL   OpenAI-compatible base url (optional)
 
 set -euo pipefail
@@ -45,7 +46,7 @@ MANIFEST="$1"
 CORPUS_ROOT="$2"
 RESULTS_ROOT="${3:-${ROOT}/results}"
 FAMILY="${FAMILY:-openai}"
-MODEL="${MODEL:-gpt-4.1}"
+MODEL="${MODEL:-}"   # empty -> assemble.py picks the per-family default
 
 [[ -f "$MANIFEST" ]] || { echo "error: manifest not found: $MANIFEST" >&2; exit 1; }
 [[ -d "$CORPUS_ROOT" ]] || { echo "error: corpus root not found: $CORPUS_ROOT" >&2; exit 1; }
@@ -95,11 +96,12 @@ done
 echo
 echo "==> generation complete: ${ok} ok, ${fail} failed"
 
-# 3. Assemble results.json via the cross-family extractor.
-echo "==> assembling results.json with the ${FAMILY} extractor (${MODEL})"
+# 3. Assemble results.json via the cross-family extractor. Omit --model when
+# empty so assemble.py applies the per-family default (sonnet 4.6 / gpt-5.4).
+echo "==> assembling results.json with the ${FAMILY} extractor (${MODEL:-default})"
 uv run python analysis/assemble.py \
   --results-root "$RESULTS_ROOT" --corpus "$CORPUS_ROOT" \
-  --family "$FAMILY" --model "$MODEL" ${BASE_URL:+--base-url "$BASE_URL"} \
+  --family "$FAMILY" ${MODEL:+--model "$MODEL"} ${BASE_URL:+--base-url "$BASE_URL"} \
   --out "${RESULTS_ROOT}/results.json"
 
 # 4. Analysis gates (non-zero exit propagates a block / STOP to the caller).

@@ -158,6 +158,63 @@ _ALIGN_INSTRUCTIONS = (
 )
 
 
+# --------------------------------------------------------------------------- #
+# Provider request builders (pure — no network, no SDK). Separated from the
+# ``_complete`` I/O seam so the prompt-caching wiring is unit-testable offline.
+# --------------------------------------------------------------------------- #
+#
+# Prompt caching is a *prefix match*: a hit is only possible when stable content
+# comes first and volatile content last. Here the ``system`` block (the extraction
+# / align instructions + ontology) is identical across every document and every
+# alignment, so it is the cacheable prefix; the per-call ``user`` text (the
+# document body, or the SOURCE+TARGET proposition lists) is what varies and must
+# come after it. Both families are wired for this; only the mechanism differs.
+#
+# Caveat (honest): a prefix only caches once it clears the model's minimum —
+# ~2048 tokens on Sonnet 4.6, ~1024 on OpenAI. Today's instruction block is far
+# shorter than that, so on the current per-document call shape caching is a
+# placement-correct no-op (no error, no extra cost); the win materialises if the
+# instructions grow (few-shot examples, a longer rubric) or the shared prefix
+# otherwise gets large. The design is cache-ready, not cache-dependent.
+
+_CACHE_CONTROL = {"type": "ephemeral"}
+
+
+def _anthropic_request(model: str, system: str, user: str) -> dict:
+    """Build ``messages.create`` kwargs with a cache_control breakpoint.
+
+    The ``system`` instructions are the stable prefix and carry the breakpoint;
+    the volatile ``user`` content follows, uncached, so each document/alignment
+    reuses the cached instruction prefix instead of re-billing it.
+    """
+    return {
+        "model": model,
+        "max_tokens": 4096,
+        "system": [
+            {"type": "text", "text": system, "cache_control": dict(_CACHE_CONTROL)},
+        ],
+        "messages": [{"role": "user", "content": user}],
+    }
+
+
+def _openai_request(model: str, system: str, user: str) -> dict:
+    """Build ``chat.completions.create`` kwargs.
+
+    OpenAI prompt caching is automatic — there is no parameter to set; the cache
+    keys off the stable prefix on its own. The only design requirement is
+    ordering, so the stable ``system`` message comes first and the volatile
+    ``user`` content last. ``response_format`` keeps the output parseable JSON.
+    """
+    return {
+        "model": model,
+        "response_format": {"type": "json_object"},
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ],
+    }
+
+
 class _BaseLLMExtractor:
     """Shared JSON parsing + ``extract``/``align`` for every LLM extractor.
 
@@ -297,10 +354,7 @@ class AnthropicExtractor(_BaseLLMExtractor):
     def _complete(self, system: str, user: str) -> str:
         """Issue one chat completion and return the raw text. Only mock-point."""
         message = self._client.messages.create(
-            model=self.model,
-            max_tokens=4096,
-            system=system,
-            messages=[{"role": "user", "content": user}],
+            **_anthropic_request(self.model, system, user)
         )
         # The anthropic SDK returns content as a list of blocks; concatenate text.
         parts: list[str] = []
@@ -357,12 +411,7 @@ class OpenAIExtractor(_BaseLLMExtractor):
     def _complete(self, system: str, user: str) -> str:
         """Issue one chat completion and return the raw text. Only mock-point."""
         response = self._client.chat.completions.create(
-            model=self.model,
-            response_format={"type": "json_object"},
-            messages=[
-                {"role": "system", "content": system},
-                {"role": "user", "content": user},
-            ],
+            **_openai_request(self.model, system, user)
         )
         content = response.choices[0].message.content
         return content if content is not None else ""

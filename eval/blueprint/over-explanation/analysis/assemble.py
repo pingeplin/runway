@@ -12,7 +12,12 @@ suite. Pick the family explicitly:
 
     uv run python analysis/assemble.py \
         --results-root results --corpus corpus/demo \
-        --family openai --model gpt-4.1 --out results/results.json
+        --family openai --out results/results.json   # --model defaults to gpt-5.4
+
+The two pinned families are Anthropic ``claude-sonnet-4-6`` and OpenAI
+``gpt-5.4`` (see ``_DEFAULT_MODEL``). Pass ``--model`` to override; with
+``--base-url`` the "openai" family can target any OpenAI-compatible endpoint
+(vLLM / a local open-weights model) for a genuinely different, cheaper family.
 
 ``--family fixture --fixtures f.json`` runs fully offline (for wiring tests):
 ``f.json`` maps ``document_id -> PropositionSet`` in the gold-set JSON shape.
@@ -36,6 +41,21 @@ from eval_overexplanation.interfaces import PropositionExtractor
 from eval_overexplanation.models import Alignment, PropositionSet
 
 
+# The two pinned cross-family extractor models (fix #1 wants >=2 families). Both
+# are overridable with --model; the "openai" family can also be pointed at an
+# OpenAI-compatible endpoint via --base-url (local/open-weights = a cheaper but
+# still genuinely different family).
+_DEFAULT_MODEL = {
+    "anthropic": "claude-sonnet-4-6",
+    "openai": "gpt-5.4",
+}
+
+
+def _resolve_model(family: str, model: str) -> str:
+    """Use an explicit --model, else the per-family default."""
+    return model or _DEFAULT_MODEL.get(family, "")
+
+
 def _build_extractor(args: argparse.Namespace) -> PropositionExtractor:
     if args.family == "fixture":
         from eval_overexplanation.corpus import load_gold  # reuse the gold JSON shape
@@ -52,11 +72,11 @@ def _build_extractor(args: argparse.Namespace) -> PropositionExtractor:
     if args.family == "anthropic":
         from eval_overexplanation.extractor import AnthropicExtractor
 
-        return AnthropicExtractor(args.model)
+        return AnthropicExtractor(_resolve_model("anthropic", args.model))
     if args.family == "openai":
         from eval_overexplanation.extractor import OpenAIExtractor
 
-        return OpenAIExtractor(args.model, base_url=args.base_url)
+        return OpenAIExtractor(_resolve_model("openai", args.model), base_url=args.base_url)
     raise SystemExit(f"unknown family {args.family!r}")
 
 
@@ -97,7 +117,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--results-root", required=True, type=Path)
     ap.add_argument("--corpus", required=True, type=Path)
     ap.add_argument("--family", required=True, choices=["fixture", "anthropic", "openai"])
-    ap.add_argument("--model", default="")
+    ap.add_argument("--model", default="",
+                    help="extractor model id; empty -> per-family default "
+                         "(anthropic: claude-sonnet-4-6, openai: gpt-5.4)")
     ap.add_argument("--base-url", default=None)
     ap.add_argument("--fixtures", default=None)
     ap.add_argument("--baseline-arm", default="A0", help="arm id to align others against")

@@ -50,7 +50,8 @@ src/eval_overexplanation/
   models.py          frozen value objects (propositions, alignments, briefs, arms) — the contract
   interfaces.py      the only two judgement seams: PropositionExtractor, GrammaticalityChecker
   restatement.py     primary metric: 1 - distinct/total_mentions
-  extractor.py       FixtureExtractor (offline) + AnthropicExtractor + OpenAIExtractor (≥2 families, fix #1)
+  extractor.py       FixtureExtractor (offline) + AnthropicExtractor + OpenAIExtractor (≥2 families, fix #1;
+                     pinned claude-sonnet-4-6 + gpt-5.4; prompt-cache the stable instruction prefix)
   grammaticality.py  Default (dependency-free screen) + Spacy (behind [nlp]) checkers
   substance.py       paired A0->A1 proposition-diff recall guardrail (MUST-loss blocks)
   merge_fidelity.py  within-arm pre->post: ②'s delete-or-merge didn't drop a constraint
@@ -134,9 +135,18 @@ script; the bash driver is the §5 fallback:
 scripts/setup-worktrees.sh <A0-commit> <A1-commit> ...   # tag + worktree + per-arm config dirs
 # primary: Workflow({ scriptPath: "orchestration/run-experiment.workflow.js",
 #                     args: { manifest, corpus, family: "openai", model } })
-# fallback (bash/cron):
-FAMILY=openai MODEL=gpt-4.1 scripts/run-experiment.sh preregistration/manifest.demo.json corpus/demo
+# fallback (bash/cron):  MODEL is optional — defaults to the per-family pin
+FAMILY=openai scripts/run-experiment.sh preregistration/manifest.demo.json corpus/demo
 ```
+
+The two cross-family extractors are pinned to **Anthropic `claude-sonnet-4-6`**
+and **OpenAI `gpt-5.4`** (override with `--model` / `MODEL`; `--base-url` points
+the "openai" family at any OpenAI-compatible/local endpoint for a cheaper third
+family). Both extractors are **prompt-cache-aware**: the stable instruction +
+ontology prefix carries the cache breakpoint (Anthropic `cache_control`; OpenAI
+caches automatically), with the volatile per-document text after it. Caching
+activates once a prefix clears the model floor (~2048 tokens on Sonnet 4.6,
+~1024 on OpenAI) — placement-correct today, cost-saving as instructions grow.
 
 ## Status: full design (Milestone 2) — implemented
 
@@ -173,7 +183,9 @@ scales arms/briefs/seeds to the full design without code change.
 
 - **Second extractor family: OpenAI** (`OpenAIExtractor`, configurable
   `base_url` so it also targets OpenAI-compatible/local endpoints), alongside
-  `AnthropicExtractor`.
+  `AnthropicExtractor`. The two families are pinned to `claude-sonnet-4-6` and
+  `gpt-5.4`, and both build their requests so the stable instruction prefix is
+  prompt-cached.
 - **Orchestration: both** — a runnable `Workflow` script (primary) and the
   bash/cron driver (fallback).
 - **Still open:** where the OSS large-realistic briefs are mined from

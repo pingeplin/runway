@@ -6,7 +6,7 @@
  *   Workflow({ scriptPath: "eval/blueprint/over-explanation/orchestration/run-experiment.workflow.js",
  *              args: { manifest: "preregistration/manifest.demo.json",
  *                      corpus: "corpus/demo", resultsRoot: "results",
- *                      family: "openai", model: "gpt-4.1" } })
+ *                      family: "openai" } })   // model defaults: sonnet-4-6 / gpt-5.4
  *
  * Prerequisite (live runs): scripts/setup-worktrees.sh has created a worktree +
  * an authed ~/.claude-<ARM_ID> config dir per arm (eval-methodology.md §2). The
@@ -40,7 +40,9 @@ const MANIFEST = A.manifest || 'preregistration/manifest.demo.json'
 const CORPUS = A.corpus || 'corpus/demo'
 const RESULTS = A.resultsRoot || 'results'
 const FAMILY = A.family || 'openai'
-const MODEL = A.model || 'gpt-4.1'
+// Empty -> assemble.py applies the per-family default (anthropic: claude-sonnet-4-6,
+// openai: gpt-5.4). Pass args.model to override.
+const MODEL = A.model || ''
 
 // ---- Validate: read the manifest panel + run the instrument-trust gate ----
 phase('Validate')
@@ -107,7 +109,7 @@ const assembled = await agent(
   [
     'In ' + ROOT + ', assemble the transport from the run cells using the cross-family extractor.',
     'Command: uv run python analysis/assemble.py --results-root ' + RESULTS + ' --corpus ' + CORPUS +
-      ' --family ' + FAMILY + ' --model ' + MODEL + ' --out ' + RESULTS + '/results.json',
+      ' --family ' + FAMILY + (MODEL ? ' --model ' + MODEL : '') + ' --out ' + RESULTS + '/results.json',
     'Report how many records were written and any extraction errors. (Requires the relevant API key in the environment.)',
   ].join('\n'),
   { label: 'assemble', phase: 'Assemble' }

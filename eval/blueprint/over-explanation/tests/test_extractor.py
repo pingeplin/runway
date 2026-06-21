@@ -20,7 +20,9 @@ from eval_overexplanation.extractor import (
     AnthropicExtractor,
     FixtureExtractor,
     OpenAIExtractor,
+    _anthropic_request,
     _BaseLLMExtractor,
+    _openai_request,
 )
 from eval_overexplanation.models import (
     Alignment,
@@ -386,3 +388,42 @@ def test_concrete_extractors_share_the_base():
     # Both LLM families inherit the shared parsing/Protocol surface.
     assert issubclass(AnthropicExtractor, _BaseLLMExtractor)
     assert issubclass(OpenAIExtractor, _BaseLLMExtractor)
+
+
+# --------------------------------------------------------------------------- #
+# Prompt-caching wiring (pure request builders — no network, no SDK). These
+# prove the cache_control breakpoint sits on the STABLE system prefix and the
+# volatile per-call text stays after it, for both families.
+# --------------------------------------------------------------------------- #
+
+
+def test_anthropic_request_caches_the_system_prefix():
+    req = _anthropic_request("claude-sonnet-4-6", "INSTRUCTIONS", "DOCUMENT BODY")
+    assert req["model"] == "claude-sonnet-4-6"
+    # system is a content-block list whose single block carries an ephemeral
+    # cache_control breakpoint (the stable, reusable prefix).
+    assert req["system"] == [
+        {"type": "text", "text": "INSTRUCTIONS", "cache_control": {"type": "ephemeral"}}
+    ]
+
+
+def test_anthropic_request_leaves_volatile_user_text_uncached():
+    req = _anthropic_request("claude-sonnet-4-6", "INSTRUCTIONS", "DOCUMENT BODY")
+    (user_msg,) = req["messages"]
+    assert user_msg["role"] == "user"
+    # The per-document body is a plain string AFTER the breakpoint — no
+    # cache_control, since it differs on every call.
+    assert user_msg["content"] == "DOCUMENT BODY"
+
+
+def test_openai_request_orders_stable_prefix_first():
+    req = _openai_request("gpt-5.4", "INSTRUCTIONS", "DOCUMENT BODY")
+    assert req["model"] == "gpt-5.4"
+    # OpenAI caches automatically (no parameter); the only requirement is that
+    # the stable system message precedes the volatile user content.
+    roles = [m["role"] for m in req["messages"]]
+    assert roles == ["system", "user"]
+    assert req["messages"][0]["content"] == "INSTRUCTIONS"
+    assert req["messages"][1]["content"] == "DOCUMENT BODY"
+    # JSON output is still constrained for parseable propositions.
+    assert req["response_format"] == {"type": "json_object"}

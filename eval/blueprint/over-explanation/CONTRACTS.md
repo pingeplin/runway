@@ -78,7 +78,18 @@ class AnthropicExtractor:
   propositions each with `{id, text, kind, mention_sentences}`, and for
   `align`, a list of `{source_id, target_id, relation}`. Parse into the model
   types; surface malformed output as `ValueError`. Keep the API call in one
-  small private method so it is the only thing that would need mocking.
+  small private method (`_complete(system, user) -> str`) so it is the only
+  thing that would need mocking.
+- **Prompt caching is built into the request shape, not the I/O.** Each family
+  constructs its request via a *pure* builder — `_anthropic_request` /
+  `_openai_request` — kept separate from `_complete` so the cache wiring is
+  unit-testable offline. The stable `system` prefix (instructions + ontology) is
+  the cache prefix: Anthropic puts a `cache_control: {"type": "ephemeral"}`
+  breakpoint on the system block; OpenAI caches automatically and only requires
+  the system message to precede the volatile `user` content. Default models:
+  `claude-sonnet-4-6` and `gpt-5.4`. Caching only activates above the model's
+  minimum cacheable prefix (~2048 tokens Sonnet 4.6, ~1024 OpenAI) — cache-ready
+  by placement, not cache-dependent.
 - Do **not** call the network in any unit test.
 
 ---
