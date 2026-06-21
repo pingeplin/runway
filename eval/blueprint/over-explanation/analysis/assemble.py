@@ -24,9 +24,25 @@ The two pinned families are Anthropic ``claude-sonnet-4-6`` and OpenAI
 
 Cross-family note: to satisfy the >=2-family requirement, assemble TWICE with
 two ``--family`` values and compare; the manifest records both families.
-Merge-fidelity needs the *pre*-evaluator document too, which ``run-arm.sh`` does
-not yet capture separately — assemble emits restatement + substance + sentences;
-merge-fidelity is left to a run that captures pre/post evaluator artifacts.
+
+Merge-fidelity (change ②'s delete-or-merge step) needs the *pre*-evaluator
+document. We recover it from the cell's ``transcript.jsonl`` (captured by
+``run-arm.sh``): blueprint's generator *Writes* each artifact and the evaluator
+then *Edits* it, so the lone ``Write`` to each artifact file is its
+pre-evaluator snapshot and the final ``artifacts/`` file is that Write plus the
+evaluator's Edits. ``reconstruct_pre_evaluator`` rebuilds it, we extract + align
+it onto the post-evaluator set, and emit a ``merge_alignment`` record — which
+``overexpl guardrails`` already turns into a merge-fidelity block.
+
+This is **fail-closed**. An under-captured pre-document would hide a real dropped
+claim — a false *pass* in the exact guardrail meant to catch drops — so we emit a
+``merge_alignment`` ONLY when the single-Write boundary observably holds
+(``status == "ok"``). If any artifact file was Written more than once
+(``"ambiguous"``), or no artifact Write is present / there is no transcript
+(``"none"``), or the extractor errors on the cell, merge-fidelity is *skipped*
+for that cell with a reason — never silently passed. Reliable capture for the
+ambiguous cases ultimately wants a generator-side pre-eval snapshot; until then
+those cells contribute no merge-fidelity signal rather than a false one.
 """
 
 from __future__ import annotations
@@ -35,6 +51,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from typing import NamedTuple
 
 from eval_overexplanation.grammaticality import split_sentences
 from eval_overexplanation.interfaces import PropositionExtractor
@@ -58,15 +75,26 @@ def _resolve_model(family: str, model: str) -> str:
 
 def _build_extractor(args: argparse.Namespace) -> PropositionExtractor:
     if args.family == "fixture":
-        from eval_overexplanation.corpus import load_gold  # reuse the gold JSON shape
+        from eval_overexplanation.cli import (  # transport reuse
+            _build_alignment,
+            _build_proposition_set,
+        )
         from eval_overexplanation.extractor import FixtureExtractor
 
         if not args.fixtures:
             raise SystemExit("--family fixture requires --fixtures <file>")
         raw = json.loads(Path(args.fixtures).read_text(encoding="utf-8"))
-        # raw: {document_id: <PropositionSet-shaped dict>}
-        from eval_overexplanation.cli import _build_proposition_set  # transport reuse
-
+        # Two accepted shapes. Legacy: a bare {document_id: <PropositionSet>} map
+        # (extract only). Extended: {"sets": {...}, "alignments": {...}} where an
+        # alignment key is "<source_doc_id>|<target_doc_id>" — needed offline for
+        # substance (A0->A1) and merge-fidelity (pre->post) alignments.
+        if isinstance(raw, dict) and ("sets" in raw or "alignments" in raw):
+            sets = {k: _build_proposition_set(v) for k, v in raw.get("sets", {}).items()}
+            alignments = {}
+            for key, adict in raw.get("alignments", {}).items():
+                src_id, tgt_id = str(key).split("|", 1)
+                alignments[(src_id, tgt_id)] = _build_alignment(adict)
+            return FixtureExtractor(sets, alignments)
         sets = {k: _build_proposition_set(v) for k, v in raw.items()}
         return FixtureExtractor(sets)
     if args.family == "anthropic":
@@ -88,6 +116,135 @@ def _read_artifact_text(cell_dir: Path) -> str:
     parts = [p.read_text(encoding="utf-8", errors="replace")
              for p in sorted(artifacts.rglob("*.md"))]
     return "\n\n".join(parts)
+
+
+# Artifact-path dirs run-arm.sh captures; an artifact is a markdown file whose
+# path contains one of these as consecutive path *components* (blueprint 3.6+ and
+# the pre-3.6 fallbacks). Component-matching (not substring) so `tests/specs_x.md`
+# does not masquerade as a `specs/` artifact.
+_ARTIFACT_SEGMENTS = (
+    "blueprint/specs", "blueprint/plans", "blueprint/designs",
+    "specs", "plans", "docs/designs", "docs/testing",
+)
+
+
+def _is_artifact_path(file_path: str) -> bool:
+    p = file_path.replace("\\", "/")
+    if not p.endswith(".md"):
+        return False
+    dirparts = p.split("/")[:-1]  # drop the filename
+    for seg in _ARTIFACT_SEGMENTS:
+        sp = seg.split("/")
+        for i in range(len(dirparts) - len(sp) + 1):
+            if dirparts[i:i + len(sp)] == sp:
+                return True
+    return False
+
+
+def _iter_tool_uses(obj: object):
+    """Yield ``(tool_name, input_dict)`` for every tool_use block in a transcript
+    line object, tolerant of the stream-json envelope shape."""
+    if not isinstance(obj, dict):
+        return
+    msg = obj.get("message")
+    content = msg.get("content") if isinstance(msg, dict) else obj.get("content")
+    if not isinstance(content, list):
+        return
+    for block in content:
+        if (
+            isinstance(block, dict)
+            and block.get("type") == "tool_use"
+            and isinstance(block.get("name"), str)
+            and isinstance(block.get("input"), dict)
+        ):
+            yield block["name"], block["input"]
+
+
+class PreEval(NamedTuple):
+    """Outcome of recovering the pre-evaluator document from a run transcript.
+
+    ``status`` is one of:
+
+    * ``"ok"`` — a trustworthy single-Write-per-file snapshot; ``text`` holds it.
+    * ``"none"`` — no transcript / no artifact ``Write`` (e.g. the model used the
+      text-editor ``create`` tool, or there is no transcript at all).
+    * ``"ambiguous"`` — at least one artifact file was ``Write``-ten more than
+      once, so we cannot trust which write is the pre-evaluator draft.
+
+    Only ``"ok"`` yields a ``merge_alignment``; ``"none"`` and ``"ambiguous"``
+    both make the caller *skip* merge-fidelity for the cell (with a warning).
+    This is the fail-closed contract: an uncertain boundary never produces a
+    pass — it produces no claim.
+
+    ``detail`` names the offending artifact path(s) on ``"ambiguous"`` so a real
+    run can see *which* file eroded coverage (e.g. a regenerated conventions doc)
+    rather than a bare "skipped"; it is empty otherwise.
+    """
+
+    text: str
+    status: str
+    detail: str = ""
+
+
+def reconstruct_pre_evaluator(transcript_path: Path) -> PreEval:
+    """Recover the pre-evaluator document from a stream-json run transcript.
+
+    blueprint generates each artifact with a single ``Write`` (the generator's
+    output) and the evaluator then *Edits* it — so the lone ``Write`` to each
+    artifact markdown file is that file's pre-evaluator snapshot, and the final
+    ``artifacts/`` file (post-evaluator) is that Write plus the evaluator's Edits.
+
+    We require that single-Write invariant to *hold observably* before trusting
+    the snapshot. If any artifact file was Written more than once — an
+    incremental-draft generator, or a subagent that overwrites via ``Write`` —
+    the boundary is unknowable, so we return ``status="ambiguous"`` and the cell
+    is skipped. This is deliberately fail-closed: an under-captured pre-doc would
+    hide a real dropped claim (a false *pass* in the exact guardrail meant to
+    catch drops), so on any ambiguity we make no claim rather than risk one.
+
+    Edits never affect the count — they are the expected evaluator action and the
+    reason post differs from pre.
+    """
+    path = Path(transcript_path)
+    if not path.is_file():
+        return PreEval("", "none")
+    try:
+        lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return PreEval("", "none")
+
+    content_by_path: dict[str, str] = {}
+    write_count: dict[str, int] = {}
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            obj = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        for name, inp in _iter_tool_uses(obj):
+            if name != "Write":
+                continue
+            fp, content = inp.get("file_path"), inp.get("content")
+            if not (isinstance(fp, str) and isinstance(content, str)):
+                continue
+            if not _is_artifact_path(fp):
+                continue
+            write_count[fp] = write_count.get(fp, 0) + 1
+            content_by_path.setdefault(fp, content)  # keep the first write's body
+
+    if not content_by_path:
+        return PreEval("", "none")
+    dups = sorted(p for p, n in write_count.items() if n > 1)
+    if dups:
+        # Fail-closed: even one twice-written artifact makes the whole cell's
+        # boundary untrustworthy. We skip the cell rather than emit a partial
+        # alignment that would read as a (false) pass for the omitted file.
+        return PreEval("", "ambiguous", ", ".join(dups))
+    return PreEval(
+        "\n\n".join(content_by_path[k] for k in sorted(content_by_path)), "ok"
+    )
 
 
 def _propset_to_dict(s: PropositionSet) -> dict:
@@ -148,7 +305,8 @@ def main(argv: list[str] | None = None) -> int:
                 pset = extractor.extract(doc_id, text)
                 sets_by_cell[(brief_id, arm_id, seed)] = pset
                 cells.append({"brief_id": brief_id, "arm_id": arm_id, "seed": seed,
-                              "word_count": len(text.split()), "text": text})
+                              "word_count": len(text.split()), "text": text,
+                              "transcript": seed_dir / "transcript.jsonl"})
 
     # Second pass: build records, aligning each non-baseline arm onto the baseline.
     records = []
@@ -161,6 +319,34 @@ def main(argv: list[str] | None = None) -> int:
             "propositions": _propset_to_dict(pset),
             "sentences": list(split_sentences(c["text"])),
         }
+        cell_tag = f"{c['arm_id']}/{c['brief_id']}/seed-{c['seed']}"
+
+        # Within-arm merge-fidelity: recover the pre-evaluator document from the
+        # run transcript, align it onto this (post-evaluator) set, and emit the
+        # alignment for `overexpl guardrails` to score. Fail-closed: emit ONLY on
+        # a trustworthy "ok" snapshot; skip (with a reason) on "none"/"ambiguous"
+        # and on any per-cell extractor error — never fabricate a pass.
+        pre = reconstruct_pre_evaluator(c["transcript"])
+        if pre.status == "ok" and pre.text.strip():
+            try:
+                pre_set = extractor.extract(
+                    f"{c['brief_id']}:{c['arm_id']}:{c['seed']}:pre", pre.text
+                )
+                merge = extractor.align(pre_set, pset)
+            except Exception as exc:  # noqa: BLE001 - one cell must not abort the run
+                print(f"warn: merge-fidelity skipped for {cell_tag}: {exc}",
+                      file=sys.stderr)
+            else:
+                rec["merge_alignment"] = _alignment_to_dict(merge)
+        else:
+            reason = {
+                "none": "no pre-evaluator Write in transcript",
+                "ambiguous": f"artifact written more than once ({pre.detail}) "
+                             f"- boundary untrustworthy",
+            }.get(pre.status, pre.status)
+            print(f"warn: merge-fidelity skipped for {cell_tag}: {reason}",
+                  file=sys.stderr)
+
         if c["arm_id"] != args.baseline_arm:
             base = sets_by_cell.get((c["brief_id"], args.baseline_arm, c["seed"]))
             if base is not None:

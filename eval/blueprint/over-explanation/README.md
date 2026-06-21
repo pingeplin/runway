@@ -171,9 +171,14 @@ families' API keys and the pinned per-arm plugin commits for
 
 - `DefaultGrammaticalityChecker` is a deterministic *screen*; the parse-based
   `[nlp]` checker is higher-fidelity, and a human read remains the final gate.
-- `analysis/assemble.py` emits restatement + substance + grammaticality inputs;
-  merge-fidelity needs the *pre*-evaluator artifact, which `run-arm.sh` does not
-  yet capture separately.
+- **Merge-fidelity** recovers the pre-evaluator document from each cell's
+  `transcript.jsonl` (the generator's lone `Write` to an artifact, before the
+  evaluator `Edit`s it) and emits a `merge_alignment` for `overexpl guardrails`.
+  It is **fail-closed**: a cell whose artifact was written more than once, or has
+  no transcript Write, is *skipped* (no signal), never passed — an uncertain
+  pre/post boundary must not fabricate a "no claim dropped" result. Fully
+  reliable capture across all cells ultimately wants a generator-side pre-eval
+  snapshot; the ambiguous cells simply contribute no merge-fidelity signal.
 
 **Verdict ceiling** (issue #10): at the Milestone-1 panel size (N=9/K=2) a clean
 result is *"promising — scale to N=18 before ship,"* never a ship; the manifest

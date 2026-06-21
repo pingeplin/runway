@@ -235,6 +235,12 @@ fi
 # §4: capture the produced design doc / spec for scoring.
 # Blueprint writes under blueprint/ (3.6+) or specs/+docs/designs/ (pre-3.6);
 # collect whichever exist so the harness is version-agnostic across A0/A1.
+# The artifacts/ snapshot is the POST-evaluator document. The PRE-evaluator
+# snapshot (for merge-fidelity, change ②) is recovered downstream by
+# analysis/assemble.py from transcript.jsonl below — the generator's lone Write
+# to each artifact, before the evaluator Edits it. That recovery is fail-closed:
+# if an artifact was written more than once (boundary unknowable) the cell's
+# merge-fidelity is skipped, never guessed. No separate capture step needed here.
 # ---------------------------------------------------------------------------
 ARTIFACTS_DIR="${CELL_DIR}/artifacts"
 mkdir -p "$ARTIFACTS_DIR"
