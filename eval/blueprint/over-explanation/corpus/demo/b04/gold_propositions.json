@@ -1,0 +1,89 @@
+{
+  "document_id": "b04-gold",
+  "propositions": [
+    {
+      "id": "p1",
+      "text": "The service exposes a single evaluation call evaluate(flag_key, user) returning a boolean on/off decision for that user and flag at call time.",
+      "kind": "api-surface",
+      "tier": "must",
+      "mention_sentences": [1, 5]
+    },
+    {
+      "id": "p2",
+      "text": "The user context carries at least a stable user_id string plus an arbitrary attribute bag consulted by targeting rules.",
+      "kind": "input-shape",
+      "tier": "must",
+      "mention_sentences": [6]
+    },
+    {
+      "id": "p3",
+      "text": "Evaluation is a pure deterministic function of current flag configuration and user context: same config plus same user always yields the same decision.",
+      "kind": "behavioral-guarantee",
+      "tier": "must",
+      "mention_sentences": [7]
+    },
+    {
+      "id": "p4",
+      "text": "Inputs are applied in the fixed order kill switch, then targeting rules, then percentage rollout, then default, and this order determines conflict resolution.",
+      "kind": "resolution-precedence",
+      "tier": "must",
+      "mention_sentences": [10, 11]
+    },
+    {
+      "id": "p5",
+      "text": "An engaged global kill switch is checked first and forces the flag off for every user, overriding all targeting rules and the rollout.",
+      "kind": "override-rule",
+      "tier": "must",
+      "mention_sentences": [12, 27]
+    },
+    {
+      "id": "p6",
+      "text": "Targeting rules are evaluated in listed order before the rollout, and the first matching rule decides the result immediately, short-circuiting the rollout.",
+      "kind": "match-semantics",
+      "tier": "must",
+      "mention_sentences": [13, 24, 25]
+    },
+    {
+      "id": "p7",
+      "text": "If no rule matches and the rollout does not enable the user, the flag's configured default value is returned.",
+      "kind": "fallthrough-rule",
+      "tier": "must",
+      "mention_sentences": [14, 15]
+    },
+    {
+      "id": "p8",
+      "text": "The percentage rollout is sticky per user id: a given user stays in the same bucket for a flag across calls, processes, and machines while the percentage is unchanged.",
+      "kind": "stickiness-invariant",
+      "tier": "must",
+      "mention_sentences": [17, 18]
+    },
+    {
+      "id": "p9",
+      "text": "Bucket assignment is computed by hashing flag_key combined with user_id into 0..99, enabling the user iff the bucket is strictly less than the percentage, with no per-user state stored.",
+      "kind": "mechanism-decision",
+      "tier": "must",
+      "mention_sentences": [19]
+    },
+    {
+      "id": "p10",
+      "text": "The percentage is an integer 0..100 inclusive, where 0 enables no users and 100 enables every user.",
+      "kind": "value-range",
+      "tier": "should",
+      "mention_sentences": [17, 21]
+    },
+    {
+      "id": "p11",
+      "text": "Every flag configuration change is recorded in an append-only audit log capturing who, when, the flag key, and before/after values, off the hot evaluation path so it never blocks evaluate.",
+      "kind": "auditability-constraint",
+      "tier": "must",
+      "mention_sentences": [31, 32, 34]
+    },
+    {
+      "id": "p12",
+      "text": "Evaluation must not block on a network round trip and reads flag config from an in-memory snapshot rather than querying per call.",
+      "kind": "performance-constraint",
+      "tier": "should",
+      "mention_sentences": [8]
+    }
+  ]
+}

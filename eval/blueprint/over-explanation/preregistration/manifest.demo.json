@@ -1,0 +1,31 @@
+{
+  "version": "demo-nonblind-m2",
+  "arms": [
+    {"id": "A0", "label": "baseline", "plugin_ref": "blueprint@v3.7.0", "evaluator": {}, "description": "Untouched baseline plugin; no over-explanation treatment. The paired reference."},
+    {"id": "A0_prime", "label": "fair_baseline", "plugin_ref": "blueprint@v3.7.0", "evaluator": {"postprocess": "human_dedup"}, "description": "A0 specs human-deduped blind to the hypothesis. Defeats 'your baseline was a padded strawman'."},
+    {"id": "A1", "label": "treatment", "plugin_ref": "blueprint@over-explanation", "evaluator": {"rule": "delete_or_merge"}, "description": "The ship/kill bundle: collapsed triple-why template (1) + per-sentence claim-distinctness delete-or-merge (2)."},
+    {"id": "A2_placebo", "label": "effort_placebo", "plugin_ref": "blueprint@placebo", "evaluator": {"rule": "noop_reformat", "passes": "match_a1"}, "description": "A0 + an evaluator that runs the same number of fix-loop passes with a non-redundancy placebo rule. Defeats 'the gain was just one more editing pass'."},
+    {"id": "A3_fair", "label": "fair_brevity", "plugin_ref": "blueprint@brevity-fair", "evaluator": {"rule": "one_line_full_sentence"}, "description": "One honest one-liner: remove only sentences whose info is already stated; keep every fact/decision/constraint/interface/scenario; keep every sentence grammatical. A1 must beat this."},
+    {"id": "A3b_dumb", "label": "dumb_brevity", "plugin_ref": "blueprint@brevity-dumb", "evaluator": {"rule": "cut_30_percent"}, "description": "'Be brief, cut 30%, keep it short.' Positive control for the grammaticality detector only; authorizes no ship clause."},
+    {"id": "A4_evaluator_only", "label": "evaluator_only", "plugin_ref": "blueprint@over-explanation", "evaluator": {"rule": "claim_distinctness_only"}, "description": "A0 generator + change (2) only. Ablation: ship (2) alone vs (1)+(2)."},
+    {"id": "A5_full", "label": "full", "plugin_ref": "blueprint@over-explanation-full", "evaluator": {"rule": "delete_or_merge", "extras": "min_sufficient+separate_deliberation"}, "description": "(1)+(2)+(3)+(4). Forward arm; does (3)(4) earn their token cost over A1."}
+  ],
+  "briefs": [
+    {"id": "b01", "title": "Fixed-window rate limiter", "regime": "elicit_prone", "buildable": true, "text": ""},
+    {"id": "b02", "title": "Idempotent webhook dedupe", "regime": "large_realistic", "buildable": true, "text": ""},
+    {"id": "b03", "title": "LRU cache trace", "regime": "neutral", "buildable": true, "text": ""},
+    {"id": "b04", "title": "Feature-flag rollout service", "regime": "elicit_prone", "buildable": false, "text": ""},
+    {"id": "b05", "title": "CSV schema validator", "regime": "neutral", "buildable": true, "text": ""},
+    {"id": "b06", "title": "Exponential backoff schedule", "regime": "elicit_prone", "buildable": true, "text": ""},
+    {"id": "b07", "title": "Multi-tenant audit log", "regime": "large_realistic", "buildable": false, "text": ""},
+    {"id": "b08", "title": "Stable pagination cursor", "regime": "neutral", "buildable": true, "text": ""},
+    {"id": "b09", "title": "Distributed lease coordinator", "regime": "large_realistic", "buildable": false, "text": ""}
+  ],
+  "seeds": [1, 2],
+  "extractor_families": ["anthropic-claude", "openai-gpt"],
+  "thresholds": {
+    "noise_floor_multiple": 2.0,
+    "tost_margin": 0.05,
+    "min_power": 0.8
+  }
+}

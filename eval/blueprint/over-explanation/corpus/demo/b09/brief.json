@@ -1,0 +1,6 @@
+{
+  "id": "b09",
+  "title": "Distributed lease coordinator",
+  "regime": "large_realistic",
+  "buildable": false
+}

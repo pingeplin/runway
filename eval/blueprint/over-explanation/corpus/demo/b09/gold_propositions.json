@@ -1,0 +1,89 @@
+{
+  "document_id": "b09-gold",
+  "propositions": [
+    {
+      "id": "p1",
+      "text": "At most one client holds a given resource at any time (mutual exclusion per resource).",
+      "kind": "safety-invariant",
+      "tier": "must",
+      "mention_sentences": [0, 1]
+    },
+    {
+      "id": "p2",
+      "text": "Every lease is time-bounded and expires on its own without the holder's cooperation, so a crashed or partitioned holder's resource can be reclaimed.",
+      "kind": "safety-invariant",
+      "tier": "must",
+      "mention_sentences": [2, 6, 7]
+    },
+    {
+      "id": "p3",
+      "text": "Each successful acquire returns a fencing token that is a strictly increasing integer from a single monotonic per-resource counter, greater than any previous holder's token and never repeating or decreasing even across coordinator restarts.",
+      "kind": "ordering-invariant",
+      "tier": "must",
+      "mention_sentences": [8, 9, 10]
+    },
+    {
+      "id": "p4",
+      "text": "A downstream store fences stale writers by tracking the highest accepted token and rejecting any protected operation carrying a token below that high-water mark.",
+      "kind": "mechanism-role",
+      "tier": "must",
+      "mention_sentences": [11, 12]
+    },
+    {
+      "id": "p5",
+      "text": "A renewal extends an existing still-valid lease and keeps the same fencing token because the holder has not changed.",
+      "kind": "state-transition-rule",
+      "tier": "must",
+      "mention_sentences": [14]
+    },
+    {
+      "id": "p6",
+      "text": "A renewal is honored only from the current holder while the lease is still valid, and is rejected once the lease has expired.",
+      "kind": "precondition-rule",
+      "tier": "must",
+      "mention_sentences": [15, 16]
+    },
+    {
+      "id": "p7",
+      "text": "Expiry is decided solely by the coordinator's clock, which is the single authority on lease validity.",
+      "kind": "authority-decision",
+      "tier": "must",
+      "mention_sentences": [17]
+    },
+    {
+      "id": "p8",
+      "text": "The lease duration promised to a client is the nominal duration reduced by a safety margin at least as large as the maximum assumed clock skew.",
+      "kind": "quantitative-constraint",
+      "tier": "must",
+      "mention_sentences": [18, 19]
+    },
+    {
+      "id": "p9",
+      "text": "The client's validity view must be conservative: a client must consider its lease expired strictly before the coordinator does, never after, so it is never valid to the client while the coordinator already treats it as free.",
+      "kind": "safety-invariant",
+      "tier": "must",
+      "mention_sentences": [20, 21]
+    },
+    {
+      "id": "p10",
+      "text": "The client interface is three operations — acquire(resource, client, ttl), renew(resource, client, token, ttl), and release(resource, client, token).",
+      "kind": "interface-signature",
+      "tier": "should",
+      "mention_sentences": [22, 23, 24, 25]
+    },
+    {
+      "id": "p11",
+      "text": "release frees the resource immediately and is honored only from the current holder presenting the current token, so a stale holder cannot release a re-granted lease.",
+      "kind": "precondition-rule",
+      "tier": "should",
+      "mention_sentences": [25]
+    },
+    {
+      "id": "p12",
+      "text": "Every operation whose preconditions do not hold is explicitly rejected rather than silently coerced.",
+      "kind": "failure-mode-policy",
+      "tier": "should",
+      "mention_sentences": [26]
+    }
+  ]
+}

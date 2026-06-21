@@ -1,0 +1,61 @@
+{
+  "document_id": "b01-gold",
+  "propositions": [
+    {
+      "id": "p1",
+      "text": "allowed returns a list of booleans the same length as timestamps, one verdict per request in input order.",
+      "kind": "shape-contract",
+      "tier": "must",
+      "mention_sentences": [2, 9]
+    },
+    {
+      "id": "p2",
+      "text": "Each request is bucketed into the fixed window starting at t - (t % window), equivalently t // window.",
+      "kind": "bucketing-rule",
+      "tier": "must",
+      "mention_sentences": [4, 5]
+    },
+    {
+      "id": "p3",
+      "text": "Within any single aligned window at most limit requests are permitted.",
+      "kind": "capacity-rule",
+      "tier": "must",
+      "mention_sentences": [0, 6]
+    },
+    {
+      "id": "p4",
+      "text": "Requests are processed in the given order, permitting one while its window's permitted count is below limit and incrementing that window's counter.",
+      "kind": "processing-order",
+      "tier": "must",
+      "mention_sentences": [6]
+    },
+    {
+      "id": "p5",
+      "text": "Rejected requests do not consume capacity and do not count toward the limit.",
+      "kind": "capacity-rule",
+      "tier": "should",
+      "mention_sentences": [7]
+    },
+    {
+      "id": "p6",
+      "text": "Window counters reset at each window boundary, so a request in a fresh window is permitted even if the previous window was full.",
+      "kind": "boundary-behavior",
+      "tier": "should",
+      "mention_sentences": [8]
+    },
+    {
+      "id": "p7",
+      "text": "An empty timestamps list returns an empty list.",
+      "kind": "boundary-case",
+      "tier": "should",
+      "mention_sentences": [8]
+    },
+    {
+      "id": "p8",
+      "text": "timestamps is a list of integer second-timestamps given in non-decreasing order.",
+      "kind": "input-assumption",
+      "tier": "detail",
+      "mention_sentences": [3]
+    }
+  ]
+}

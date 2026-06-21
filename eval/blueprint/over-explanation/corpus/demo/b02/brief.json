@@ -1,0 +1,8 @@
+{
+  "id": "b02",
+  "title": "Idempotent webhook dedupe",
+  "regime": "large_realistic",
+  "buildable": true,
+  "module": "oracle",
+  "entrypoint": "process"
+}

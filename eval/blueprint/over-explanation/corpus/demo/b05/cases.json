@@ -1,0 +1,45 @@
+{
+  "entrypoint": "validate_rows",
+  "cases": [
+    {
+      "label": "all_valid",
+      "args": [[{"id": 1, "name": "Ada"}, {"id": 2, "name": "Bo"}], {"id": "int", "name": "str"}],
+      "expected": []
+    },
+    {
+      "label": "empty_rows",
+      "args": [[], {"id": "int"}],
+      "expected": []
+    },
+    {
+      "label": "empty_schema",
+      "args": [[{"x": 1}], {}],
+      "expected": []
+    },
+    {
+      "label": "missing_column",
+      "args": [[{"name": "Ada"}], {"id": "int", "name": "str"}],
+      "expected": ["row 0: missing column 'id'"]
+    },
+    {
+      "label": "wrong_type",
+      "args": [[{"id": "x", "name": "Ada"}], {"id": "int", "name": "str"}],
+      "expected": ["row 0: column 'id' expected int, got str"]
+    },
+    {
+      "label": "bool_not_int",
+      "args": [[{"flag": true, "n": 5}], {"n": "int", "flag": "int"}],
+      "expected": ["row 0: column 'flag' expected int, got bool"]
+    },
+    {
+      "label": "first_problem_only",
+      "args": [[{"id": "x", "name": 99}], {"id": "int", "name": "str"}],
+      "expected": ["row 0: column 'id' expected int, got str"]
+    },
+    {
+      "label": "mixed_rows",
+      "args": [[{"id": 1, "name": "Ada"}, {"name": "Bo"}, {"id": 3, "name": 7}], {"id": "int", "name": "str"}],
+      "expected": ["row 1: missing column 'id'", "row 2: column 'name' expected str, got int"]
+    }
+  ]
+}

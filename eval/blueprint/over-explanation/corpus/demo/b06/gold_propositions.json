@@ -1,0 +1,61 @@
+{
+  "document_id": "b06-gold",
+  "propositions": [
+    {
+      "id": "p1",
+      "text": "backoff_delays returns a list with exactly `retries` elements, ordered from the first attempt (index 0) to the last.",
+      "kind": "output-shape",
+      "tier": "must",
+      "mention_sentences": [2, 5]
+    },
+    {
+      "id": "p2",
+      "text": "The delay at index i is min(cap, base * factor ** i).",
+      "kind": "computed-value",
+      "tier": "must",
+      "mention_sentences": [3, 6]
+    },
+    {
+      "id": "p3",
+      "text": "No returned delay ever exceeds cap; the cap is an absolute ceiling.",
+      "kind": "bound",
+      "tier": "must",
+      "mention_sentences": [7]
+    },
+    {
+      "id": "p4",
+      "text": "The delay grows by the constant multiplicative factor on each successive attempt until it is clamped to cap.",
+      "kind": "growth-rule",
+      "tier": "should",
+      "mention_sentences": [1, 4]
+    },
+    {
+      "id": "p5",
+      "text": "The schedule is deterministic with no jitter or randomness; identical arguments yield identical lists.",
+      "kind": "determinism",
+      "tier": "must",
+      "mention_sentences": [8]
+    },
+    {
+      "id": "p6",
+      "text": "retries is a non-negative integer.",
+      "kind": "input-domain",
+      "tier": "should",
+      "mention_sentences": [9]
+    },
+    {
+      "id": "p7",
+      "text": "When retries is 0, the function returns an empty list.",
+      "kind": "boundary-case",
+      "tier": "should",
+      "mention_sentences": [9]
+    },
+    {
+      "id": "p8",
+      "text": "Once an attempt's uncapped delay meets or exceeds cap, every later delay in the list is also cap.",
+      "kind": "saturation-behavior",
+      "tier": "detail",
+      "mention_sentences": [11]
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "version": "milestone-1",
+  "arms": [
+    {
+      "id": "A0",
+      "label": "baseline",
+      "plugin_ref": "blueprint@v3.7.0",
+      "evaluator": {},
+      "description": "Untouched baseline plugin; no over-explanation treatment."
+    },
+    {
+      "id": "A1",
+      "label": "treatment",
+      "plugin_ref": "blueprint@over-explanation",
+      "evaluator": {"rule": "delete_or_merge"},
+      "description": "Over-explanation fix: evaluator deletes or merges redundant proposition mentions."
+    },
+    {
+      "id": "A3_fair",
+      "label": "fair_brevity",
+      "plugin_ref": "blueprint@brevity-fair",
+      "evaluator": {"rule": "one_line_full_sentence"},
+      "description": "Honest brevity control: tighten to one full grammatical sentence per claim, no word dropping."
+    },
+    {
+      "id": "A2_placebo",
+      "label": "placebo",
+      "plugin_ref": "blueprint@placebo",
+      "evaluator": {"rule": "noop_reformat"},
+      "description": "Placebo: an extra evaluator pass that reformats without removing restatement."
+    }
+  ],
+  "briefs": [
+    {"id": "b01", "title": "Rate limiter middleware", "regime": "elicit_prone", "buildable": true, "text": ""},
+    {"id": "b02", "title": "Idempotent payment webhook", "regime": "large_realistic", "buildable": true, "text": ""},
+    {"id": "b03", "title": "LRU cache with TTL", "regime": "neutral", "buildable": true, "text": ""},
+    {"id": "b04", "title": "Feature-flag rollout service", "regime": "elicit_prone", "buildable": false, "text": ""},
+    {"id": "b05", "title": "CSV schema validator", "regime": "neutral", "buildable": true, "text": ""},
+    {"id": "b06", "title": "Retry-with-backoff client", "regime": "elicit_prone", "buildable": true, "text": ""},
+    {"id": "b07", "title": "Multi-tenant audit log design", "regime": "large_realistic", "buildable": false, "text": ""},
+    {"id": "b08", "title": "Pagination cursor encoder", "regime": "neutral", "buildable": true, "text": ""},
+    {"id": "b09", "title": "Distributed lease coordinator", "regime": "large_realistic", "buildable": false, "text": ""}
+  ],
+  "seeds": [1, 2],
+  "extractor_families": ["anthropic-claude", "openai-gpt"],
+  "thresholds": {
+    "noise_floor_multiple": 2.0,
+    "tost_margin": 0.0,
+    "min_power": 0.8
+  }
+}

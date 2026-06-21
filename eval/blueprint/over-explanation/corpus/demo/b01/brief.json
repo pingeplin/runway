@@ -1,0 +1,8 @@
+{
+  "id": "b01",
+  "title": "Fixed-window rate limiter",
+  "regime": "elicit_prone",
+  "buildable": true,
+  "module": "oracle",
+  "entrypoint": "allowed"
+}

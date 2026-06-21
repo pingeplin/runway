@@ -1,0 +1,68 @@
+{
+  "document_id": "b02-gold",
+  "propositions": [
+    {
+      "id": "p1",
+      "text": "process(events) returns the list of idempotency keys that were applied.",
+      "kind": "function-contract",
+      "tier": "must",
+      "mention_sentences": [3, 9]
+    },
+    {
+      "id": "p2",
+      "text": "Each event is a two-element list [idempotency_key, amount] where idempotency_key is a string and amount is the payment amount.",
+      "kind": "input-shape",
+      "tier": "must",
+      "mention_sentences": [4]
+    },
+    {
+      "id": "p3",
+      "text": "Each idempotency key is applied at most once; the first delivery of a key is applied and recorded.",
+      "kind": "core-rule",
+      "tier": "must",
+      "mention_sentences": [5, 6]
+    },
+    {
+      "id": "p4",
+      "text": "A later event whose key was already applied is a duplicate and is ignored.",
+      "kind": "core-rule",
+      "tier": "must",
+      "mention_sentences": [7]
+    },
+    {
+      "id": "p5",
+      "text": "A duplicate is ignored even when its amount differs from the first delivery; the first delivery wins.",
+      "kind": "tie-break",
+      "tier": "must",
+      "mention_sentences": [8]
+    },
+    {
+      "id": "p6",
+      "text": "The returned keys are in first-seen order, the order in which keys first appeared in the input.",
+      "kind": "ordering-property",
+      "tier": "must",
+      "mention_sentences": [9]
+    },
+    {
+      "id": "p7",
+      "text": "No key appears more than once in the returned list.",
+      "kind": "output-property",
+      "tier": "should",
+      "mention_sentences": [10]
+    },
+    {
+      "id": "p8",
+      "text": "An empty input list returns an empty list.",
+      "kind": "boundary-case",
+      "tier": "should",
+      "mention_sentences": [11]
+    },
+    {
+      "id": "p9",
+      "text": "The input list is processed in order and is not mutated.",
+      "kind": "constraint",
+      "tier": "detail",
+      "mention_sentences": [12]
+    }
+  ]
+}

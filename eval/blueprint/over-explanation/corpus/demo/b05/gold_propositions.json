@@ -1,0 +1,82 @@
+{
+  "document_id": "b05-gold",
+  "propositions": [
+    {
+      "id": "p1",
+      "text": "validate_rows takes a list of row dicts and a schema mapping column names to type names in {int, str, bool}.",
+      "kind": "signature-shape",
+      "tier": "must",
+      "mention_sentences": [0, 1, 2]
+    },
+    {
+      "id": "p2",
+      "text": "It returns a list of error strings, one per problem row, and an empty list when all rows are valid.",
+      "kind": "return-contract",
+      "tier": "must",
+      "mention_sentences": [3, 23, 24]
+    },
+    {
+      "id": "p3",
+      "text": "A missing column (a schema column key absent from the row) is one reportable problem.",
+      "kind": "problem-class",
+      "tier": "must",
+      "mention_sentences": [5, 6]
+    },
+    {
+      "id": "p4",
+      "text": "A wrong type (the row value's type not matching the schema type name) is the other reportable problem.",
+      "kind": "problem-class",
+      "tier": "must",
+      "mention_sentences": [5, 7]
+    },
+    {
+      "id": "p5",
+      "text": "At most one error is reported per row: the first problem found, scanning columns in schema order.",
+      "kind": "ordering-rule",
+      "tier": "must",
+      "mention_sentences": [9, 10, 11]
+    },
+    {
+      "id": "p6",
+      "text": "Errors are emitted in row order and rows numbered from zero by input index.",
+      "kind": "ordering-rule",
+      "tier": "must",
+      "mention_sentences": [12, 18]
+    },
+    {
+      "id": "p7",
+      "text": "The missing-column message is exactly \"row {i}: missing column '{col}'\".",
+      "kind": "output-format",
+      "tier": "must",
+      "mention_sentences": [19, 21, 22]
+    },
+    {
+      "id": "p8",
+      "text": "The wrong-type message is exactly \"row {i}: column '{col}' expected {type}, got {actual}\" where {actual} is the value's Python type name.",
+      "kind": "output-format",
+      "tier": "must",
+      "mention_sentences": [20, 21]
+    },
+    {
+      "id": "p9",
+      "text": "Type matching uses the value's actual runtime type, with bool and int kept distinct (a bool does not satisfy int and vice versa).",
+      "kind": "type-semantics",
+      "tier": "should",
+      "mention_sentences": [13, 14, 15]
+    },
+    {
+      "id": "p10",
+      "text": "Columns present in a row but absent from the schema are ignored and are not errors.",
+      "kind": "scope-rule",
+      "tier": "should",
+      "mention_sentences": [8]
+    },
+    {
+      "id": "p11",
+      "text": "An empty schema imposes no requirements, so every row passes.",
+      "kind": "boundary",
+      "tier": "detail",
+      "mention_sentences": [24]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "entrypoint": "process",
+  "cases": [
+    {"label": "happy_path", "args": [[["k1", 10], ["k2", 5], ["k3", 7]]], "expected": ["k1", "k2", "k3"]},
+    {"label": "empty", "args": [[]], "expected": []},
+    {"label": "duplicate_same_amount", "args": [[["k1", 10], ["k1", 10]]], "expected": ["k1"]},
+    {"label": "duplicate_diff_amount_first_wins", "args": [[["k1", 10], ["k1", 99], ["k2", 5]]], "expected": ["k1", "k2"]},
+    {"label": "first_seen_order", "args": [[["b", 1], ["a", 2], ["b", 3], ["c", 4], ["a", 5]]], "expected": ["b", "a", "c"]},
+    {"label": "single", "args": [[["only", 42]]], "expected": ["only"]},
+    {"label": "all_duplicates", "args": [[["x", 1], ["x", 2], ["x", 3]]], "expected": ["x"]}
+  ]
+}
