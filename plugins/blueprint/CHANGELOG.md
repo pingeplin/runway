@@ -449,7 +449,7 @@ For users with in-flight work:
   pin). v3.4's per-slice impl-commit pattern degrades on structurally
   complex features (markdown task: tests committed per slice, impl
   batched at end). Methodology preserved at
-  `plugins/blueprint/references/eval-methodology.md`; per-task evidence
+  `eval/blueprint/eval-methodology.md`; per-task evidence
   archived locally outside the repo.
 
 ## Earlier versions
