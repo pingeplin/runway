@@ -1,0 +1,8 @@
+{
+  "id": "b05",
+  "title": "CSV schema validator",
+  "regime": "neutral",
+  "buildable": true,
+  "module": "oracle",
+  "entrypoint": "validate_rows"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "b03",
+  "title": "LRU cache trace",
+  "regime": "neutral",
+  "buildable": true,
+  "module": "oracle",
+  "entrypoint": "lru_results"
+}

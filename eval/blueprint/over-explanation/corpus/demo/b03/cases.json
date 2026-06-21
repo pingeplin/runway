@@ -1,0 +1,12 @@
+{
+  "entrypoint": "lru_results",
+  "cases": [
+    {"label": "empty", "args": [[], 2], "expected": []},
+    {"label": "brief_example", "args": [[["put", "a", 1], ["put", "b", 2], ["get", "a"], ["put", "c", 3], ["get", "b"], ["get", "c"]], 2], "expected": [1, null, 3]},
+    {"label": "miss_absent_key", "args": [[["get", "x"], ["put", "x", 9], ["get", "x"]], 2], "expected": [null, 9]},
+    {"label": "plain_eviction", "args": [[["put", "a", 1], ["put", "b", 2], ["put", "c", 3], ["get", "a"], ["get", "b"], ["get", "c"]], 2], "expected": [null, 2, 3]},
+    {"label": "update_no_evict", "args": [[["put", "a", 1], ["put", "b", 2], ["put", "a", 10], ["get", "a"], ["get", "b"]], 2], "expected": [10, 2]},
+    {"label": "get_refreshes_recency", "args": [[["put", "a", 1], ["put", "b", 2], ["get", "a"], ["put", "c", 3], ["get", "a"], ["get", "b"]], 2], "expected": [1, 1, null]},
+    {"label": "capacity_one", "args": [[["put", "a", 1], ["put", "b", 2], ["get", "a"], ["get", "b"]], 1], "expected": [null, 2]}
+  ]
+}

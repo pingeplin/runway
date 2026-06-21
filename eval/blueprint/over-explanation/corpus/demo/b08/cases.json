@@ -1,0 +1,13 @@
+{
+  "entrypoint": "page",
+  "cases": [
+    {"label": "first_page", "args": [[10, 20, 30, 40, 50], null, 2], "expected": [[10, 20], 20]},
+    {"label": "middle_page", "args": [[10, 20, 30, 40, 50], 20, 2], "expected": [[30, 40], 40]},
+    {"label": "last_partial_page", "args": [[10, 20, 30, 40, 50], 40, 2], "expected": [[50], 50]},
+    {"label": "past_end_empty", "args": [[10, 20, 30, 40, 50], 50, 2], "expected": [[], null]},
+    {"label": "empty_items", "args": [[], null, 3], "expected": [[], null]},
+    {"label": "cursor_between_values", "args": [[1, 3, 5, 7], 4, 2], "expected": [[5, 7], 7]},
+    {"label": "size_zero", "args": [[1, 2, 3], null, 0], "expected": [[], null]},
+    {"label": "size_exceeds_remaining", "args": [[1, 2, 3], null, 10], "expected": [[1, 2, 3], 3]}
+  ]
+}

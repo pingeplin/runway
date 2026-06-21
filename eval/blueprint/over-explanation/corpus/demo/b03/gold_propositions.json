@@ -1,0 +1,82 @@
+{
+  "document_id": "b03-gold",
+  "propositions": [
+    {
+      "id": "p1",
+      "text": "lru_results returns the list of results of the get operations, in the order the gets occur.",
+      "kind": "return-shape",
+      "tier": "must",
+      "mention_sentences": [0, 8]
+    },
+    {
+      "id": "p2",
+      "text": "A get on a present key returns that key's current value.",
+      "kind": "lookup-behavior",
+      "tier": "must",
+      "mention_sentences": [4]
+    },
+    {
+      "id": "p3",
+      "text": "A get on an absent key returns None (serialized as null).",
+      "kind": "lookup-behavior",
+      "tier": "must",
+      "mention_sentences": [4]
+    },
+    {
+      "id": "p4",
+      "text": "A put inserts a new key or updates the value of an existing key.",
+      "kind": "mutation-behavior",
+      "tier": "must",
+      "mention_sentences": [5]
+    },
+    {
+      "id": "p5",
+      "text": "When inserting a brand-new key would exceed capacity, the least-recently-used key is evicted first.",
+      "kind": "eviction-rule",
+      "tier": "must",
+      "mention_sentences": [5, 6, 7]
+    },
+    {
+      "id": "p6",
+      "text": "Both gets and puts count as a use that makes the key the most recently used.",
+      "kind": "recency-rule",
+      "tier": "must",
+      "mention_sentences": [4, 5, 6]
+    },
+    {
+      "id": "p7",
+      "text": "The least-recently-used key is the one whose last get or put is furthest in the past.",
+      "kind": "recency-rule",
+      "tier": "should",
+      "mention_sentences": [5, 6]
+    },
+    {
+      "id": "p8",
+      "text": "Updating an existing key's value never triggers an eviction.",
+      "kind": "eviction-edge",
+      "tier": "should",
+      "mention_sentences": [5]
+    },
+    {
+      "id": "p9",
+      "text": "Put operations produce no entry in the returned list.",
+      "kind": "return-shape",
+      "tier": "should",
+      "mention_sentences": [8]
+    },
+    {
+      "id": "p10",
+      "text": "An operation is a list shaped as either [\"put\", key, value] or [\"get\", key].",
+      "kind": "input-format",
+      "tier": "detail",
+      "mention_sentences": [1]
+    },
+    {
+      "id": "p11",
+      "text": "An empty operations list returns an empty list.",
+      "kind": "boundary-case",
+      "tier": "should",
+      "mention_sentences": [10]
+    }
+  ]
+}

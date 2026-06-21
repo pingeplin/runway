@@ -254,3 +254,96 @@ def test_stats_runs_and_reports(
     assert code in (EXIT_OK, EXIT_BLOCKED)
     assert "A1" in out and "vs A0" in out
     assert "length_falsification" in out
+
+
+# --------------------------------------------------------------------------- #
+# decision subcommand — DO_NOT_SHIP exits non-zero, SHIP_TREATMENT exits 0
+# --------------------------------------------------------------------------- #
+
+
+def _tost(non_inferior: bool = True, certifiable: bool = True) -> dict:
+    return {
+        "non_inferior": non_inferior,
+        "p_value": 0.01,
+        "power": 0.9,
+        "certifiable": certifiable,
+    }
+
+
+def _ship_treatment_inputs() -> dict:
+    # All gates pass; A1 beats both A3_fair and A2_placebo; A4 does not capture
+    # the effect alone -> the precedence ladder lands on SHIP_TREATMENT.
+    return {
+        "restatement_real": True,
+        "substance_ok": True,
+        "buildability": _tost(),
+        "grammaticality": _tost(),
+        "a3b_fails_grammaticality": True,
+        "instrument_trusted": True,
+        "beats_a3_fair": {"beats": True, "detail": "A1 beats the one-liner"},
+        "beats_a2_placebo": {"beats": True, "detail": "A1 beats the placebo"},
+        "a4_captures_effect": False,
+    }
+
+
+def _write_json(tmp_path: Path, name: str, payload: object) -> Path:
+    path = tmp_path / name
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    return path
+
+
+def test_decision_do_not_ship_exits_nonzero(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # Untrusted instrument -> precedence branch 1 -> DO_NOT_SHIP.
+    payload = _ship_treatment_inputs()
+    payload["instrument_trusted"] = False
+    inputs = _write_json(tmp_path, "decision.json", payload)
+
+    code = main(["decision", str(inputs)])
+
+    out = capsys.readouterr().out
+    assert code == EXIT_BLOCKED
+    assert "do_not_ship" in out
+    assert "verdict" in out
+
+
+def test_decision_ship_treatment_exits_zero(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    inputs = _write_json(tmp_path, "decision.json", _ship_treatment_inputs())
+
+    code = main(["decision", str(inputs)])
+
+    out = capsys.readouterr().out
+    assert code == EXIT_OK
+    assert "ship_treatment" in out
+
+
+def test_decision_missing_file_is_load_error(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    code = main(["decision", str(tmp_path / "nope.json")])
+    assert code == EXIT_LOAD_ERROR
+    assert "error:" in capsys.readouterr().err
+
+
+# --------------------------------------------------------------------------- #
+# sweep subcommand — prints stability + span
+# --------------------------------------------------------------------------- #
+
+
+def test_sweep_prints_stability(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # Two thresholds, both with positive mean rates -> sign-stable.
+    payload = {"0.5": [0.2, 0.3], "0.8": [0.25, 0.35]}
+    sweep = _write_json(tmp_path, "sweep.json", payload)
+
+    code = main(["sweep", str(sweep)])
+
+    out = capsys.readouterr().out
+    assert code == EXIT_OK
+    assert "sign_stable" in out
+    assert "span" in out
+    assert "threshold=0.5000" in out

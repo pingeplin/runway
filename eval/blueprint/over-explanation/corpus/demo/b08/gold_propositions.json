@@ -1,0 +1,61 @@
+{
+  "document_id": "b08-gold",
+  "propositions": [
+    {
+      "id": "p1",
+      "text": "page(items, cursor, size) returns a two-element list [page_items, next_cursor].",
+      "kind": "return-shape",
+      "tier": "must",
+      "mention_sentences": [3]
+    },
+    {
+      "id": "p2",
+      "text": "A page contains only items strictly greater than the cursor, so the id equal to the cursor is never repeated.",
+      "kind": "selection-rule",
+      "tier": "must",
+      "mention_sentences": [5]
+    },
+    {
+      "id": "p3",
+      "text": "A page contains at most size items, stopping once size items are collected even if more remain.",
+      "kind": "selection-rule",
+      "tier": "must",
+      "mention_sentences": [6]
+    },
+    {
+      "id": "p4",
+      "text": "next_cursor is the last id on the returned page.",
+      "kind": "output-derivation",
+      "tier": "must",
+      "mention_sentences": [7]
+    },
+    {
+      "id": "p5",
+      "text": "If the returned page is empty, next_cursor is null.",
+      "kind": "boundary-behavior",
+      "tier": "must",
+      "mention_sentences": [8]
+    },
+    {
+      "id": "p6",
+      "text": "When cursor is None, every item is eligible and paging starts from the smallest id.",
+      "kind": "boundary-behavior",
+      "tier": "should",
+      "mention_sentences": [2, 9]
+    },
+    {
+      "id": "p7",
+      "text": "items is a list of integers already sorted in ascending order, and items are taken in ascending order.",
+      "kind": "input-assumption",
+      "tier": "should",
+      "mention_sentences": [2, 6]
+    },
+    {
+      "id": "p8",
+      "text": "An empty page signals that the end of the list has been reached.",
+      "kind": "semantics-note",
+      "tier": "detail",
+      "mention_sentences": [8]
+    }
+  ]
+}

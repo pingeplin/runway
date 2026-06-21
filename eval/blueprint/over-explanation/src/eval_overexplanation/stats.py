@@ -369,3 +369,190 @@ def tost(
         power=power,
         certifiable=power >= min_power,
     )
+
+
+# --------------------------------------------------------------------------- #
+# Milestone 2 — full-design mechanisms
+# --------------------------------------------------------------------------- #
+
+
+# --------------------------------------------------------------------------- #
+# Holm-Bonferroni step-down family-wise correction
+# --------------------------------------------------------------------------- #
+
+
+def holm_correction(pvalues: Sequence[float]) -> tuple[float, ...]:
+    """Holm-Bonferroni step-down adjustment of a family of p-values.
+
+    Assumption: the raw p-values are valid marginal p-values; Holm controls the
+    family-wise error rate under arbitrary dependence (no independence
+    assumption, unlike Bonferroni's tightness). Used across the guardrail family
+    so a metric is not declared significant merely by running many tests.
+
+    The adjusted p-values are returned in **input order**. Each is clipped to
+    ``<= 1.0`` and is monotone non-decreasing *along the sorted order* of the
+    raw p-values (the step-down cumulative-max enforces that): the smallest raw
+    p gets multiplier ``m``, the next ``m-1``, ... and once an adjusted value is
+    pushed up it never comes back down.
+    """
+    p = np.asarray(pvalues, dtype=float)
+    m = int(p.shape[0])
+    if m == 0:
+        return ()
+
+    order = np.argsort(p, kind="stable")  # ascending; stable preserves ties' order
+    sorted_p = p[order]
+
+    # Step-down multipliers m, m-1, ..., 1 against the ascending p-values.
+    multipliers = np.arange(m, 0, -1, dtype=float)
+    raw_adj = sorted_p * multipliers
+    # Enforce monotone non-decreasing along the sorted order (cumulative max).
+    adj_sorted = np.maximum.accumulate(raw_adj)
+    adj_sorted = np.clip(adj_sorted, 0.0, 1.0)
+
+    # Scatter back to input order.
+    adj = np.empty(m, dtype=float)
+    adj[order] = adj_sorted
+    return tuple(float(x) for x in adj)
+
+
+# --------------------------------------------------------------------------- #
+# Leave-one-brief-out robustness
+# --------------------------------------------------------------------------- #
+
+
+@dataclass(frozen=True)
+class LeaveOneOut:
+    means: tuple[float, ...]
+    min_mean: float
+    max_mean: float
+    sign_stable: bool
+
+
+def leave_one_brief_out(deltas: Sequence[float]) -> LeaveOneOut:
+    """Jackknife the mean delta: recompute it with each brief removed in turn.
+
+    Assumption: a trustworthy effect is not driven by a single brief; if dropping
+    any one brief flips the sign of the mean delta, the conclusion is fragile.
+    ``means[i]`` is the mean over all briefs except brief ``i`` (input order).
+    ``sign_stable`` is True iff every leave-one-out mean keeps the strict sign of
+    the full-sample mean (a full-sample mean of exactly zero is never stable).
+    Requires ``n >= 2``.
+    """
+    d = np.asarray(deltas, dtype=float)
+    n = int(d.shape[0])
+    if n < 2:
+        raise ValueError("leave_one_brief_out requires >= 2 deltas")
+
+    full_mean = float(np.mean(d))
+    total = float(np.sum(d))
+    # Leave-one-out mean = (total - d[i]) / (n - 1), vectorised.
+    loo = (total - d) / (n - 1)
+
+    min_mean = float(np.min(loo))
+    max_mean = float(np.max(loo))
+
+    full_sign = np.sign(full_mean)
+    if full_sign == 0.0:
+        sign_stable = False
+    else:
+        sign_stable = bool(np.all(np.sign(loo) == full_sign))
+
+    return LeaveOneOut(
+        means=tuple(float(x) for x in loo),
+        min_mean=min_mean,
+        max_mean=max_mean,
+        sign_stable=sign_stable,
+    )
+
+
+# --------------------------------------------------------------------------- #
+# Dedup-threshold sweep robustness
+# --------------------------------------------------------------------------- #
+
+
+@dataclass(frozen=True)
+class DedupSweepPoint:
+    threshold: float
+    mean_rate: float
+
+
+@dataclass(frozen=True)
+class DedupSweep:
+    points: tuple[DedupSweepPoint, ...]
+    sign_stable: bool
+    span: float
+
+
+def dedup_threshold_sweep(
+    rates_by_threshold: Mapping[float, Sequence[float]],
+) -> DedupSweep:
+    """Analyse restatement-rate stability across near-duplicate merge thresholds.
+
+    Assumption: the restatement metric depends on how aggressively near-duplicate
+    propositions are merged into one; the supplied per-brief rates were already
+    computed at each candidate threshold by the caller. This function only
+    *analyses* them — it does no merging. ``mean_rate`` is the mean over briefs at
+    each threshold; ``points`` are sorted ascending by threshold; ``span`` is the
+    spread of mean rates across thresholds; ``sign_stable`` is True iff every
+    threshold's mean rate shares one strict sign (a zero mean rate is never
+    stable). An empty map yields no points, ``span`` 0.0, and ``sign_stable``
+    vacuously True.
+    """
+    points: list[DedupSweepPoint] = []
+    for threshold in sorted(rates_by_threshold):
+        rates = np.asarray(list(rates_by_threshold[threshold]), dtype=float)
+        if rates.shape[0] == 0:
+            raise ValueError(
+                f"threshold {threshold!r} has no per-brief rates to average"
+            )
+        points.append(
+            DedupSweepPoint(
+                threshold=float(threshold),
+                mean_rate=float(np.mean(rates)),
+            )
+        )
+
+    if not points:
+        return DedupSweep(points=(), sign_stable=True, span=0.0)
+
+    means = np.array([pt.mean_rate for pt in points], dtype=float)
+    span = float(np.max(means) - np.min(means))
+
+    signs = np.sign(means)
+    sign_stable = bool(np.all(signs == signs[0]) and signs[0] != 0.0)
+
+    return DedupSweep(points=tuple(points), sign_stable=sign_stable, span=span)
+
+
+# --------------------------------------------------------------------------- #
+# Noise-floor combiner
+# --------------------------------------------------------------------------- #
+
+
+def estimate_noise_floor(
+    same_arm_seed_spread: Sequence[float],
+    placebo_deltas: Sequence[float],
+) -> float:
+    """Combine two no-real-change signals into a single noise floor.
+
+    The noise floor is the largest movement the instrument shows when there is no
+    real change to detect. Two such signals are combined:
+
+    * ``same_arm_seed_spread`` — across-seed spread of the *same* arm (re-running
+      the identical arm under different seeds should move nothing).
+    * ``placebo_deltas`` — deltas of a cosmetic-paraphrase placebo arm (rewording
+      without removing any claim should move nothing).
+
+    Each input's robust spread is its maximum absolute value; the floor is the
+    maximum of the two. The downstream rule requires the real effect to exceed
+    ``noise_floor_multiple * estimate_noise_floor(...)``. Returns ``0.0`` only
+    when *both* inputs are empty.
+    """
+    s = np.abs(np.asarray(same_arm_seed_spread, dtype=float))
+    p = np.abs(np.asarray(placebo_deltas, dtype=float))
+
+    spread_s = float(np.max(s)) if s.shape[0] > 0 else 0.0
+    spread_p = float(np.max(p)) if p.shape[0] > 0 else 0.0
+
+    return max(spread_s, spread_p)

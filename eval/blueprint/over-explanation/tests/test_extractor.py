@@ -19,6 +19,8 @@ from eval_overexplanation.extractor import (
     INDEPENDENT_ONTOLOGY,
     AnthropicExtractor,
     FixtureExtractor,
+    OpenAIExtractor,
+    _BaseLLMExtractor,
 )
 from eval_overexplanation.models import (
     Alignment,
@@ -272,3 +274,115 @@ def test_parse_alignment_unknown_relation_raises_valueerror():
     raw = '{"links": [{"source_id": "s1", "target_id": "t1", "relation": "warped"}]}'
     with pytest.raises(ValueError):
         ext._parse_alignment(_source_set(), _target_set(), raw)
+
+
+# --------------------------------------------------------------------------- #
+# OpenAIExtractor: import-safety and the missing-extra ImportError
+# --------------------------------------------------------------------------- #
+
+_HAS_OPENAI = importlib.util.find_spec("openai") is not None
+
+
+def test_openai_extractor_without_extra_raises_clear_importerror(monkeypatch):
+    """With `openai` unavailable, construction must raise a clear ImportError.
+
+    We simulate the extra being absent by making `import openai` fail, regardless
+    of whether it happens to be installed in the test env. No network.
+    """
+    real_import = builtins.__import__
+
+    def _blocked_import(name, *args, **kwargs):
+        if name == "openai" or name.startswith("openai."):
+            raise ImportError("No module named 'openai'")
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", _blocked_import)
+
+    with pytest.raises(ImportError) as excinfo:
+        OpenAIExtractor("gpt-4o-mini")
+    msg = str(excinfo.value)
+    assert "eval-overexplanation[llm]" in msg
+
+
+@pytest.mark.skipif(not _HAS_OPENAI, reason="openai extra not installed")
+def test_openai_extractor_default_ontology_is_independent():
+    # Constructing with the extra present must not touch the network (the OpenAI
+    # client is connectionless until a request is issued). base_url is accepted
+    # so any OpenAI-compatible endpoint can be targeted.
+    ext = OpenAIExtractor(
+        "gpt-4o-mini", api_key="sk-test-not-real", base_url="http://localhost:8000/v1"
+    )
+    assert ext.ontology is INDEPENDENT_ONTOLOGY
+    assert ext.model == "gpt-4o-mini"
+
+
+# --------------------------------------------------------------------------- #
+# _BaseLLMExtractor: shared extract/align driven through a canned _complete.
+# A subclass whose _complete returns a fixed JSON string exercises the WHOLE
+# shared path (prompt assembly -> parse) with no network and no SDK installed.
+# --------------------------------------------------------------------------- #
+
+
+class _CannedExtractor(_BaseLLMExtractor):
+    """Drives the shared base with a scripted _complete. No __init__/SDK/network."""
+
+    def __init__(self, extract_json: str, align_json: str) -> None:
+        self._extract_json = extract_json
+        self._align_json = align_json
+        self.calls: list[tuple[str, str]] = []
+
+    def _complete(self, system: str, user: str) -> str:
+        self.calls.append((system, user))
+        # Route by which instruction block the base handed us.
+        return self._align_json if "align" in system.lower() else self._extract_json
+
+
+def test_base_complete_not_implemented_by_default():
+    base = _BaseLLMExtractor()
+    with pytest.raises(NotImplementedError):
+        base._complete("sys", "usr")
+
+
+def test_base_extract_parses_canned_completion():
+    raw = (
+        '{"propositions": [{"id": "p1", "text": "x must hold", '
+        '"kind": "directive", "tier": "must", "mention_sentences": [0, 3]}]}'
+    )
+    ext = _CannedExtractor(extract_json=raw, align_json="{}")
+    out = ext.extract("D1", "some document body")
+    assert out.document_id == "D1"
+    assert out.propositions[0].id == "p1"
+    assert out.propositions[0].tier is Tier.MUST
+    assert out.propositions[0].mention_sentences == (0, 3)
+    # The base assembled a user message embedding the document text.
+    assert "some document body" in ext.calls[0][1]
+
+
+def test_base_align_parses_canned_completion():
+    src, tgt = _source_set(), _target_set()
+    raw = (
+        '{"links": ['
+        '{"source_id": "s1", "target_id": "t1", "relation": "preserved"}, '
+        '{"source_id": "s2", "target_id": null, "relation": "dropped"}]}'
+    )
+    ext = _CannedExtractor(extract_json="{}", align_json=raw)
+    out = ext.align(src, tgt)
+    assert isinstance(out, Alignment)
+    assert {l.source_id for l in out.links} == {"s1", "s2"}
+    assert out.links_for(Relation.DROPPED)[0].source_id == "s2"
+    # The base assembled a user message embedding both proposition lists.
+    user_msg = ext.calls[0][1]
+    assert "s1: cache must be flushed" in user_msg
+    assert "t1: flush the cache" in user_msg
+
+
+def test_base_extract_surfaces_malformed_completion_as_valueerror():
+    ext = _CannedExtractor(extract_json="not json {", align_json="{}")
+    with pytest.raises(ValueError):
+        ext.extract("D1", "body")
+
+
+def test_concrete_extractors_share_the_base():
+    # Both LLM families inherit the shared parsing/Protocol surface.
+    assert issubclass(AnthropicExtractor, _BaseLLMExtractor)
+    assert issubclass(OpenAIExtractor, _BaseLLMExtractor)

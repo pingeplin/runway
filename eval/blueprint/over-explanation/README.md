@@ -7,16 +7,27 @@ restatement of already-stated claims) in generated design docs and specs —
 buildability. Issue [#10](https://github.com/pingeplin/runway/issues/10).
 
 It is **not part of any skill.** It lives under `eval/` (per-plugin eval tree),
-pins two plugin commits (`A0` baseline vs `A1` treatment), runs them
-side-by-side, and is invoked by hand whenever a blueprint skill is touched. A
-grader bundled into the artifact it grades can't be trusted — so it isn't.
+pins the plugin commits for each experimental arm (`A0` baseline … up to the 8
+arms of the full design), runs them side-by-side, and is invoked by hand
+whenever a blueprint skill is touched. A grader bundled into the artifact it
+grades can't be trusted — so it isn't.
 
 It **extends** [`../eval-methodology.md`](../eval-methodology.md): it reuses that
 doc's two-`$CLAUDE_CONFIG_DIR` + git-worktree setup (§2), pre-registered panel
 (§3), hidden-oracle + executed-mutation scoring (§4), and cron/`/loop`
 orchestration (§5). It **adds**, specific to prose over-explanation: a
-within-document restatement-rate metric, a cross-family proposition extractor,
-substance/merge/grammaticality guardrails, and length-falsification controls.
+within-document restatement-rate metric, a cross-family proposition extractor
+(Anthropic + OpenAI families), substance/merge/grammaticality guardrails,
+length-falsification controls, an instrument-trust gate, and the full SHIP/KILL
+decision rule.
+
+**Status: the full design (Milestone 2) is implemented** — all 8 arms, the
+second extractor family, Holm correction, leave-one-brief-out, the dedup-threshold
+sweep, TOST-powered guardrails, the instrument-trust gate, and the decision rule.
+190 tests pass offline. A labeled **non-blind demo corpus** makes it runnable
+end-to-end today (`scripts/demo.sh`); a real verdict still needs the blind,
+human-authored corpus (the one thing the harness cannot author for itself without
+defeating its own validity).
 
 ## What it measures — and explicitly does not
 
@@ -39,20 +50,27 @@ src/eval_overexplanation/
   models.py          frozen value objects (propositions, alignments, briefs, arms) — the contract
   interfaces.py      the only two judgement seams: PropositionExtractor, GrammaticalityChecker
   restatement.py     primary metric: 1 - distinct/total_mentions
-  extractor.py       FixtureExtractor (offline/tests) + AnthropicExtractor (reference, lazy import)
+  extractor.py       FixtureExtractor (offline) + AnthropicExtractor + OpenAIExtractor (≥2 families, fix #1)
   grammaticality.py  Default (dependency-free screen) + Spacy (behind [nlp]) checkers
   substance.py       paired A0->A1 proposition-diff recall guardrail (MUST-loss blocks)
   merge_fidelity.py  within-arm pre->post: ②'s delete-or-merge didn't drop a constraint
-  stats.py           paired Wilcoxon, bootstrap CI, length-partialling, falsification STOP, TOST
+  stats.py           Wilcoxon, bootstrap, length-partialling, falsification STOP, TOST,
+                     Holm correction, leave-one-brief-out, dedup sweep, noise floor
   buildability.py    executed oracle + strategic mutation, subprocess-isolated (untrusted impls)
+  instrument.py      instrument-trust gate (atomization / length / filler invariance) — pre-unblinding
+  decision.py        the SHIP/KILL rule (ship treatment | one-liner | ② only | do-not-ship | underpowered)
   manifest.py        pre-registration: validate() + content_hash() tamper-evidence
   corpus.py          load human-authored briefs / gold sets / oracle cases
-  cli.py             thin wiring: restatement | guardrails | stats | buildability | manifest-hash
+  cli.py             thin wiring: restatement|guardrails|stats|buildability|manifest-hash|decision|instrument|sweep
 corpus/              the frozen task corpus (README = blind-authoring protocol; schema.md; worked example)
-preregistration/     manifest.example.json — the frozen pre-registration template
-scripts/             setup-worktrees.sh + run-arm.sh — the §2/§5 orchestration glue (bash)
-tests/               one test file per module; runs fully offline (no network, no LLM, no spaCy model)
-CONTRACTS.md         exact signatures every leaf implements to
+  demo/              labeled NON-BLIND demo corpus (9 briefs, see PROVENANCE.md) — pipeline shakeout only
+preregistration/     manifest.example.json (4-arm M1 template) + manifest.demo.json (8-arm M2)
+scripts/             setup-worktrees.sh, run-arm.sh, run-experiment.sh (panel), demo.sh — §2/§5 bash glue
+analysis/            assemble.py — run cells + cross-family extractor -> results.json
+orchestration/       run-experiment.workflow.js — the primary (Workflow) panel driver
+demo/                run_demo.py — end-to-end demo to a verdict on the demo corpus
+tests/               one test file per module + a demo smoke test; runs fully offline
+CONTRACTS.md         exact signatures every leaf implements to (M1 + M2 sections)
 ```
 
 Design: SOLID without ceremony. Inert dataclasses + **two** Protocols at the
@@ -86,60 +104,77 @@ Requires [`uv`](https://docs.astral.sh/uv/). All Python goes through `uv`.
 ```bash
 cd eval/blueprint/over-explanation
 uv sync                       # core deps (numpy/scipy/statsmodels) + pytest
-uv run pytest -q              # 129 passing, 1 skipped (the live-LLM test, gated on the [llm] extra)
+uv run pytest -q              # 190 passing, 2 skipped (the live-LLM tests, gated on the [llm] extra)
 
-# CLI (thin wiring; non-zero exit on any guardrail block / length-artifact STOP):
-uv run overexpl manifest-hash preregistration/manifest.example.json
-uv run overexpl restatement  <results-dir>     # per-(arm,brief,seed) rates
-uv run overexpl guardrails   <results-dir>     # substance recall + merge fidelity + grammaticality
-uv run overexpl stats        <results-dir>     # paired Wilcoxon + bootstrap + length-falsification STOP
+# End-to-end demo on the NON-BLIND demo corpus -> a real verdict (synthetic arm data):
+scripts/demo.sh                       # clean run -> SHIP_TREATMENT
+scripts/demo.sh --break substance     # drop a MUST claim   -> DO_NOT_SHIP
+scripts/demo.sh --break length        # length artifact     -> DO_NOT_SHIP
+scripts/demo.sh --break grammaticality
+scripts/demo.sh --break instrument
+
+# CLI (thin wiring; non-zero exit on any guardrail block / STOP / not-trusted):
+uv run overexpl manifest-hash preregistration/manifest.demo.json
+uv run overexpl restatement  <results-dir>      # per-(arm,brief,seed) rates
+uv run overexpl guardrails   <results-dir>      # substance recall + merge fidelity + grammaticality
+uv run overexpl stats        <results-dir>      # Wilcoxon + bootstrap + length-falsification STOP
 uv run overexpl buildability <corpus> <impl-dir> --module M --entrypoint fn
+uv run overexpl instrument   <docs.json> <decoys.json>   # trust gate — run BEFORE reading numbers
+uv run overexpl decision     <inputs.json>      # the SHIP/KILL verdict
+uv run overexpl sweep        <sweep.json>       # dedup-threshold stability
 ```
 
-Optional extras: `uv sync --extra llm` (live `AnthropicExtractor`),
+Optional extras: `uv sync --extra llm` (live `AnthropicExtractor` + `OpenAIExtractor`),
 `uv sync --extra nlp` (parse-based grammaticality).
 
-A full A/B run (orchestration, reusing `eval-methodology.md` §2/§5):
+A full panel run (all arms × briefs × seeds). Primary path is the Workflow
+script; the bash driver is the §5 fallback:
 
 ```bash
-scripts/setup-worktrees.sh <A0-commit> <A1-commit>   # tag + worktree + per-arm config dirs
-scripts/run-arm.sh A0 <brief-dir> <seed>             # drive one pinned arm against one brief
+scripts/setup-worktrees.sh <A0-commit> <A1-commit> ...   # tag + worktree + per-arm config dirs
+# primary: Workflow({ scriptPath: "orchestration/run-experiment.workflow.js",
+#                     args: { manifest, corpus, family: "openai", model } })
+# fallback (bash/cron):
+FAMILY=openai MODEL=gpt-4.1 scripts/run-experiment.sh preregistration/manifest.demo.json corpus/demo
 ```
 
-## Status: Milestone 1
+## Status: full design (Milestone 2) — implemented
 
-Built: the complete deterministic harness (metric, all guardrails, statistics,
-buildability, manifest, corpus loader, CLI, orchestration glue) + tests, plus a
-worked example brief and a pre-registration template. The mechanisms are
-**already full-design-capable** — arms/briefs/seeds/extractor-families are config
-(`manifest.example.json`), so scaling Milestone 1 (4 arms, K=2, 9 briefs) to
-Milestone 2 (8 arms, ≥2 families, N=18) grows data, not code.
+Built and tested (190 offline tests): the metric, all guardrails, the full
+statistics layer (Wilcoxon, bootstrap, length-partialling + falsification STOP,
+TOST with achieved-power, Holm correction, leave-one-brief-out, dedup-threshold
+sweep, noise floor), executed buildability, the instrument-trust gate, the
+SHIP/KILL decision rule, the manifest, the corpus loader, both extractor families
+(Anthropic + OpenAI), the CLI, the assembly bridge, and both orchestration paths
+(Workflow + bash). `scripts/demo.sh` runs the whole pipeline to a verdict.
 
-**Requires human-authored, blind, frozen inputs before a real run** (by design —
-these are what make the experiment valid, and cannot be auto-generated without
-defeating the blinding):
+**The one thing not auto-generated — by design:** the **blind, human-authored
+corpus** (briefs + gold proposition sets + hidden oracles). The harness ships a
+labeled *non-blind demo* corpus (`corpus/demo/`, Claude-authored) so the pipeline
+runs end-to-end, but a real verdict requires the blind corpus per
+`corpus/README.md` — authoring it with the model under test would defeat the
+blinding the whole design depends on. A real run also needs the two extractor
+families' API keys and the pinned per-arm plugin commits for
+`setup-worktrees.sh`.
 
-- the **9 briefs** + per-brief **gold proposition sets** + **hidden oracles**,
-  authored per `corpus/README.md` (the worked `example-brief/` shows the shape);
-- a concrete **second non-Anthropic extractor family** (open decision below);
-- the pinned **A0/A1 commits** for `setup-worktrees.sh`.
+**Documented limitations** (not bugs):
 
-**Known Milestone-1 limitations** (documented, not bugs):
+- `DefaultGrammaticalityChecker` is a deterministic *screen*; the parse-based
+  `[nlp]` checker is higher-fidelity, and a human read remains the final gate.
+- `analysis/assemble.py` emits restatement + substance + grammaticality inputs;
+  merge-fidelity needs the *pre*-evaluator artifact, which `run-arm.sh` does not
+  yet capture separately.
 
-- `overexpl stats` runs the length-falsification *partialling* half; the
-  length-only-strip arm (the dumb-brevity reference) is a Milestone-2 arm, so the
-  strip-reproduction check degrades to a sign test until that arm exists.
-- `DefaultGrammaticalityChecker` is a deterministic *screen* (flags telegraphic /
-  dropped-article / verbless fragments); the parse-based `[nlp]` checker is the
-  higher-fidelity option, and a human read remains the final gate per issue #10.
+**Verdict ceiling** (issue #10): at the Milestone-1 panel size (N=9/K=2) a clean
+result is *"promising — scale to N=18 before ship,"* never a ship; the manifest
+scales arms/briefs/seeds to the full design without code change.
 
-**Verdict ceiling** (issue #10): a clean restatement cut with no detected
-substance loss on the buildable subset is *"promising — scale to N=18 before
-ship,"* never a ship. N=9/K=2 is underpowered to certify safety.
+## Decisions (resolved)
 
-## Open decisions (carried from issue #10)
-
-- Which **second (non-Anthropic) extractor/implementer family** to use.
-- Where the **OSS large-realistic briefs** are mined from (license-clean, read-only).
-- Whether to encode the run as a **`Workflow` script** vs the cron orchestration
-  in `eval-methodology.md §5`.
+- **Second extractor family: OpenAI** (`OpenAIExtractor`, configurable
+  `base_url` so it also targets OpenAI-compatible/local endpoints), alongside
+  `AnthropicExtractor`.
+- **Orchestration: both** — a runnable `Workflow` script (primary) and the
+  bash/cron driver (fallback).
+- **Still open:** where the OSS large-realistic briefs are mined from
+  (license-clean, read-only) for the real blind corpus.

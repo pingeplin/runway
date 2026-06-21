@@ -28,7 +28,7 @@ Usage: run-arm.sh <ARM_ID> <BRIEF_DIR> <SEED>
 Drive one eval arm against one brief (eval-methodology.md §5).
 
 Arguments:
-  ARM_ID      A0 (baseline) or A1 (treatment); selects ~/.claude-<ARM_ID>
+  ARM_ID      any manifest arm id (A0, A1, A3_fair, ...); selects ~/.claude-<ARM_ID>
   BRIEF_DIR   path to a corpus brief dir (must contain brief.md + brief.json)
   SEED        integer seed; labels this cell and is woven into the prompt
 
@@ -70,10 +70,14 @@ TIMEOUT_SECS="${TIMEOUT_SECS:-1800}"
 # ---------------------------------------------------------------------------
 # Validate inputs.
 # ---------------------------------------------------------------------------
-case "$ARM_ID" in
-  A0|A1) ;;
-  *) echo "error: ARM_ID must be A0 or A1 (got '$ARM_ID')" >&2; exit 2 ;;
-esac
+# Any non-empty arm id from the manifest is accepted (Milestone 2 runs up to 8
+# arms: A0, A0_prime, A1, A2_placebo, A3_fair, A3b_dumb, A4_evaluator_only,
+# A5_full). The arm must have a matching ~/.claude-<ARM_ID> config dir, which the
+# config-dir existence check below enforces.
+if [[ -z "$ARM_ID" || "$ARM_ID" == -* ]]; then
+  echo "error: ARM_ID must be a non-empty arm id (e.g. A0, A1, A3_fair)" >&2
+  exit 2
+fi
 
 if [[ ! -d "$BRIEF_DIR" ]]; then
   echo "error: brief dir not found: $BRIEF_DIR" >&2

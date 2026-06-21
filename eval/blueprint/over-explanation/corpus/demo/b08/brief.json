@@ -1,0 +1,8 @@
+{
+  "id": "b08",
+  "title": "Stable pagination cursor",
+  "regime": "neutral",
+  "buildable": true,
+  "module": "oracle",
+  "entrypoint": "page"
+}

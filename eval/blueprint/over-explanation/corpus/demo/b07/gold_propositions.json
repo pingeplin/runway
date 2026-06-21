@@ -1,0 +1,89 @@
+{
+  "document_id": "b07-gold",
+  "propositions": [
+    {
+      "id": "p1",
+      "text": "The audit log is append-only: once written, an entry can never be modified or deleted through any application path, and the design makes in-place edits and out-of-order insertion structurally impossible.",
+      "kind": "core-invariant",
+      "tier": "must",
+      "mention_sentences": [3, 4]
+    },
+    {
+      "id": "p2",
+      "text": "Entries within a tenant are linked into a hash chain where each entry carries a prev_hash computed over the previous entry's canonical serialized content.",
+      "kind": "core-invariant",
+      "tier": "must",
+      "mention_sentences": [5, 6]
+    },
+    {
+      "id": "p3",
+      "text": "The first entry for a tenant chains from a fixed, well-known genesis value rather than from a real predecessor.",
+      "kind": "boundary-rule",
+      "tier": "should",
+      "mention_sentences": [7]
+    },
+    {
+      "id": "p4",
+      "text": "Altering or removing any historical entry breaks the chain for every following entry, making tampering detectable by a verifier walking from genesis.",
+      "kind": "security-property",
+      "tier": "must",
+      "mention_sentences": [8]
+    },
+    {
+      "id": "p5",
+      "text": "Each tenant's entries form an independent hash chain and no entry from one tenant may appear in or be readable through another tenant's chain.",
+      "kind": "isolation-requirement",
+      "tier": "must",
+      "mention_sentences": [10, 11]
+    },
+    {
+      "id": "p6",
+      "text": "Every read and write is scoped to exactly one tenant identified by a caller-supplied tenant_id that is never inferred from the entry payload, and cross-tenant queries are disallowed.",
+      "kind": "isolation-requirement",
+      "tier": "must",
+      "mention_sentences": [12, 13]
+    },
+    {
+      "id": "p7",
+      "text": "Each entry records at minimum the actor_id, the action, the target resource, and the timestamp.",
+      "kind": "data-shape",
+      "tier": "must",
+      "mention_sentences": [14]
+    },
+    {
+      "id": "p8",
+      "text": "The log is queryable by actor and by inclusive time range within a single tenant, returning matching entries in ascending timestamp order.",
+      "kind": "queryability-requirement",
+      "tier": "must",
+      "mention_sentences": [15, 16]
+    },
+    {
+      "id": "p9",
+      "text": "Timestamps are stored as UTC and assigned by the subsystem at write time rather than taken from client input.",
+      "kind": "data-shape",
+      "tier": "should",
+      "mention_sentences": [17]
+    },
+    {
+      "id": "p10",
+      "text": "The subsystem exposes three public operations: append(tenant_id, payload), query(tenant_id, actor?, time_range?), and verify_chain(tenant_id).",
+      "kind": "public-interface",
+      "tier": "must",
+      "mention_sentences": [18, 19, 20, 21]
+    },
+    {
+      "id": "p11",
+      "text": "verify_chain recomputes hashes along a tenant's chain and returns the position of the first tampered entry, or a no-tampering result when the chain is intact.",
+      "kind": "public-interface",
+      "tier": "should",
+      "mention_sentences": [9, 21]
+    },
+    {
+      "id": "p12",
+      "text": "Retention is the only deletion path: a scheduled job deletes only whole contiguous oldest-first prefixes per tenant and records the last deleted entry's hash as the new chain anchor so the truncated chain stays verifiable.",
+      "kind": "lifecycle-policy",
+      "tier": "should",
+      "mention_sentences": [23, 24, 25]
+    }
+  ]
+}

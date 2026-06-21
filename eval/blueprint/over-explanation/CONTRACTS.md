@@ -384,3 +384,220 @@ extra (or `pytest.importorskip` if present). For `buildability.py`, write a
 tiny throwaway impl + test into `tmp_path` and exercise a real subprocess run
 (kill a mutant, survive a no-op). Cover the documented edge cases and each
 guardrail's block/no-block boundary.
+
+---
+
+# Milestone 2 — full-design mechanisms
+
+Everything above is shipped (Milestone 1). The additions below complete the
+*full* design (issue #10 Milestone 2). Same rules apply: frozen backbone, pure
+deterministic decision logic, lazy optional imports, offline tests, exact
+signatures. Extend existing files where named; add new ones where named.
+
+## `extractor.py` — add the second family (OpenAI), refactor to share parsing
+
+Refactor the parsing/Protocol surface shared by the two LLM extractors into a
+base, then add `OpenAIExtractor`. **Do not change `FixtureExtractor` or the
+`AnthropicExtractor` public behaviour** — the existing tests must stay green.
+
+```python
+class _BaseLLMExtractor:
+    """Shared JSON parsing + extract/align. Subclasses implement _complete()."""
+    # holds _loads, _parse_propositions, _parse_alignment, extract, align
+    def _complete(self, system: str, user: str) -> str: raise NotImplementedError
+
+class AnthropicExtractor(_BaseLLMExtractor):   # behaviour unchanged; lazy `anthropic`
+    ...
+
+class OpenAIExtractor(_BaseLLMExtractor):
+    """Second cross-family extractor (fix #1). Lazy-imports `openai`."""
+    def __init__(self, model: str, *, ontology=INDEPENDENT_ONTOLOGY,
+                 api_key: str | None = None, base_url: str | None = None): ...
+    # lazy `import openai`; client = openai.OpenAI(api_key=..., base_url=...);
+    # _complete -> client.chat.completions.create(model, messages=[{system},{user}])
+    # request JSON output; return the text content. base_url lets it target any
+    # OpenAI-compatible endpoint (vLLM/local) so "OpenAI family" is configurable.
+```
+
+Module still imports without `openai`. Tests: `OpenAIExtractor` without the
+extra raises a clear `ImportError` with the `[llm]` install hint; the shared
+parsing is covered via a `_BaseLLMExtractor` subclass whose `_complete` returns
+a canned JSON string (no network). Keep all existing extractor tests passing.
+
+## `stats.py` — add four functions (extend the existing file)
+
+```python
+def holm_correction(pvalues: Sequence[float]) -> tuple[float, ...]
+    # Holm-Bonferroni step-down. Returns adjusted p-values in INPUT order,
+    # each clipped to <= 1.0 and monotone non-decreasing along the sorted order.
+    # Used across the guardrail family to control family-wise error.
+
+@dataclass(frozen=True)
+class LeaveOneOut:
+    means: tuple[float, ...]     # mean delta with brief i removed, in input order
+    min_mean: float
+    max_mean: float
+    sign_stable: bool            # every fold keeps the full-sample mean's sign
+def leave_one_brief_out(deltas: Sequence[float]) -> LeaveOneOut
+    # Robustness: no single brief drives the effect. Requires n >= 2.
+
+@dataclass(frozen=True)
+class DedupSweepPoint:
+    threshold: float
+    mean_rate: float
+@dataclass(frozen=True)
+class DedupSweep:
+    points: tuple[DedupSweepPoint, ...]   # sorted by threshold
+    sign_stable: bool                     # mean_rate keeps one sign across thresholds
+    span: float                           # max_mean_rate - min_mean_rate
+def dedup_threshold_sweep(rates_by_threshold: Mapping[float, Sequence[float]]) -> DedupSweep
+    # The restatement metric depends on how aggressively near-duplicate
+    # propositions are merged. Given per-brief rates computed at each candidate
+    # threshold, report whether the conclusion is stable across thresholds (not
+    # an artifact of one choice). This function only ANALYSES supplied rates.
+
+def estimate_noise_floor(same_arm_seed_spread: Sequence[float],
+                         placebo_deltas: Sequence[float]) -> float
+    # Noise floor = the largest movement the instrument shows with NO real
+    # change. Combine same-arm across-seed spread and a cosmetic-paraphrase
+    # placebo arm's |deltas| into one floor (max of their robust spreads, e.g.
+    # max absolute value / IQR). The real effect must exceed
+    # noise_floor_multiple * this. Returns 0.0 only if both inputs are empty.
+```
+
+## `decision.py` — the SHIP/KILL rule (new file)
+
+Pure function over already-computed structured inputs (it does no stats itself;
+the orchestrator feeds it `TostResult`s and booleans). Faithful to issue #10's
+decision rule.
+
+```python
+from enum import Enum
+class Verdict(str, Enum):
+    SHIP_TREATMENT = "ship_treatment"            # ①② ship
+    SHIP_ONELINER = "ship_oneliner"              # A3_fair matches A1 -> ship the one-liner
+    SHIP_EVALUATOR_ONLY = "ship_evaluator_only"  # A4 shows ② alone captures the effect
+    DO_NOT_SHIP = "do_not_ship"
+    UNDERPOWERED = "underpowered_no_ship"        # guardrail safety not certifiable
+
+@dataclass(frozen=True)
+class ArmComparison:
+    beats: bool          # does A1 beat this arm on the executable + extractor axes?
+    detail: str = ""
+
+@dataclass(frozen=True)
+class DecisionInputs:
+    restatement_real: bool        # restatement fell AND length-falsification did NOT stop
+    substance_ok: bool            # zero MUST-tier proposition dropped
+    buildability: TostResult      # non-inferiority of downstream buildability
+    grammaticality: TostResult    # non-inferiority of grammaticality
+    a3b_fails_grammaticality: bool  # positive control: dumb-brevity MUST fail the detector
+    instrument_trusted: bool      # instrument-trust gate passed
+    beats_a3_fair: ArmComparison  # A1 vs the honest one-liner
+    beats_a2_placebo: ArmComparison  # A1 vs the extra-pass placebo
+    a4_captures_effect: bool      # ② alone ~= ①②
+
+@dataclass(frozen=True)
+class DecisionResult:
+    verdict: Verdict
+    reasons: tuple[str, ...]
+
+def decide(inputs: DecisionInputs) -> DecisionResult
+```
+
+Precedence (document each branch in `reasons`):
+
+1. `not instrument_trusted` → `DO_NOT_SHIP` (numbers not readable).
+2. `not a3b_fails_grammaticality` → `DO_NOT_SHIP` (grammaticality detector
+   unproven — its non-inferiority can't be trusted).
+3. `not buildability.certifiable or not grammaticality.certifiable` →
+   `UNDERPOWERED` (safety not certifiable — never reported as "safe").
+4. Hard blocks → `DO_NOT_SHIP`: `not substance_ok`, `not restatement_real`,
+   `not buildability.non_inferior`, `not grammaticality.non_inferior`.
+5. `a4_captures_effect` → `SHIP_EVALUATOR_ONLY`.
+6. `not beats_a3_fair.beats` → `SHIP_ONELINER` (the one-liner matches A1).
+7. `beats_a3_fair.beats and not beats_a2_placebo.beats` → `DO_NOT_SHIP`
+   ("the gain was just one more editing pass").
+8. else (`beats` both) → `SHIP_TREATMENT`.
+
+Test every branch with a fixture `DecisionInputs`.
+
+## `instrument.py` — instrument-trust gate (new file)
+
+Atomization / manipulation invariance that must pass **before any arm number is
+read** (fix #1 support). Pure over extractor outputs → testable with
+`FixtureExtractor`.
+
+```python
+@dataclass(frozen=True)
+class Decoy:
+    name: str
+    base_id: str          # document_id of the base doc
+    variant_id: str       # document_id of the manipulated variant
+    kind: str             # "atomization" | "length_confound" | "defensive_filler"
+    tolerance: float      # max allowed |score change| for this manipulation
+
+@dataclass(frozen=True)
+class InvarianceCheck:
+    name: str
+    kind: str
+    observed_delta: float
+    tolerance: float
+    passed: bool
+
+@dataclass(frozen=True)
+class InstrumentReport:
+    checks: tuple[InvarianceCheck, ...]
+    @property
+    def trusted(self) -> bool      # all checks passed
+
+def instrument_trust_gate(extractor: PropositionExtractor,
+                          docs: Mapping[str, str],
+                          decoys: Sequence[Decoy]) -> InstrumentReport
+```
+
+Per decoy, score the base and the variant via `extractor.extract` +
+`restatement.restatement_rate`, and compute the relevant invariant:
+
+* `atomization` — splitting one sentence into two must not change the DISTINCT
+  proposition count: `observed_delta = |distinct(variant) - distinct(base)|`.
+* `length_confound` — padding with non-repeating words must not LOWER the rate:
+  `observed_delta = max(0, rate_base - rate_variant)` (only a drop is a failure).
+* `defensive_filler` — adding non-load-bearing justification must not RAISE the
+  distinct count: `observed_delta = max(0, distinct(variant) - distinct(base))`.
+
+`passed = observed_delta <= tolerance`. Import `restatement_rate` from
+`restatement`; depend on the `PropositionExtractor` Protocol, never a concrete
+class.
+
+## `cli.py` — add three thin subcommands
+
+Keep the thin-wiring rule. Add:
+
+* `decision <inputs.json>` — deserialize a `DecisionInputs` transport JSON, run
+  `decide`, print the verdict + reasons; exit non-zero on `DO_NOT_SHIP` /
+  `UNDERPOWERED`.
+* `instrument <docs.json> <decoys.json>` — build a `FixtureExtractor` from a
+  fixtures file (default; `--family anthropic|openai` selects a live extractor),
+  run `instrument_trust_gate`, print the report; exit non-zero if not trusted.
+* `sweep <sweep.json>` — load a `{threshold: [rates...]}` map, run
+  `dedup_threshold_sweep`, print stability + span.
+
+Transport shapes are this module's responsibility (mirror the existing
+`results.json` style); the libraries stay pure. Document each shape in the
+module docstring.
+
+## Demo manifest (data, no code)
+
+`preregistration/manifest.demo.json` — an 8-arm Milestone-2 manifest
+(`version: "demo-nonblind-m2"`) over the 9 demo briefs, `validate()`-clean. Arm
+ids: `A0, A0_prime, A1, A2_placebo, A3_fair, A3b_dumb, A4_evaluator_only,
+A5_full`. (The manifest loader already round-trips arbitrary arm lists.)
+
+## Tests for M2
+
+One `test_<module>.py` per new module (`test_decision.py`, `test_instrument.py`)
+and extend `test_stats.py`, `test_extractor.py`, `test_cli.py`. Offline only:
+`FixtureExtractor`, hand-built inputs, `tmp_path`. Cover every `decide` branch,
+each invariance kind (pass + fail), Holm monotonicity, leave-one-out sign
+stability, the dedup-sweep stability flag, and the noise-floor combiner.

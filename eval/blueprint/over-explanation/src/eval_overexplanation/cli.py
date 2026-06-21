@@ -57,6 +57,48 @@ where ``<PropositionSet>`` is
 This is deliberately a *transport* shape only: it carries the extractor's
 already-computed propositions and alignments into the deterministic library
 functions. The CLI never extracts or aligns — that is the LLM seam.
+
+Milestone-2 subcommand transport shapes
+----------------------------------------
+
+These three subcommands are equally thin: parse JSON, build the inert inputs,
+call one library function by full module path, format. The transport shapes are
+this module's responsibility (the libraries stay pure value-object functions).
+
+``decision <inputs.json>`` — a serialized :class:`decision.DecisionInputs`. A
+``<TostResult>`` is ``{"non_inferior": bool, "p_value": float, "power": float,
+"certifiable": bool}`` and an ``<ArmComparison>`` is ``{"beats": bool,
+"detail": str?}``. Shape::
+
+    {
+      "restatement_real": bool,
+      "substance_ok": bool,
+      "buildability": <TostResult>,
+      "grammaticality": <TostResult>,
+      "a3b_fails_grammaticality": bool,
+      "instrument_trusted": bool,
+      "beats_a3_fair": <ArmComparison>,
+      "beats_a2_placebo": <ArmComparison>,
+      "a4_captures_effect": bool
+    }
+
+Exit non-zero (``EXIT_BLOCKED``) on a ``DO_NOT_SHIP`` or ``UNDERPOWERED``
+verdict; zero on any of the three SHIP verdicts.
+
+``instrument <docs.json> <decoys.json>`` — ``docs.json`` is a
+``{document_id: text}`` map (the base + variant prose, passed straight to the
+extractor). ``decoys.json`` is ``{"decoys": [<Decoy>, ...]}`` where a
+``<Decoy>`` is ``{"name", "base_id", "variant_id", "kind", "tolerance"}``.
+With the default :class:`extractor.FixtureExtractor` the extractor's canned
+propositions are loaded from ``--fixtures <fixtures.json>``, a
+``{document_id: <PropositionSet>}`` map (same ``<PropositionSet>`` shape as the
+results transport). ``--family anthropic|openai`` selects a live extractor
+instead (lazy optional import; never exercised offline). Exit non-zero if the
+instrument is not trusted.
+
+``sweep <sweep.json>`` — ``{"<threshold>": [rate, ...], ...}`` (a per-brief
+restatement rate list at each candidate dedup threshold; thresholds are JSON
+object keys, parsed as floats). Prints sign-stability and span.
 """
 
 from __future__ import annotations
@@ -426,6 +468,164 @@ def _cmd_manifest_hash(args: argparse.Namespace) -> int:
 
 
 # --------------------------------------------------------------------------- #
+# Milestone-2 subcommands (decision / instrument / sweep) — transport + format
+# --------------------------------------------------------------------------- #
+
+
+def _load_json(path: Path) -> object:
+    """Read and parse a JSON file, mapping any failure to :class:`_LoadError`."""
+    if not path.is_file():
+        raise _LoadError(f"file not found: {path}")
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise _LoadError(f"cannot read {path}: {exc}") from exc
+
+
+def _build_tost(d: dict):
+    from eval_overexplanation.stats import TostResult
+
+    return TostResult(
+        non_inferior=bool(d["non_inferior"]),
+        p_value=float(d["p_value"]),
+        power=float(d["power"]),
+        certifiable=bool(d["certifiable"]),
+    )
+
+
+def _build_arm_comparison(d: dict):
+    from eval_overexplanation.decision import ArmComparison
+
+    return ArmComparison(beats=bool(d["beats"]), detail=str(d.get("detail", "")))
+
+
+def _cmd_decision(args: argparse.Namespace) -> int:
+    from eval_overexplanation.decision import (
+        DecisionInputs,
+        Verdict,
+        decide,
+    )
+
+    raw = _load_json(Path(args.inputs))
+    if not isinstance(raw, dict):
+        raise _LoadError(f"{args.inputs}: expected a DecisionInputs object")
+    try:
+        inputs = DecisionInputs(
+            restatement_real=bool(raw["restatement_real"]),
+            substance_ok=bool(raw["substance_ok"]),
+            buildability=_build_tost(raw["buildability"]),
+            grammaticality=_build_tost(raw["grammaticality"]),
+            a3b_fails_grammaticality=bool(raw["a3b_fails_grammaticality"]),
+            instrument_trusted=bool(raw["instrument_trusted"]),
+            beats_a3_fair=_build_arm_comparison(raw["beats_a3_fair"]),
+            beats_a2_placebo=_build_arm_comparison(raw["beats_a2_placebo"]),
+            a4_captures_effect=bool(raw["a4_captures_effect"]),
+        )
+    except (KeyError, ValueError, TypeError) as exc:
+        raise _LoadError(f"{args.inputs}: malformed DecisionInputs: {exc}") from exc
+
+    result = decide(inputs)
+    print(f"verdict\t{result.verdict.value}")
+    for reason in result.reasons:
+        print(f"reason\t{reason}")
+
+    no_ship = result.verdict in (Verdict.DO_NOT_SHIP, Verdict.UNDERPOWERED)
+    return EXIT_BLOCKED if no_ship else EXIT_OK
+
+
+def _build_fixture_extractor(path: Path):
+    """Build a :class:`FixtureExtractor` from a ``{doc_id: PropositionSet}`` map."""
+    from eval_overexplanation.extractor import FixtureExtractor
+
+    raw = _load_json(path)
+    if not isinstance(raw, dict):
+        raise _LoadError(f"{path}: expected a {{document_id: PropositionSet}} object")
+    try:
+        sets = {str(doc_id): _build_proposition_set(pset) for doc_id, pset in raw.items()}
+    except (KeyError, ValueError, TypeError) as exc:
+        raise _LoadError(f"{path}: malformed fixtures: {exc}") from exc
+    return FixtureExtractor(sets)
+
+
+def _cmd_instrument(args: argparse.Namespace) -> int:
+    from eval_overexplanation.instrument import Decoy, instrument_trust_gate
+
+    raw_docs = _load_json(Path(args.docs))
+    if not isinstance(raw_docs, dict):
+        raise _LoadError(f"{args.docs}: expected a {{document_id: text}} object")
+    docs = {str(k): str(v) for k, v in raw_docs.items()}
+
+    raw_decoys = _load_json(Path(args.decoys))
+    if not isinstance(raw_decoys, dict) or not isinstance(
+        raw_decoys.get("decoys"), list
+    ):
+        raise _LoadError(f"{args.decoys}: expected an object with a 'decoys' list")
+    try:
+        decoys = tuple(
+            Decoy(
+                name=str(d["name"]),
+                base_id=str(d["base_id"]),
+                variant_id=str(d["variant_id"]),
+                kind=str(d["kind"]),
+                tolerance=float(d["tolerance"]),
+            )
+            for d in raw_decoys["decoys"]
+        )
+    except (KeyError, ValueError, TypeError) as exc:
+        raise _LoadError(f"{args.decoys}: malformed decoy: {exc}") from exc
+
+    if args.family == "fixture":
+        if not args.fixtures:
+            raise _LoadError(
+                "the default fixture extractor needs --fixtures <fixtures.json>"
+            )
+        extractor = _build_fixture_extractor(Path(args.fixtures))
+    elif args.family == "anthropic":
+        from eval_overexplanation.extractor import AnthropicExtractor
+
+        extractor = AnthropicExtractor(args.model)
+    elif args.family == "openai":
+        from eval_overexplanation.extractor import OpenAIExtractor
+
+        extractor = OpenAIExtractor(args.model)
+    else:  # pragma: no cover - argparse choices guard this
+        raise _LoadError(f"unknown extractor family: {args.family}")
+
+    report = instrument_trust_gate(extractor, docs, decoys)
+    for check in report.checks:
+        status = "ok" if check.passed else "FAIL"
+        print(
+            f"{check.name}\t{check.kind}\t"
+            f"observed_delta={check.observed_delta:.4f}\t"
+            f"tolerance={check.tolerance:.4f}\t{status}"
+        )
+    print(f"trusted\t{report.trusted}")
+    return EXIT_OK if report.trusted else EXIT_BLOCKED
+
+
+def _cmd_sweep(args: argparse.Namespace) -> int:
+    from eval_overexplanation.stats import dedup_threshold_sweep
+
+    raw = _load_json(Path(args.sweep))
+    if not isinstance(raw, dict):
+        raise _LoadError(f"{args.sweep}: expected a {{threshold: [rates]}} object")
+    try:
+        rates_by_threshold = {
+            float(threshold): [float(r) for r in rates]
+            for threshold, rates in raw.items()
+        }
+    except (ValueError, TypeError) as exc:
+        raise _LoadError(f"{args.sweep}: malformed sweep map: {exc}") from exc
+
+    sweep = dedup_threshold_sweep(rates_by_threshold)
+    for point in sweep.points:
+        print(f"threshold={point.threshold:.4f}\tmean_rate={point.mean_rate:.4f}")
+    print(f"sign_stable\t{sweep.sign_stable}")
+    print(f"span\t{sweep.span:.4f}")
+    return EXIT_OK
+
+
+# --------------------------------------------------------------------------- #
 # Argument parser
 # --------------------------------------------------------------------------- #
 
@@ -487,6 +687,46 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     p_hash.add_argument("manifest", type=Path)
     p_hash.set_defaults(func=_cmd_manifest_hash)
+
+    p_decision = sub.add_parser(
+        "decision",
+        help="run the SHIP/KILL rule over a DecisionInputs JSON "
+        "(non-zero on DO_NOT_SHIP / UNDERPOWERED)",
+    )
+    p_decision.add_argument("inputs", type=Path)
+    p_decision.set_defaults(func=_cmd_decision)
+
+    p_instrument = sub.add_parser(
+        "instrument",
+        help="run the instrument-trust gate over docs + decoys "
+        "(non-zero if not trusted)",
+    )
+    p_instrument.add_argument("docs", type=Path)
+    p_instrument.add_argument("decoys", type=Path)
+    p_instrument.add_argument(
+        "--family",
+        choices=("fixture", "anthropic", "openai"),
+        default="fixture",
+        help="extractor family (default: fixture, offline)",
+    )
+    p_instrument.add_argument(
+        "--fixtures",
+        default=None,
+        help="{document_id: PropositionSet} JSON for the default fixture extractor",
+    )
+    p_instrument.add_argument(
+        "--model",
+        default="",
+        help="model id for a live --family anthropic|openai extractor",
+    )
+    p_instrument.set_defaults(func=_cmd_instrument)
+
+    p_sweep = sub.add_parser(
+        "sweep",
+        help="dedup-threshold stability sweep over a {threshold: [rates]} JSON",
+    )
+    p_sweep.add_argument("sweep", type=Path)
+    p_sweep.set_defaults(func=_cmd_sweep)
 
     return parser
 

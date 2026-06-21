@@ -11,9 +11,11 @@ dependencies = [
 
 [project.optional-dependencies]
 # Live cross-family proposition extraction (fix #1). Not needed to run the
-# offline unit suite, which uses the FixtureExtractor.
+# offline unit suite, which uses the FixtureExtractor. Two families are wired so
+# the >=2-family requirement can be met by config, not code changes.
 llm = [
     "anthropic>=0.40",
+    "openai>=1.40",
 ]
 # Parse-based grammaticality checking. The default checker is dependency-free;
 # this enables the stronger spaCy-backed checker.

@@ -1,0 +1,8 @@
+{
+  "id": "b06",
+  "title": "Exponential backoff schedule",
+  "regime": "elicit_prone",
+  "buildable": true,
+  "module": "oracle",
+  "entrypoint": "backoff_delays"
+}

@@ -1,15 +1,17 @@
 """Proposition extractors — the cross-family seam (issue #10, fix #1).
 
-This module provides two implementations of the ``PropositionExtractor``
-Protocol (see ``interfaces.py``):
+This module provides implementations of the ``PropositionExtractor`` Protocol
+(see ``interfaces.py``):
 
 * ``FixtureExtractor`` — deterministic, dict-backed. Returns canned proposition
   sets and alignments. Used for tests and offline runs; no LLM, no network.
-* ``AnthropicExtractor`` — the reference cross-family extractor. It lazy-imports
-  ``anthropic`` inside its constructor so this module is import-safe even when
-  the ``llm`` extra is absent. The only thing that touches the network is one
-  small private method (``_complete``), so that is the only seam a test would
-  ever need to mock.
+* ``_BaseLLMExtractor`` — the shared JSON parsing + ``extract``/``align``
+  Protocol surface for every LLM-backed extractor. Subclasses implement exactly
+  one method, ``_complete(system, user) -> str`` (the single network seam), so
+  that is the only thing a test would ever need to mock.
+* ``AnthropicExtractor`` / ``OpenAIExtractor`` — the two cross-family extractors
+  (fix #1 wants >= 2 families). Each lazy-imports its SDK inside its constructor
+  so this module is import-safe even when the ``llm`` extra is absent.
 
 The ``INDEPENDENT_ONTOLOGY`` constant below is the proposition-kind taxonomy the
 LLM extractor is instructed to use. It is authored *independently* of change ②'s
@@ -117,20 +119,34 @@ class FixtureExtractor:
 
 
 # --------------------------------------------------------------------------- #
-# AnthropicExtractor — reference cross-family extractor (lazy anthropic import)
+# LLM-backed extractors — shared base + the two concrete families
 # --------------------------------------------------------------------------- #
 
 
-_EXTRACT_INSTRUCTIONS = (
-    "You extract the distinct load-bearing propositions from a document. "
-    "A proposition is one atomic claim. Count every place it is asserted as a "
-    "mention. Return ONLY JSON: a list under key \"propositions\", each item "
-    '{"id": str, "text": str, "kind": str, "tier": "must"|"should"|"detail", '
-    '"mention_sentences": [int, ...]}. The "kind" MUST be one of: '
-    + ", ".join(INDEPENDENT_ONTOLOGY)
-    + ". Use 1-based or 0-based sentence indices consistently; every "
-    "proposition has at least one mention."
-)
+def _extract_instructions(ontology: str | tuple[str, ...]) -> str:
+    """Build the extraction prompt for a given kind ontology.
+
+    The kind list is injected from the *instance's* ontology so the
+    ``ontology=`` constructor argument actually changes what the model is told
+    (fix #1: the extractor must use an ontology independent of change ②'s
+    keep-categories, and that choice must be honoured, not implied).
+    """
+    kinds = ontology if isinstance(ontology, str) else ", ".join(ontology)
+    return (
+        "You extract the distinct load-bearing propositions from a document. "
+        "A proposition is one atomic claim. Count every place it is asserted as a "
+        "mention. Return ONLY JSON: a list under key \"propositions\", each item "
+        '{"id": str, "text": str, "kind": str, "tier": "must"|"should"|"detail", '
+        '"mention_sentences": [int, ...]}. The "kind" MUST be one of: '
+        + kinds
+        + ". Use 1-based or 0-based sentence indices consistently; every "
+        "proposition has at least one mention."
+    )
+
+
+# Default instruction string (the independent ontology), kept for reference and
+# for bare instances that carry no ``ontology`` attribute.
+_EXTRACT_INSTRUCTIONS = _extract_instructions(INDEPENDENT_ONTOLOGY)
 
 _ALIGN_INSTRUCTIONS = (
     "You align each SOURCE proposition to its fate in the TARGET document. "
@@ -142,55 +158,26 @@ _ALIGN_INSTRUCTIONS = (
 )
 
 
-class AnthropicExtractor:
-    """Reference cross-family extractor. Lazy-imports ``anthropic``.
+class _BaseLLMExtractor:
+    """Shared JSON parsing + ``extract``/``align`` for every LLM extractor.
 
-    The module imports fine without the ``llm`` extra; the import only happens
-    when an ``AnthropicExtractor`` is *constructed*. Missing extra surfaces as an
-    ``ImportError`` with an actionable install hint.
+    Holds everything that is *not* provider-specific: the ``_loads`` /
+    ``_parse_propositions`` / ``_parse_alignment`` helpers (pure, no network) and
+    the ``extract`` / ``align`` Protocol surface. A concrete subclass supplies a
+    single ``_complete(system, user) -> str`` method that issues one chat
+    completion against its provider; that method is the only network seam, so it
+    is the only thing a test would ever need to mock or fake.
 
-    Validity note (issue #10, fix #1): run this on a *different model family*
-    than the generator/evaluator under test, and feed it ``INDEPENDENT_ONTOLOGY``
-    (the default) so it never inherits change ②'s keep-categories.
+    This base intentionally has no ``__init__`` — each concrete family owns its
+    own constructor (and its own lazy SDK import), so a subclass can also be
+    instantiated bare via ``__new__`` to drive the pure parsers offline.
     """
 
-    def __init__(
-        self,
-        model: str,
-        *,
-        ontology: str | tuple[str, ...] = INDEPENDENT_ONTOLOGY,
-        api_key: str | None = None,
-    ) -> None:
-        try:
-            import anthropic  # noqa: F401  (lazy: keeps module import-safe)
-        except ImportError as exc:  # pragma: no cover - exercised via test w/o extra
-            raise ImportError(
-                "AnthropicExtractor requires the optional 'anthropic' "
-                "dependency. Install it with: "
-                "pip install 'eval-overexplanation[llm]'"
-            ) from exc
-
-        self.model = model
-        self.ontology = ontology
-        self._client = anthropic.Anthropic(api_key=api_key)
-
-    # -- the single network seam ------------------------------------------- #
+    # -- the single network seam (subclass responsibility) ----------------- #
 
     def _complete(self, system: str, user: str) -> str:
         """Issue one chat completion and return the raw text. Only mock-point."""
-        message = self._client.messages.create(
-            model=self.model,
-            max_tokens=4096,
-            system=system,
-            messages=[{"role": "user", "content": user}],
-        )
-        # The anthropic SDK returns content as a list of blocks; concatenate text.
-        parts: list[str] = []
-        for block in message.content:
-            text = getattr(block, "text", None)
-            if text is not None:
-                parts.append(text)
-        return "".join(parts)
+        raise NotImplementedError
 
     # -- parsing (pure; no network) ---------------------------------------- #
 
@@ -254,7 +241,8 @@ class AnthropicExtractor:
     # -- Protocol surface --------------------------------------------------- #
 
     def extract(self, document_id: str, text: str) -> PropositionSet:
-        raw = self._complete(_EXTRACT_INSTRUCTIONS, f"DOCUMENT:\n{text}")
+        ontology = getattr(self, "ontology", INDEPENDENT_ONTOLOGY)
+        raw = self._complete(_extract_instructions(ontology), f"DOCUMENT:\n{text}")
         return self._parse_propositions(document_id, raw)
 
     def align(self, source: PropositionSet, target: PropositionSet) -> Alignment:
@@ -265,3 +253,116 @@ class AnthropicExtractor:
             f"SOURCE PROPOSITIONS:\n{src_txt}\n\nTARGET PROPOSITIONS:\n{tgt_txt}",
         )
         return self._parse_alignment(source, target, raw)
+
+
+# --------------------------------------------------------------------------- #
+# AnthropicExtractor — reference cross-family extractor (lazy anthropic import)
+# --------------------------------------------------------------------------- #
+
+
+class AnthropicExtractor(_BaseLLMExtractor):
+    """Reference cross-family extractor. Lazy-imports ``anthropic``.
+
+    The module imports fine without the ``llm`` extra; the import only happens
+    when an ``AnthropicExtractor`` is *constructed*. Missing extra surfaces as an
+    ``ImportError`` with an actionable install hint.
+
+    Validity note (issue #10, fix #1): run this on a *different model family*
+    than the generator/evaluator under test, and feed it ``INDEPENDENT_ONTOLOGY``
+    (the default) so it never inherits change ②'s keep-categories.
+    """
+
+    def __init__(
+        self,
+        model: str,
+        *,
+        ontology: str | tuple[str, ...] = INDEPENDENT_ONTOLOGY,
+        api_key: str | None = None,
+    ) -> None:
+        try:
+            import anthropic  # noqa: F401  (lazy: keeps module import-safe)
+        except ImportError as exc:  # pragma: no cover - exercised via test w/o extra
+            raise ImportError(
+                "AnthropicExtractor requires the optional 'anthropic' "
+                "dependency. Install it with: "
+                "pip install 'eval-overexplanation[llm]'"
+            ) from exc
+
+        self.model = model
+        self.ontology = ontology
+        self._client = anthropic.Anthropic(api_key=api_key)
+
+    # -- the single network seam ------------------------------------------- #
+
+    def _complete(self, system: str, user: str) -> str:
+        """Issue one chat completion and return the raw text. Only mock-point."""
+        message = self._client.messages.create(
+            model=self.model,
+            max_tokens=4096,
+            system=system,
+            messages=[{"role": "user", "content": user}],
+        )
+        # The anthropic SDK returns content as a list of blocks; concatenate text.
+        parts: list[str] = []
+        for block in message.content:
+            text = getattr(block, "text", None)
+            if text is not None:
+                parts.append(text)
+        return "".join(parts)
+
+
+# --------------------------------------------------------------------------- #
+# OpenAIExtractor — second cross-family extractor (lazy openai import)
+# --------------------------------------------------------------------------- #
+
+
+class OpenAIExtractor(_BaseLLMExtractor):
+    """Second cross-family extractor (issue #10, fix #1). Lazy-imports ``openai``.
+
+    Same parsing/Protocol surface as ``AnthropicExtractor`` (both inherit
+    ``_BaseLLMExtractor``); only ``_complete`` differs. The module imports fine
+    without the ``llm`` extra; ``openai`` is imported only when an
+    ``OpenAIExtractor`` is *constructed*, and a missing extra surfaces as an
+    ``ImportError`` with the same actionable install hint.
+
+    ``base_url`` lets this target any OpenAI-compatible endpoint (vLLM, a local
+    server, a hosted open-weights model), so "the OpenAI family" is configurable
+    rather than pinned to OpenAI's own hosted models — useful for getting a
+    genuinely *different* model family than the system under test.
+    """
+
+    def __init__(
+        self,
+        model: str,
+        *,
+        ontology: str | tuple[str, ...] = INDEPENDENT_ONTOLOGY,
+        api_key: str | None = None,
+        base_url: str | None = None,
+    ) -> None:
+        try:
+            import openai  # noqa: F401  (lazy: keeps module import-safe)
+        except ImportError as exc:  # pragma: no cover - exercised via test w/o extra
+            raise ImportError(
+                "OpenAIExtractor requires the optional 'openai' "
+                "dependency. Install it with: "
+                "pip install 'eval-overexplanation[llm]'"
+            ) from exc
+
+        self.model = model
+        self.ontology = ontology
+        self._client = openai.OpenAI(api_key=api_key, base_url=base_url)
+
+    # -- the single network seam ------------------------------------------- #
+
+    def _complete(self, system: str, user: str) -> str:
+        """Issue one chat completion and return the raw text. Only mock-point."""
+        response = self._client.chat.completions.create(
+            model=self.model,
+            response_format={"type": "json_object"},
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+        )
+        content = response.choices[0].message.content
+        return content if content is not None else ""

@@ -1,0 +1,12 @@
+{
+  "entrypoint": "allowed",
+  "cases": [
+    {"label": "spec-example", "args": [[0, 1, 2, 11], 2, 10], "expected": [true, true, false, true]},
+    {"label": "empty", "args": [[], 3, 10], "expected": []},
+    {"label": "all-under-limit", "args": [[0, 1, 2], 5, 10], "expected": [true, true, true]},
+    {"label": "limit-one", "args": [[0, 5, 9, 10], 1, 10], "expected": [true, false, false, true]},
+    {"label": "window-reset", "args": [[0, 9, 10, 19, 20], 1, 10], "expected": [true, false, true, false, true]},
+    {"label": "aligned-boundaries", "args": [[8, 9, 10, 11, 12], 2, 4], "expected": [true, true, false, false, true]},
+    {"label": "limit-zero", "args": [[0, 1, 2], 0, 10], "expected": [false, false, false]}
+  ]
+}
