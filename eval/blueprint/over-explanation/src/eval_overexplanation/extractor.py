@@ -1,0 +1,267 @@
+"""Proposition extractors — the cross-family seam (issue #10, fix #1).
+
+This module provides two implementations of the ``PropositionExtractor``
+Protocol (see ``interfaces.py``):
+
+* ``FixtureExtractor`` — deterministic, dict-backed. Returns canned proposition
+  sets and alignments. Used for tests and offline runs; no LLM, no network.
+* ``AnthropicExtractor`` — the reference cross-family extractor. It lazy-imports
+  ``anthropic`` inside its constructor so this module is import-safe even when
+  the ``llm`` extra is absent. The only thing that touches the network is one
+  small private method (``_complete``), so that is the only seam a test would
+  ever need to mock.
+
+The ``INDEPENDENT_ONTOLOGY`` constant below is the proposition-kind taxonomy the
+LLM extractor is instructed to use. It is authored *independently* of change ②'s
+six keep-categories (fact / decision / constraint / interface-detail /
+rejected-alternative / testable-behavior). Reusing those verbatim would make
+proposition density rise by construction and invalidate the metric. The scheme
+here is worded independently — see the comment on the constant.
+"""
+
+from __future__ import annotations
+
+import json
+from typing import Any
+
+from .models import (
+    Alignment,
+    Proposition,
+    PropositionLink,
+    PropositionSet,
+    Relation,
+    Tier,
+)
+
+# --------------------------------------------------------------------------- #
+# Independent ontology (NOT change ②'s six keep-categories)
+# --------------------------------------------------------------------------- #
+#
+# Change ② keeps: fact / decision / constraint / interface-detail /
+# rejected-alternative / testable-behavior. We deliberately do NOT reuse those
+# labels — an extractor that inherited the treatment's own categories would make
+# the density metric move by construction (issue #10, fix #1). The kinds below
+# are an independently-worded scheme describing *what role a claim plays in
+# prose*, with no one-to-one mapping back onto the treatment's keep-list. They
+# are descriptive metadata only; no decision rule keys off specific kind strings
+# (see ``Proposition.kind`` in models.py).
+INDEPENDENT_ONTOLOGY: tuple[str, ...] = (
+    "assertion",        # a stated truth-claim about the world or the system
+    "directive",        # an instruction / requirement the reader must satisfy
+    "boundary",         # a limit, precondition, or scope restriction
+    "specification",    # a concrete shape: signature, field, value, format
+    "discarded-option",  # an approach considered and explicitly set aside
+    "expected-outcome",  # an observable result used to judge correctness
+)
+
+
+def _tier_from(value: Any) -> Tier:
+    """Coerce a JSON tier value to the ``Tier`` enum, defaulting to SHOULD."""
+    if value is None:
+        return Tier.SHOULD
+    try:
+        return Tier(str(value).lower())
+    except ValueError as exc:  # unknown tier string
+        raise ValueError(f"unknown proposition tier: {value!r}") from exc
+
+
+def _relation_from(value: Any) -> Relation:
+    """Coerce a JSON relation value to the ``Relation`` enum."""
+    try:
+        return Relation(str(value).lower())
+    except ValueError as exc:
+        raise ValueError(f"unknown alignment relation: {value!r}") from exc
+
+
+# --------------------------------------------------------------------------- #
+# FixtureExtractor — deterministic, no LLM
+# --------------------------------------------------------------------------- #
+
+
+class FixtureExtractor:
+    """Deterministic extractor for tests/offline runs. No LLM, no network.
+
+    Backed by two dicts handed in at construction:
+
+    * ``sets`` maps ``document_id -> PropositionSet``; ``extract`` returns the
+      canned set (and raises ``KeyError`` for an unknown id).
+    * ``alignments`` maps ``(source_id, target_id) -> Alignment``; ``align``
+      looks up the pair (and raises ``KeyError`` for an unknown pair).
+
+    It satisfies the ``PropositionExtractor`` Protocol structurally.
+    """
+
+    def __init__(
+        self,
+        sets: dict[str, PropositionSet],
+        alignments: dict[tuple[str, str], Alignment] | None = None,
+    ) -> None:
+        self._sets = dict(sets)
+        self._alignments = dict(alignments) if alignments is not None else {}
+
+    def extract(self, document_id: str, text: str) -> PropositionSet:
+        """Return the canned set for ``document_id`` (``KeyError`` if absent).
+
+        ``text`` is accepted to satisfy the Protocol but is ignored — the result
+        is fixed by ``document_id`` so callers get fully deterministic output.
+        """
+        return self._sets[document_id]
+
+    def align(self, source: PropositionSet, target: PropositionSet) -> Alignment:
+        """Return the canned alignment for the document-id pair.
+
+        Raises ``KeyError`` if no alignment was supplied for
+        ``(source.document_id, target.document_id)``.
+        """
+        return self._alignments[(source.document_id, target.document_id)]
+
+
+# --------------------------------------------------------------------------- #
+# AnthropicExtractor — reference cross-family extractor (lazy anthropic import)
+# --------------------------------------------------------------------------- #
+
+
+_EXTRACT_INSTRUCTIONS = (
+    "You extract the distinct load-bearing propositions from a document. "
+    "A proposition is one atomic claim. Count every place it is asserted as a "
+    "mention. Return ONLY JSON: a list under key \"propositions\", each item "
+    '{"id": str, "text": str, "kind": str, "tier": "must"|"should"|"detail", '
+    '"mention_sentences": [int, ...]}. The "kind" MUST be one of: '
+    + ", ".join(INDEPENDENT_ONTOLOGY)
+    + ". Use 1-based or 0-based sentence indices consistently; every "
+    "proposition has at least one mention."
+)
+
+_ALIGN_INSTRUCTIONS = (
+    "You align each SOURCE proposition to its fate in the TARGET document. "
+    "Return ONLY JSON: a list under key \"links\", each item "
+    '{"source_id": str, "target_id": str|null, "relation": '
+    '"preserved"|"merged_into"|"restated_elsewhere"|"dropped"}. '
+    "Every source proposition appears exactly once. A surviving relation names "
+    "a target_id; \"dropped\" names target_id null."
+)
+
+
+class AnthropicExtractor:
+    """Reference cross-family extractor. Lazy-imports ``anthropic``.
+
+    The module imports fine without the ``llm`` extra; the import only happens
+    when an ``AnthropicExtractor`` is *constructed*. Missing extra surfaces as an
+    ``ImportError`` with an actionable install hint.
+
+    Validity note (issue #10, fix #1): run this on a *different model family*
+    than the generator/evaluator under test, and feed it ``INDEPENDENT_ONTOLOGY``
+    (the default) so it never inherits change ②'s keep-categories.
+    """
+
+    def __init__(
+        self,
+        model: str,
+        *,
+        ontology: str | tuple[str, ...] = INDEPENDENT_ONTOLOGY,
+        api_key: str | None = None,
+    ) -> None:
+        try:
+            import anthropic  # noqa: F401  (lazy: keeps module import-safe)
+        except ImportError as exc:  # pragma: no cover - exercised via test w/o extra
+            raise ImportError(
+                "AnthropicExtractor requires the optional 'anthropic' "
+                "dependency. Install it with: "
+                "pip install 'eval-overexplanation[llm]'"
+            ) from exc
+
+        self.model = model
+        self.ontology = ontology
+        self._client = anthropic.Anthropic(api_key=api_key)
+
+    # -- the single network seam ------------------------------------------- #
+
+    def _complete(self, system: str, user: str) -> str:
+        """Issue one chat completion and return the raw text. Only mock-point."""
+        message = self._client.messages.create(
+            model=self.model,
+            max_tokens=4096,
+            system=system,
+            messages=[{"role": "user", "content": user}],
+        )
+        # The anthropic SDK returns content as a list of blocks; concatenate text.
+        parts: list[str] = []
+        for block in message.content:
+            text = getattr(block, "text", None)
+            if text is not None:
+                parts.append(text)
+        return "".join(parts)
+
+    # -- parsing (pure; no network) ---------------------------------------- #
+
+    @staticmethod
+    def _loads(raw: str) -> Any:
+        try:
+            return json.loads(raw)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"extractor returned non-JSON output: {exc}") from exc
+
+    def _parse_propositions(self, document_id: str, raw: str) -> PropositionSet:
+        data = self._loads(raw)
+        if not isinstance(data, dict) or "propositions" not in data:
+            raise ValueError("extractor output missing 'propositions' key")
+        items = data["propositions"]
+        if not isinstance(items, list):
+            raise ValueError("'propositions' must be a list")
+        props: list[Proposition] = []
+        for item in items:
+            if not isinstance(item, dict):
+                raise ValueError(f"proposition entry must be an object: {item!r}")
+            try:
+                mentions = tuple(int(s) for s in item["mention_sentences"])
+                prop = Proposition(
+                    id=str(item["id"]),
+                    text=str(item["text"]),
+                    kind=str(item["kind"]),
+                    tier=_tier_from(item.get("tier")),
+                    mention_sentences=mentions,
+                )
+            except (KeyError, TypeError, ValueError) as exc:
+                raise ValueError(f"malformed proposition {item!r}: {exc}") from exc
+            props.append(prop)
+        return PropositionSet(document_id=document_id, propositions=tuple(props))
+
+    def _parse_alignment(
+        self, source: PropositionSet, target: PropositionSet, raw: str
+    ) -> Alignment:
+        data = self._loads(raw)
+        if not isinstance(data, dict) or "links" not in data:
+            raise ValueError("extractor output missing 'links' key")
+        rows = data["links"]
+        if not isinstance(rows, list):
+            raise ValueError("'links' must be a list")
+        links: list[PropositionLink] = []
+        for row in rows:
+            if not isinstance(row, dict):
+                raise ValueError(f"link entry must be an object: {row!r}")
+            try:
+                target_id = row.get("target_id")
+                link = PropositionLink(
+                    source_id=str(row["source_id"]),
+                    target_id=None if target_id is None else str(target_id),
+                    relation=_relation_from(row["relation"]),
+                )
+            except (KeyError, TypeError, ValueError) as exc:
+                raise ValueError(f"malformed link {row!r}: {exc}") from exc
+            links.append(link)
+        return Alignment(source=source, target=target, links=tuple(links))
+
+    # -- Protocol surface --------------------------------------------------- #
+
+    def extract(self, document_id: str, text: str) -> PropositionSet:
+        raw = self._complete(_EXTRACT_INSTRUCTIONS, f"DOCUMENT:\n{text}")
+        return self._parse_propositions(document_id, raw)
+
+    def align(self, source: PropositionSet, target: PropositionSet) -> Alignment:
+        src_txt = "\n".join(f"{p.id}: {p.text}" for p in source.propositions)
+        tgt_txt = "\n".join(f"{p.id}: {p.text}" for p in target.propositions)
+        raw = self._complete(
+            _ALIGN_INSTRUCTIONS,
+            f"SOURCE PROPOSITIONS:\n{src_txt}\n\nTARGET PROPOSITIONS:\n{tgt_txt}",
+        )
+        return self._parse_alignment(source, target, raw)

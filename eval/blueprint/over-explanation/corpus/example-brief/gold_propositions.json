@@ -1,0 +1,40 @@
+{
+  "document_id": "example-brief-gold",
+  "propositions": [
+    {
+      "id": "p1",
+      "text": "running_total returns the cumulative sum: result[i] is the sum of inputs 0..i.",
+      "kind": "testable-outcome",
+      "tier": "must",
+      "mention_sentences": [0, 4]
+    },
+    {
+      "id": "p2",
+      "text": "The result list has the same length as the input list.",
+      "kind": "structural-property",
+      "tier": "must",
+      "mention_sentences": [2]
+    },
+    {
+      "id": "p3",
+      "text": "An empty input list returns an empty list.",
+      "kind": "edge-case",
+      "tier": "should",
+      "mention_sentences": [1]
+    },
+    {
+      "id": "p4",
+      "text": "The input list must not be mutated; a new list is returned.",
+      "kind": "constraint",
+      "tier": "should",
+      "mention_sentences": [1]
+    },
+    {
+      "id": "p5",
+      "text": "Negative numbers are supported and add into the running total.",
+      "kind": "detail",
+      "tier": "detail",
+      "mention_sentences": [3]
+    }
+  ]
+}
