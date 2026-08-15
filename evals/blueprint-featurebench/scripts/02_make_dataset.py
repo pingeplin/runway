@@ -63,12 +63,32 @@ def write_dataset(rows: list[dict[str, Any]], split: str, dataset: str, out_dir:
     return jsonl_path
 
 
+def purge_stale_cache(out_dir: Path) -> None:
+    # HF `datasets` keys the prepared-dataset cache by the directory BASENAME,
+    # so any previous dataset written to a same-named dir (e.g. the smoke
+    # test's fixture) can shadow this one — worst case `fb infer` silently
+    # reads stale rows. Drop the cache entry before the verification load
+    # regenerates it from the files just written.
+    import shutil
+
+    from datasets import config as ds_config
+
+    cache_root = Path(ds_config.HF_DATASETS_CACHE)
+    basename = out_dir.name
+    for path in [cache_root / basename, *cache_root.glob(f"*_{basename}_*.lock")]:
+        if path.is_dir():
+            shutil.rmtree(path, ignore_errors=True)
+        elif path.exists():
+            path.unlink(missing_ok=True)
+
+
 def verify_roundtrip(out_dir: Path, split: str, expect_rows: int, probe_id: str, probe_text: str) -> None:
     try:
         from datasets import load_dataset
     except ImportError:
         die("the `datasets` library is required: pip install datasets")
 
+    purge_stale_cache(out_dir)
     ds = load_dataset(str(out_dir), split=split)
     if len(ds) != expect_rows:
         die(f"round-trip failed: loaded {len(ds)} rows, expected {expect_rows}")

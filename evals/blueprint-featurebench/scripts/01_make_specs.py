@@ -16,7 +16,9 @@ import re
 import shutil
 import subprocess
 import sys
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
@@ -198,6 +200,7 @@ def main() -> int:
     parser.add_argument("--limit", type=int, default=None, help="Override [eval].limit")
     parser.add_argument("--task-ids-file", default=None, help="Newline-separated instance_ids to use instead of the first N")
     parser.add_argument("--force", action="store_true", help="Redo tasks whose spec already succeeded")
+    parser.add_argument("--parallel", type=int, default=1, help="Concurrent spec workers (claude -p sessions)")
     parser.add_argument("--claude-cmd", default="claude", help="Path to the claude binary (for smoke tests)")
     parser.add_argument("--mock-testbed", default=None, help="Copy this dir instead of docker cp (for smoke tests)")
     parser.add_argument("--mock-dataset", default=None, help="Read rows from this JSONL instead of HuggingFace")
@@ -245,8 +248,10 @@ def main() -> int:
     write_tasks(tasks)
 
     log(f"stage 01: {len(rows)} task(s) from {tasks['dataset']}:{split}")
+    state_lock = threading.Lock()
     n_ok = 0
-    for idx, row in enumerate(rows, 1):
+
+    def run_one(idx: int, row: dict[str, Any]) -> bool:
         task_id = row["instance_id"]
         meta_path = SPECS_DIR / f"{task_id}.meta.json"
 
@@ -256,25 +261,32 @@ def main() -> int:
             except (OSError, json.JSONDecodeError):
                 prior = {}
             if prior.get("ok") and (SPECS_DIR / f"{task_id}.md").exists():
-                tasks["tasks"][idx - 1]["status"] = STATUS_OK
-                write_tasks(tasks)
-                n_ok += 1
+                with state_lock:
+                    tasks["tasks"][idx - 1]["status"] = STATUS_OK
+                    write_tasks(tasks)
                 log(f"[{idx}/{len(rows)}] {task_id}: cached spec, skipping")
-                continue
+                return True
 
         log(f"[{idx}/{len(rows)}] {task_id}: extracting testbed + running /spec")
         meta = process_task(row, args, spec_cfg, template)
-        write_json(meta_path, meta)
-        tasks["tasks"][idx - 1]["status"] = STATUS_OK if meta.get("ok") else STATUS_FAILED
-        write_tasks(tasks)
+        with state_lock:
+            write_json(meta_path, meta)
+            tasks["tasks"][idx - 1]["status"] = STATUS_OK if meta.get("ok") else STATUS_FAILED
+            write_tasks(tasks)
 
         if meta.get("ok"):
-            n_ok += 1
             cost = meta.get("cost_usd")
             cost_s = f"${cost:.4f}" if isinstance(cost, (int, float)) else "cost n/a"
             log(f"[{idx}/{len(rows)}] {task_id}: ok ({cost_s}, {meta['wall_seconds']}s)")
-        else:
-            log(f"[{idx}/{len(rows)}] {task_id}: FAILED — {meta.get('error')}")
+            return True
+        log(f"[{idx}/{len(rows)}] {task_id}: FAILED — {meta.get('error')}")
+        return False
+
+    if args.parallel > 1:
+        with ThreadPoolExecutor(max_workers=args.parallel) as pool:
+            n_ok = sum(pool.map(run_one, range(1, len(rows) + 1), rows))
+    else:
+        n_ok = sum(run_one(idx, row) for idx, row in enumerate(rows, 1))
 
     log(f"stage 01 done: {n_ok}/{len(rows)} specs ok -> {RESULTS_DIR / 'tasks.json'}")
     if n_ok == 0:
