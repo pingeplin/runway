@@ -18,9 +18,19 @@ timeout_seconds = 900
 # Passed through to the `claude` CLI verbatim, between -p and --model.
 claude_args = ["--permission-mode", "bypassPermissions"]
 
+[verify]
+# Stage 06 (Arm C): headless `claude -p` run of blueprint's `/verify` referee
+# over Arm B's patch applied into a scratch copy of the task workspace.
+# Mirrors [spec]; omit the section to accept these defaults.
+model = "claude-sonnet-4-5"
+timeout_seconds = 900
+# Passed through to the `claude` CLI verbatim, between -p and --model.
+claude_args = ["--permission-mode", "bypassPermissions"]
+
 [infer]
 # Stage 03: the implementing agent. Identical in both arms — only the
-# problem_statement text differs.
+# problem_statement text differs. Stage 06's round-2 arms (C, C0) reuse
+# these settings verbatim.
 model = "claude-sonnet-4-5"
 # FeatureBench's own config (API keys for the in-container agent).
 # Relative paths resolve against this file's directory.
@@ -28,3 +38,45 @@ fb_config_path = "fb_config.toml"
 n_concurrent = 1
 # Per-task timeout inside the infer container, seconds.
 timeout_seconds = 3600
+
+[mutation]
+# Stage 07 (scripts/07_mutation.py) — the mutation-score overlay. Optional;
+# it runs after 03/04 and reads results/runs.json.
+#
+# What it does, per (task, arm): start the task's own docker image, rebuild the
+# exact state `fb infer` gave the agent (restore /testbed, apply the mask patch,
+# delete the FAIL_TO_PASS files, re-init git), apply the arm's model_patch, run
+# ONLY the test files the agent itself added or modified, then mutate the
+# agent's own source changes and rerun those tests. Kill rate = killed /
+# applicable. Outputs results/mutation/<arm>/<id>.json and
+# results/mutation_report.md.
+#
+#   uv run --python 3.12 --with datasets python3 scripts/07_mutation.py \
+#       --arm both --dry-run
+#
+# Flags: --arm <key from runs.json|both>, --task-id <id> (repeatable),
+# --force (recompute cached cells), --dry-run, --claude-cmd, --docker-cmd.
+# Cells are resumable: an existing results/mutation/<arm>/<id>.json is reused.
+#
+# Model that PROPOSES the mutations (runs on the host via `claude -p`, one pass
+# per cell). It never touches the container; only its JSON proposals do.
+model = "claude-sonnet-4-5"
+timeout_seconds = 600
+claude_args = ["--permission-mode", "bypassPermissions"]
+# Mutations requested per cell. Small on purpose — eval-methodology.md's
+# strategic-mutation method values 6-10 hand-aimed sites over hundreds of
+# random ones. Non-applicable proposals are dropped, so applicable < this.
+n_mutations = 6
+# Host-side timeout on each in-container `docker exec` that runs the tests.
+# Note: we do NOT append FeatureBench's `--timeout=<timeout_one>` pytest flag,
+# because pytest-timeout is not in every image and its absence makes pytest
+# exit 4 (usage error), which would look like a broken cell.
+test_timeout_seconds = 1800
+
+[taxonomy]
+# Stage 08: host-side `claude -p` rater that classifies WHY a failing
+# (task, arm) cell failed (spec_wrong / impl_wrong / env_or_flaky / unclear).
+model = "claude-sonnet-4-5"
+timeout_seconds = 300
+# Passed through to the `claude` CLI verbatim, between -p and --model.
+claude_args = ["--permission-mode", "bypassPermissions"]

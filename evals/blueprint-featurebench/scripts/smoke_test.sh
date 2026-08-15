@@ -56,7 +56,17 @@ for i in range(1, 5):
         "instance_id": f"acme__widget-{i}.lv1",
         "problem_statement": f"Original statement for task {i}.",
         "image_name": f"librecoders/featurebench:acme_widget_{i}",
-        "patch": "diff --git a/x b/x\n",
+        # Realistic mask patch: fb infer applies it to strip the reference
+        # solution before the agent (or /spec) sees the tree. Removes the
+        # oracle line that the fixture testbed plants in src/widget.py.
+        "patch": (
+            "diff --git a/src/widget.py b/src/widget.py\n"
+            "--- a/src/widget.py\n"
+            "+++ b/src/widget.py\n"
+            "@@ -1,2 +1 @@\n"
+            " def widget(): pass\n"
+            "-REFERENCE_SOLUTION = True\n"
+        ),
         "FAIL_TO_PASS": [f"tests/test_{i}.py::test_feature"],
         "repo_settings": "{}",
     })
@@ -66,9 +76,13 @@ with open(sys.argv[1], "w") as f:
 PY
 
 TESTBED="$TMP/testbed"
-mkdir -p "$TESTBED/src"
-echo "def widget(): pass" > "$TESTBED/src/widget.py"
+mkdir -p "$TESTBED/src" "$TESTBED/tests"
+printf 'def widget(): pass\nREFERENCE_SOLUTION = True\n' > "$TESTBED/src/widget.py"
 echo "# acme widget" > "$TESTBED/README.md"
+# F2P test files that stage 01 must delete before /spec sees the tree.
+for i in 1 2 3 4; do echo "def test_feature(): pass" > "$TESTBED/tests/test_$i.py"; done
+git -C "$TESTBED" init -q && git -C "$TESTBED" add -A && \
+  git -C "$TESTBED" -c user.email=smoke@test -c user.name=smoke commit -qm testbed
 
 # Mock claude: same argv shape as the real one, emits --output-format json and
 # actually writes a spec under .blueprint/specs/ in cwd.
@@ -120,8 +134,14 @@ for tid in ids:
     assert meta["ok"] is True and meta["cost_usd"] == 0.1234, meta
     assert meta["spec_located_by"] == "marker", meta
     assert meta["duration_ms"] == 4200 and meta["usage"]["input_tokens"] == 1000, meta
+    assert meta["mask_applied"] is True and meta["f2p_deleted"] == 1, meta
+    ws = ev / "results/workspaces" / tid
+    assert "REFERENCE_SOLUTION" not in (ws / "src/widget.py").read_text(), \
+        "oracle survived masking"
+    i = tid.split("-")[1].split(".")[0]
+    assert not (ws / "tests" / f"test_{i}.py").exists(), "F2P test file not deleted"
 PY
-pass "tasks.json / specs/<id>.md / specs/<id>.meta.json written"
+pass "tasks.json / specs / metas written; oracle masked, F2P tests deleted"
 
 # Resume path: a second run must not re-invoke claude.
 BROKEN="$TMP/broken-claude"

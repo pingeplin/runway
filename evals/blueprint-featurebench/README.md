@@ -101,6 +101,48 @@ python3 scripts/04_eval.py
 python3 scripts/05_report.py
 ```
 
+**6. Arm C — the `/verify` referee loop (optional)**
+
+```bash
+python3 scripts/06_arm_c.py --stage all --arm both-c --dry-run
+python3 scripts/06_arm_c.py --stage all --arm both-c
+python3 scripts/05b_report_c.py
+```
+
+Takes Arm B's patch, referees it host-side with headless `/verify` (static
+checks only — the referee cannot run the suite outside docker), then runs a
+second `fb infer` round whose problem statement carries the previous patch
+plus the verdict. **C0** is the attribution control: an identical second round
+with a generic self-review instruction instead of the verdict, so
+`report_c.md` can separate "the referee helped" from "a second iteration
+helped".
+
+**7. Mutation overlay — agent-written test quality (optional)**
+
+```bash
+python3 scripts/07_mutation.py --arm both --dry-run
+python3 scripts/07_mutation.py --arm both
+```
+
+FeatureBench scores hidden tests only; this measures the tests the
+implementing agent itself wrote. Per (task, arm): rebuild the exact tree the
+agent saw inside the task's container, apply its patch, run its own test
+files, then apply LLM-chosen strategic source mutations and count kills.
+Output: `results/mutation_report.md` (kill rates per cell and per arm, with a
+census of cells that shipped no agent tests at all — itself signal).
+
+**8. Failure taxonomy (optional)**
+
+```bash
+python3 scripts/08_taxonomy.py --dry-run
+python3 scripts/08_taxonomy.py
+```
+
+Classifies every unresolved (task, arm) cell as `spec_wrong` / `impl_wrong` /
+`env_or_flaky` / `unclear` (plus a helped/neutral/harmed spec-contribution
+call for non-A arms) from the problem, spec, patch, and failing test log.
+Output: `results/taxonomy_report.md`. Single-LLM-rater; directional.
+
 ## Expected outputs
 
 ```
@@ -129,12 +171,25 @@ total spec-stage cost, and a caveats block.
 ## Verifying the harness offline
 
 ```bash
-bash scripts/smoke_test.sh
+bash scripts/smoke_all.sh    # all four suites, correct deps per suite
 ```
 
-Runs the whole pipeline in a temp directory against fixtures — a fake `claude`,
-a fake testbed, a JSONL dataset, and synthetic eval reports. Needs no docker,
-no network, no `fb`, and no API key. Set `KEEP_TMP=1` to keep the fixture tree.
+Runs the whole pipeline in temp directories against fixtures — a fake
+`claude`, a fake testbed, a JSONL dataset, mock docker, and synthetic eval
+reports. Needs no real docker, no network, no `fb`, and no API key. Individual
+suites: `smoke_test.sh` (stages 00–05), `smoke_arm_c.sh`, `smoke_mutation.sh`,
+`smoke_taxonomy.sh`. Set `KEEP_TMP=1` to keep a fixture tree.
+
+## Oracle masking (do not skip)
+
+The task images' `/testbed` still **contains the reference solution**;
+`fb infer` strips it (applies the dataset's mask `patch`, deletes the
+`FAIL_TO_PASS` test files) before the agent sees the tree. Every stage here
+that shows the codebase to a model reproduces that masking
+(`_common.mask_reference_solution`): stage 01 before `/spec`, stage 06 before
+`/verify`, stage 07 before applying a patch. A spec written against an
+unmasked tree is written with oracle access and its results are invalid —
+stage 01 hard-fails a task whose mask patch does not apply.
 
 ## Troubleshooting
 

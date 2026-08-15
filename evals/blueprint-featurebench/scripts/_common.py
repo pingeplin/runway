@@ -27,6 +27,70 @@ def die(msg: str) -> None:
     raise SystemExit(1)
 
 
+def mask_reference_solution(workspace, row):
+    """Strip the reference implementation from an extracted /testbed.
+
+    fb infer does not hand the agent /testbed as-is: it applies the dataset's
+    `patch` (a mask that removes the feature) and deletes the FAIL_TO_PASS
+    test files (featurebench/infer/runtime.py _initialize_level1). Any stage
+    that shows the codebase to a model MUST reproduce this, or the model sees
+    the oracle. Returns {"mask_applied": bool|None, "f2p_deleted": int,
+    "mask_error": str?}; mask_applied is None when the row carries no patch.
+    """
+    import json as _json
+    import subprocess as _sp
+
+    info = {"mask_applied": None, "f2p_deleted": 0}
+    mask = row.get("patch") or ""
+    if mask.strip():
+        mask_file = workspace.parent / f"{workspace.name}.mask.patch"
+        mask_file.write_text(mask if mask.endswith("\n") else mask + "\n", encoding="utf-8")
+        proc = _sp.run(
+            ["git", "apply", "--whitespace=fix", str(mask_file)],
+            cwd=workspace, capture_output=True, text=True,
+        )
+        mask_file.unlink(missing_ok=True)
+        info["mask_applied"] = proc.returncode == 0
+        if proc.returncode != 0:
+            info["mask_error"] = (proc.stderr or proc.stdout or "").strip()[-300:]
+
+    raw = row.get("FAIL_TO_PASS") or []
+    if isinstance(raw, str):
+        try:
+            raw = _json.loads(raw)
+        except _json.JSONDecodeError:
+            raw = [raw]
+    if isinstance(raw, str):
+        raw = [raw]
+    for rel in sorted({str(t).split("::")[0] for t in raw if str(t).strip()}):
+        target = workspace / rel
+        if target.is_file():
+            target.unlink()
+            info["f2p_deleted"] += 1
+    return info
+
+
+def load_script_module(filename: str):
+    """Import a sibling stage script whose name is not a valid identifier.
+
+    Stage files are named `NN_thing.py`, so `import 02_make_dataset` is a
+    syntax error. Later stages reuse earlier stages' helpers through this
+    instead of duplicating them.
+    """
+    import importlib.util
+
+    path = Path(__file__).resolve().parent / filename
+    if not path.exists():
+        die(f"stage script not found: {path}")
+    spec = importlib.util.spec_from_file_location(path.stem, path)
+    if spec is None or spec.loader is None:
+        die(f"could not load stage script: {path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules.setdefault(path.stem, module)
+    spec.loader.exec_module(module)
+    return module
+
+
 def add_config_arg(parser) -> None:
     parser.add_argument(
         "--config",

@@ -32,6 +32,7 @@ from _common import (
     die,
     load_config,
     load_split_rows,
+    mask_reference_solution,
     read_json,
     write_json,
     write_tasks,
@@ -148,6 +149,14 @@ def process_task(
     except subprocess.CalledProcessError as exc:
         stderr = (exc.stderr or "").strip()[-500:]
         meta.update(ok=False, error=f"testbed extraction failed: {stderr}")
+        return meta
+
+    # /testbed still contains the reference solution; strip it exactly the
+    # way fb infer does, or the spec gets written with oracle access.
+    mask_info = mask_reference_solution(workspace, row)
+    meta.update(mask_info)
+    if mask_info["mask_applied"] is False:
+        meta.update(ok=False, error=f"mask patch failed to apply: {mask_info.get('mask_error', '')}")
         return meta
 
     prompt = template.replace("{problem_statement}", row.get("problem_statement", ""))
