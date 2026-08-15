@@ -1,0 +1,52 @@
+{
+  "mutations": [
+    {
+      "label": "strict_cursor",
+      "filename": "oracle.py",
+      "find": "item <= cursor",
+      "replace": "item < cursor"
+    },
+    {
+      "label": "overfill_page",
+      "filename": "oracle.py",
+      "find": "len(page_items) >= size",
+      "replace": "len(page_items) > size"
+    },
+    {
+      "label": "shift_items",
+      "filename": "oracle.py",
+      "find": "page_items.append(item)",
+      "replace": "page_items.append(item + 1)"
+    },
+    {
+      "label": "cursor_from_first",
+      "filename": "oracle.py",
+      "find": "page_items[-1] if page_items else None",
+      "replace": "page_items[0] if page_items else None"
+    },
+    {
+      "label": "invert_cursor_guard",
+      "filename": "oracle.py",
+      "find": "cursor is not None",
+      "replace": "cursor is None"
+    },
+    {
+      "label": "scan_past_page",
+      "filename": "oracle.py",
+      "find": "break",
+      "replace": "continue"
+    },
+    {
+      "label": "echo_old_cursor",
+      "filename": "oracle.py",
+      "find": "return [page_items, next_cursor]",
+      "replace": "return [page_items, cursor]"
+    },
+    {
+      "label": "seed_page",
+      "filename": "oracle.py",
+      "find": "page_items: list[int] = []",
+      "replace": "page_items: list[int] = [0]"
+    }
+  ]
+}

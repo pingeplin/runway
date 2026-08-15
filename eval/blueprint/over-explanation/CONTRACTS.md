@@ -612,3 +612,168 @@ and extend `test_stats.py`, `test_extractor.py`, `test_cli.py`. Offline only:
 `FixtureExtractor`, hand-built inputs, `tmp_path`. Cover every `decide` branch,
 each invariance kind (pass + fail), Holm monotonicity, leave-one-out sign
 stability, the dedup-sweep stability flag, and the noise-floor combiner.
+
+# BLUEPRINT-BENCH v1 — benchmark-layer contracts
+
+`BENCHMARK.md` is the frozen source of truth (§3 module contracts, §4 manifest
+fields); this section records the shipped signatures. Style unchanged: frozen
+dataclasses, pure functions over parsed data, no new Protocols.
+
+## `usage.py` — fail-closed transcript usage (U1/U2/U4/U6)
+
+```python
+@dataclass(frozen=True)
+class ToolCallCounts:
+    edit: int; write: int; bash: int; other: int
+    @property
+    def total(self) -> int
+
+@dataclass(frozen=True)
+class UsageReport:
+    status: str            # "ok" | "missing" | "timeout" | "error"
+    subtype: str | None    # result.subtype; None when status != "ok"
+    num_turns: int | None
+    output_tokens: int | None
+    input_tokens: int | None             # recorded, NEVER scored (length proxy)
+    cache_creation_input_tokens: int | None   # diagnostic only
+    cache_read_input_tokens: int | None       # diagnostic only
+    total_cost_usd: float | None         # budget layer only
+    duration_ms: int | None
+    tool_calls: ToolCallCounts           # top-level blocks only; diagnostic
+    detail: str = ""
+
+def parse_usage(lines: Iterable[str], *, return_code: int = 0) -> UsageReport
+def spend_index(report: UsageReport, code_tokens: int) -> float  # ln(output+code)
+```
+
+No result event ⇒ `status="missing"` with every numeric `None` — never 0.
+`rc==124` ⇒ timeout; error subtypes ⇒ error; last result event wins.
+
+## `deadend.py` — U0/U3/U5 signals + O4 lint + L1-L4 leakage
+
+```python
+@dataclass(frozen=True)
+class DeadEndReport:
+    reverted_edits: int; failed_test_cycles: int; clarifying_questions: int
+    trailing_question_marks: int          # reported diagnostic, never a gate
+    leak_hits: tuple[str, ...]
+    @property
+    def dead_ends(self) -> int            # reverted + failed cycles
+
+@dataclass(frozen=True)
+class WorkaroundReport:
+    skips: int; assert_true: int; swallowed_except: int
+    hardcoded_expectations: int; not_implemented: int; todos: int
+    hits: tuple[str, ...]
+    @property
+    def total(self) -> int
+
+@dataclass(frozen=True)
+class LeakageReport:
+    code_frac: float; reference_containment: float; copy_containment: float
+    spec_only_correctness: float          # nan when L4 has no signal (flagged)
+    blocked: bool; reasons: tuple[str, ...]
+
+def iter_tool_uses(lines) -> tuple[ToolUse, ...]        # top-level only
+def count_reverted_edits(tool_uses) -> int              # Edit restores + Write clobbers
+def count_failed_test_cycles(tool_uses, tool_results) -> int
+def count_clarifying_questions(tool_uses) -> int
+def count_leaks(tool_uses, patterns) -> tuple[str, ...]
+def deadend_report(lines, *, leak_patterns) -> DeadEndReport
+def workaround_lint(src_dir: Path, cases) -> WorkaroundReport   # ast only, never exec
+def ngram_containment(a: str, b: str, *, n: int = 5) -> float   # max(raw, skeleton)
+def spec_code_blocks(markdown) -> tuple[str, ...]   # fenced bodies — parsing utility only
+def spec_code_lines(markdown) -> tuple[str, ...]    # whole-document, RAW lines — L1 + code_tok
+def spec_code_source(markdown) -> str               # same lines, BOTH dressings — L2/L3
+def spec_python_source(markdown) -> str             # L4's candidate: the part that parses
+def code_token_count(markdown) -> int               # code_tok(spec) for U1 + L1
+def leakage_report(spec_md, reference_py, impl_src,
+                   spec_only_correctness, caps) -> LeakageReport
+#   detection classifies each line raw AND dressing-stripped (> - * + | 1.)
+#   L2 = reference-denominated presence (docstring-stripped oracle grams as the
+#        denominator, maxed with the raw-spec-stream and legacy channels)
+#   L3 = impl-denominated; the caller passes NON-TEST impl sources only
+```
+
+## `score.py` — the §2 scorer (pure; no stats, no I/O)
+
+```python
+class ScoreThresholds  # every §2/§4 number as parameters; defaults = BENCHMARK.md
+def thresholds_from_bench(bench: manifest.BenchThresholds) -> ScoreThresholds
+
+@dataclass(frozen=True) class GateCheck:      id; value; threshold; passed; detail
+@dataclass(frozen=True) class MetricValue:    id; value; ci; p_holm; extra
+@dataclass(frozen=True) class DimensionScore: name; metrics; subscore; verdict; ...
+@dataclass(frozen=True) class CellCounts:     expected; complete; missing; timeout;
+                                              error; retried; merge_skipped;
+                                              mutations_skipped; holdout_skipped
+@dataclass(frozen=True) class C1Stats:        mean_delta; ci; p_holm; sign_stable;
+                                              large_realistic_delta
+@dataclass(frozen=True) class GateValues:     ... every gate's raw value ...
+@dataclass(frozen=True) class ArmInputs / ScoreInputs / ArmScore / ScoreReport
+
+def subscore_linear(effect, noise_floor, target, *, min_den) -> float
+def outcome_subscore(correctness, kill_rate, bloat_ln, *, ...) -> float
+def composite(dims, weights) -> float
+def evaluate_gates(inputs) -> tuple[GateCheck, ...]
+def c1_failures(stats, noise_floor_c, thresholds) -> tuple[str, ...]
+def score_report(inputs) -> ScoreReport        # §2 precedence, rows 0-14
+def render_score_json(report) -> str           # canonical, byte-stable
+def exit_code(report) -> int                   # 0 | 1 | 4
+```
+
+## `manifest.py` — `BenchThresholds` (§4) on `PreRegistration.bench`
+
+```python
+@dataclass(frozen=True)
+class BenchThresholds:
+    u_arms; implementer_ref; preamble_template; sandbox_test_cmd
+    weights; composite_pass
+    c1_gate_noise_multiple  # 2.0 — the §1-C1 GATE multiple
+    c_scale_noise_multiple  # 4.0 — the §2 composite SCALE (distinct on purpose)
+    c_target_floor; u_target_ln; tost_margins; min_power
+    dead_end_cap; o1_min_correctness; o2_max_overfit; o3_min_kill_rate
+    o5_bloat_cap_ln; leak_caps; frag_rate_cap
+    max_incomplete_fraction; max_merge_skipped_fraction; min_stratum_n
+    max_usd; max_retries; leak_patterns; mutations_per_brief  # == 8
+```
+
+`PreRegistration.bench: BenchThresholds | None = None` — absent keeps
+pre-bench hashes intact; present requires the `bench-1-` version prefix and is
+covered by `content_hash()`. `validate()` adds: u_arms ⊆ arms, `A3b_dumb` in
+u_arms, weights sum to 1.0, non-empty `implementer_ref`/`preamble_template`
+with both `{module}` and `{entrypoint}`, `mutations_per_brief == 8`.
+
+## `corpus.py` — blind O2/O3 assets
+
+```python
+def load_holdout_cases(brief_dir) -> tuple[OracleCase, ...] | None  # absent => None => skipped
+def load_mutations(brief_dir)     -> tuple[Mutation, ...] | None    # absent => None => skipped
+```
+
+## `substance.py` — C4 (reported only)
+
+```python
+def alignment_purity(alignment: Alignment) -> float
+# |links with relation != DROPPED| / target.distinct; repetition-invariant
+```
+
+## `cli.py` — six bench subcommands (thin wiring + two owned duties)
+
+`usage | deadend | leakage | outcome | bench-trust | score`; exit `4` = not
+scorable. The CLI's two owned duties (BENCHMARK.md §3): assembling the O3
+merged reference dir (`corpus/<b>/oracle.py` staged as `<brief.module>.py` +
+the arm's `tests/`, smoke precondition first — smoke failure ⇒ no O3 signal),
+and the fail-closed score packing — `manifest_hash_matches` recomputed from
+the manifest file, thresholds from `bench.*`, and every `CellCounts.expected`
+computed from the manifest panel with the shortfall back-filled as `missing`.
+
+## `scripts/run-implementer.sh` / `run-arm.sh`
+
+`run-implementer.sh <ARM_ID> <BRIEF> <SEED>`: spec-only staging outside the
+repo tree, frozen preamble render, `prompt_sha` normalization frozen in
+BENCHMARK.md §1-U0, retry on `error_during_execution`, and a fail-closed exit:
+**any `status != "ok"` exits non-zero**, even when the CLI returned 0.
+`run-arm.sh`: the live generate workspace lives under `ARM_WORKROOT` (must
+resolve outside the repo tree, refused otherwise); `cell.json` records
+`workspace` + `workspace_outside_repo: true` and the cell keeps a snapshot.

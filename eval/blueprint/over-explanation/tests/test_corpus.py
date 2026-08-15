@@ -218,3 +218,71 @@ def test_brief_without_md_yields_empty_text(tmp_path: Path) -> None:
     brief = load_brief(d)
     assert brief.text == ""
     assert brief.regime is Regime.LARGE_REALISTIC
+
+
+# --------------------------------------------------------------------------- #
+# BLUEPRINT-BENCH blind assets: cases_holdout.json + mutations.json
+# (absent => None => dimension SKIPPED upstream, never passed)
+# --------------------------------------------------------------------------- #
+
+
+def test_load_holdout_cases_absent_is_none(tmp_path: Path) -> None:
+    from eval_overexplanation.corpus import load_holdout_cases
+
+    assert load_holdout_cases(tmp_path) is None
+
+
+def test_load_holdout_cases_present_parses(tmp_path: Path) -> None:
+    from eval_overexplanation.corpus import load_holdout_cases
+
+    (tmp_path / "cases_holdout.json").write_text(
+        json.dumps({"cases": [
+            {"label": "h1", "args": [[1, 2]], "expected": [1, 3]}]})
+    )
+    cases = load_holdout_cases(tmp_path)
+    assert cases == (OracleCase(label="h1", args=([1, 2],), expected=[1, 3]),)
+
+
+def test_load_holdout_cases_malformed_raises(tmp_path: Path) -> None:
+    from eval_overexplanation.corpus import load_holdout_cases
+
+    (tmp_path / "cases_holdout.json").write_text('{"cases": "nope"}')
+    with pytest.raises(ValueError):
+        load_holdout_cases(tmp_path)
+
+
+def test_load_mutations_absent_is_none(tmp_path: Path) -> None:
+    from eval_overexplanation.corpus import load_mutations
+
+    assert load_mutations(tmp_path) is None
+
+
+def test_load_mutations_present_parses(tmp_path: Path) -> None:
+    from eval_overexplanation.corpus import load_mutations
+    from eval_overexplanation.models import Mutation
+
+    (tmp_path / "mutations.json").write_text(json.dumps({"mutations": [
+        {"label": "m1", "filename": "mod.py", "find": "a + b",
+         "replace": "a - b"},
+    ]}))
+    muts = load_mutations(tmp_path)
+    assert muts == (Mutation(label="m1", filename="mod.py", find="a + b",
+                             replace="a - b"),)
+
+
+def test_load_mutations_missing_key_raises(tmp_path: Path) -> None:
+    from eval_overexplanation.corpus import load_mutations
+
+    (tmp_path / "mutations.json").write_text(json.dumps({"mutations": [
+        {"label": "m1", "filename": "mod.py", "find": "a + b"},
+    ]}))
+    with pytest.raises(ValueError):
+        load_mutations(tmp_path)
+
+
+def test_load_mutations_malformed_json_raises(tmp_path: Path) -> None:
+    from eval_overexplanation.corpus import load_mutations
+
+    (tmp_path / "mutations.json").write_text("{not json")
+    with pytest.raises(ValueError):
+        load_mutations(tmp_path)

@@ -1,0 +1,78 @@
+{
+  "entrypoint": "process",
+  "cases": [
+    {
+      "label": "h_interleaved",
+      "args": [
+        [
+          [
+            "x9",
+            3
+          ],
+          [
+            "y7",
+            4
+          ],
+          [
+            "x9",
+            8
+          ],
+          [
+            "z2",
+            1
+          ],
+          [
+            "y7",
+            6
+          ]
+        ]
+      ],
+      "expected": [
+        "x9",
+        "y7",
+        "z2"
+      ]
+    },
+    {
+      "label": "h_triple_dupe",
+      "args": [
+        [
+          [
+            "q4",
+            2
+          ],
+          [
+            "q4",
+            2
+          ],
+          [
+            "q4",
+            9
+          ]
+        ]
+      ],
+      "expected": [
+        "q4"
+      ]
+    },
+    {
+      "label": "h_two_keys",
+      "args": [
+        [
+          [
+            "m8",
+            11
+          ],
+          [
+            "n6",
+            12
+          ]
+        ]
+      ],
+      "expected": [
+        "m8",
+        "n6"
+      ]
+    }
+  ]
+}

@@ -22,8 +22,12 @@ Tolerance policy (issue #10 contract):
 
 * A missing ``cases.json`` is *tolerated* — a non-buildable brief simply has no
   oracle, so :func:`load_oracle_cases` returns ``()``.
-* A *malformed* ``cases.json`` (bad JSON, wrong shape) is *strict* — it raises,
-  because a present-but-broken oracle is an authoring error, not an absence.
+* A missing ``cases_holdout.json`` / ``mutations.json`` (the BLUEPRINT-BENCH
+  blind O2/O3 assets) is *tolerated* as ``None`` — the dimension cell is then
+  SKIPPED, never passed; the skip is counted upstream, fail-closed.
+* A *malformed* asset of any of the above (bad JSON, wrong shape) is *strict* —
+  it raises, because a present-but-broken asset is an authoring error, not an
+  absence.
 """
 
 from __future__ import annotations
@@ -33,6 +37,7 @@ from pathlib import Path
 
 from .models import (
     Brief,
+    Mutation,
     OracleCase,
     Proposition,
     PropositionSet,
@@ -44,6 +49,8 @@ BRIEF_JSON = "brief.json"
 BRIEF_MD = "brief.md"
 GOLD_JSON = "gold_propositions.json"
 CASES_JSON = "cases.json"
+HOLDOUT_JSON = "cases_holdout.json"
+MUTATIONS_JSON = "mutations.json"
 
 
 def _read_json(path: Path) -> object:
@@ -206,7 +213,11 @@ def load_oracle_cases(brief_dir: Path) -> tuple[OracleCase, ...]:
     cases_path = brief_dir / CASES_JSON
     if not cases_path.exists():
         return ()
+    return _parse_cases_file(cases_path)
 
+
+def _parse_cases_file(cases_path: Path) -> tuple[OracleCase, ...]:
+    """Parse a present ``cases*.json`` file (shared by visible + holdout)."""
     data = _require_mapping(_read_json(cases_path), cases_path)
     raw_cases = data.get("cases")
     if not isinstance(raw_cases, list):
@@ -230,6 +241,67 @@ def load_oracle_cases(brief_dir: Path) -> tuple[OracleCase, ...]:
             )
         )
     return tuple(cases)
+
+
+def load_holdout_cases(brief_dir: Path) -> tuple[OracleCase, ...] | None:
+    """Load ``cases_holdout.json`` (O2's blind holdout), tolerant of absence.
+
+    Returns ``None`` when the file is absent — the O2 cell is then *skipped*,
+    never passed (BENCHMARK.md §1 O2: no holdout means no signal; the skip is
+    counted into ``o2_skipped_fraction`` upstream, and over 30% skips force
+    dimension O underpowered). Same shape and same strictness as
+    :func:`load_oracle_cases` when the file is present: a malformed holdout is
+    an authoring error and raises ``ValueError``.
+    """
+    brief_dir = Path(brief_dir)
+    holdout_path = brief_dir / HOLDOUT_JSON
+    if not holdout_path.exists():
+        return None
+    return _parse_cases_file(holdout_path)
+
+
+def load_mutations(brief_dir: Path) -> tuple[Mutation, ...] | None:
+    """Load ``mutations.json`` (O3's blind battery), tolerant of absence.
+
+    Returns ``None`` when the file is absent — the O3 cell is then *skipped*,
+    never passed (the skip is counted into ``o3_skipped_fraction`` upstream).
+    Present-but-malformed raises ``ValueError``.
+
+    Shape::
+
+        {"mutations": [{"label": str, "filename": str,
+                        "find": str, "replace": str}, ...]}
+
+    ``filename`` is relative to the O3 merged reference dir the CLI assembles
+    (the frozen reference staged as ``<brief.module>.py`` + the arm's tests),
+    so mutations target the module file the arm's tests import.
+    """
+    brief_dir = Path(brief_dir)
+    mutations_path = brief_dir / MUTATIONS_JSON
+    if not mutations_path.exists():
+        return None
+
+    data = _require_mapping(_read_json(mutations_path), mutations_path)
+    raw = data.get("mutations")
+    if not isinstance(raw, list):
+        raise ValueError(f"{mutations_path}: 'mutations' must be a list")
+
+    mutations: list[Mutation] = []
+    for entry in raw:
+        mut = _require_mapping(entry, mutations_path)
+        for key in ("label", "filename", "find", "replace"):
+            if key not in mut:
+                raise ValueError(
+                    f"{mutations_path}: mutation missing required key {key!r}")
+        mutations.append(
+            Mutation(
+                label=str(mut["label"]),
+                filename=str(mut["filename"]),
+                find=str(mut["find"]),
+                replace=str(mut["replace"]),
+            )
+        )
+    return tuple(mutations)
 
 
 def load_corpus(root: Path) -> tuple[Brief, ...]:

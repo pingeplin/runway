@@ -1,5 +1,5 @@
 {
-  "version": "milestone-1",
+  "version": "bench-1-milestone-1",
   "arms": [
     {
       "id": "A0",
@@ -12,40 +12,183 @@
       "id": "A1",
       "label": "treatment",
       "plugin_ref": "blueprint@over-explanation",
-      "evaluator": {"rule": "delete_or_merge"},
+      "evaluator": {
+        "rule": "delete_or_merge"
+      },
       "description": "Over-explanation fix: evaluator deletes or merges redundant proposition mentions."
     },
     {
       "id": "A3_fair",
       "label": "fair_brevity",
       "plugin_ref": "blueprint@brevity-fair",
-      "evaluator": {"rule": "one_line_full_sentence"},
+      "evaluator": {
+        "rule": "one_line_full_sentence"
+      },
       "description": "Honest brevity control: tighten to one full grammatical sentence per claim, no word dropping."
     },
     {
       "id": "A2_placebo",
       "label": "placebo",
       "plugin_ref": "blueprint@placebo",
-      "evaluator": {"rule": "noop_reformat"},
+      "evaluator": {
+        "rule": "noop_reformat"
+      },
       "description": "Placebo: an extra evaluator pass that reformats without removing restatement."
+    },
+    {
+      "id": "A3b_dumb",
+      "label": "dumb_brevity",
+      "plugin_ref": "blueprint@brevity-dumb",
+      "evaluator": {
+        "rule": "cut_30_percent"
+      },
+      "description": "'Be brief, cut 30%, keep it short.' Positive control for the grammaticality detector only; authorizes no ship clause. Also supplies U1f's length-strip leg (bench.u_arms)."
     }
   ],
   "briefs": [
-    {"id": "b01", "title": "Rate limiter middleware", "regime": "elicit_prone", "buildable": true, "text": ""},
-    {"id": "b02", "title": "Idempotent payment webhook", "regime": "large_realistic", "buildable": true, "text": ""},
-    {"id": "b03", "title": "LRU cache with TTL", "regime": "neutral", "buildable": true, "text": ""},
-    {"id": "b04", "title": "Feature-flag rollout service", "regime": "elicit_prone", "buildable": false, "text": ""},
-    {"id": "b05", "title": "CSV schema validator", "regime": "neutral", "buildable": true, "text": ""},
-    {"id": "b06", "title": "Retry-with-backoff client", "regime": "elicit_prone", "buildable": true, "text": ""},
-    {"id": "b07", "title": "Multi-tenant audit log design", "regime": "large_realistic", "buildable": false, "text": ""},
-    {"id": "b08", "title": "Pagination cursor encoder", "regime": "neutral", "buildable": true, "text": ""},
-    {"id": "b09", "title": "Distributed lease coordinator", "regime": "large_realistic", "buildable": false, "text": ""}
+    {
+      "id": "b01",
+      "title": "Rate limiter middleware",
+      "regime": "elicit_prone",
+      "buildable": true,
+      "text": ""
+    },
+    {
+      "id": "b02",
+      "title": "Idempotent payment webhook",
+      "regime": "large_realistic",
+      "buildable": true,
+      "text": ""
+    },
+    {
+      "id": "b03",
+      "title": "LRU cache with TTL",
+      "regime": "neutral",
+      "buildable": true,
+      "text": ""
+    },
+    {
+      "id": "b04",
+      "title": "Feature-flag rollout service",
+      "regime": "elicit_prone",
+      "buildable": false,
+      "text": ""
+    },
+    {
+      "id": "b05",
+      "title": "CSV schema validator",
+      "regime": "neutral",
+      "buildable": true,
+      "text": ""
+    },
+    {
+      "id": "b06",
+      "title": "Retry-with-backoff client",
+      "regime": "elicit_prone",
+      "buildable": true,
+      "text": ""
+    },
+    {
+      "id": "b07",
+      "title": "Multi-tenant audit log design",
+      "regime": "large_realistic",
+      "buildable": false,
+      "text": ""
+    },
+    {
+      "id": "b08",
+      "title": "Pagination cursor encoder",
+      "regime": "neutral",
+      "buildable": true,
+      "text": ""
+    },
+    {
+      "id": "b09",
+      "title": "Distributed lease coordinator",
+      "regime": "large_realistic",
+      "buildable": false,
+      "text": ""
+    }
   ],
-  "seeds": [1, 2],
-  "extractor_families": ["anthropic-claude", "openai-gpt"],
+  "seeds": [
+    1,
+    2
+  ],
+  "extractor_families": [
+    "anthropic-claude",
+    "openai-gpt"
+  ],
   "thresholds": {
     "noise_floor_multiple": 2.0,
     "tost_margin": 0.0,
     "min_power": 0.8
+  },
+  "bench": {
+    "u_arms": [
+      "A0",
+      "A1",
+      "A2_placebo",
+      "A3_fair",
+      "A3b_dumb"
+    ],
+    "implementer_ref": "claude-sonnet-4-6",
+    "preamble_template": "You are implementing a small Python project from the specification below.\n\nDeliverables, all inside the current working directory:\n  1. A Python module `{module}.py` at the top level, defining a callable\n     `{entrypoint}` that satisfies the specification.\n  2. A pytest test suite under `tests/`.\n\nRules:\n  - Work only inside the current working directory.\n  - Do not ask clarifying questions; proceed end to end.\n  - Commit your work with git as you go.\n\nSpecification:",
+    "sandbox_test_cmd": [
+      "{python}",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider"
+    ],
+    "weights": {
+      "C": 0.3,
+      "U": 0.3,
+      "O": 0.4
+    },
+    "composite_pass": 70.0,
+    "c1_gate_noise_multiple": 2.0,
+    "c1_gate_floor": 0.025,
+    "c_scale_noise_multiple": 4.0,
+    "c_target_floor": 0.05,
+    "u_target_ln": 0.1054,
+    "u_noise_multiple": 2.0,
+    "win_alpha": 0.05,
+    "c_min_den": 0.02,
+    "u_min_den": 0.05,
+    "o_weight_correctness": 0.5,
+    "o_weight_kill": 0.3,
+    "o_weight_bloat": 0.2,
+    "max_o_term_skipped_fraction": 0.3,
+    "tost_margins": {
+      "C3": 0.05,
+      "C8": 0.02,
+      "U2": 1.0,
+      "U3": 1.0,
+      "O1": 0.05,
+      "O3": 0.1
+    },
+    "min_power": 0.8,
+    "dead_end_cap": 6,
+    "o1_min_correctness": 0.9,
+    "o2_max_overfit": 0.1,
+    "o3_min_kill_rate": 0.75,
+    "o5_bloat_cap_ln": 1.0986,
+    "leak_caps": {
+      "code_frac": 0.15,
+      "reference": 0.25,
+      "copy": 0.3,
+      "spec_only_correctness": 0.5
+    },
+    "frag_rate_cap": 0.05,
+    "max_incomplete_fraction": 0.1,
+    "max_merge_skipped_fraction": 0.3,
+    "min_stratum_n": 3,
+    "max_usd": 120.0,
+    "max_retries": 2,
+    "leak_patterns": [
+      "\\bcorpus\\b|\\bbrief\\.(md|json)\\b|\\bgold_propositions\\.json\\b|\\bcases(_holdout)?\\.json\\b|\\boracle\\.py\\b|\\bmutations\\.json\\b"
+    ],
+    "mutations_per_brief": 8
   }
 }

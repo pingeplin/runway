@@ -41,8 +41,21 @@ Any report generated from this corpus must carry this caveat verbatim.
 corpus/demo/
   PROVENANCE.md          this file
   b01..b09/              one dir per brief (brief.md, brief.json, gold_propositions.json;
-                         buildable briefs also have oracle.py + cases.json)
+                         buildable briefs also have oracle.py + cases.json +
+                         cases_holdout.json + mutations.json)
 ```
 
 Regimes: 3 elicit_prone (b01, b04, b06), 3 large_realistic (b02, b07, b09),
 3 neutral (b03, b05, b08). Buildable: b01, b02, b03, b05, b06, b08 (6 of 9).
+
+## Blind O assets (BENCHMARK.md §4)
+
+Every buildable brief carries `cases_holdout.json` (O2's blind holdout: arg
+literals chosen apart from `brief.md`/`cases.json` examples; expectations
+computed by executing the reference `oracle.py`, so they are correct by
+construction) and `mutations.json` (O3's battery: exactly 8 single-site
+literal mutations of `oracle.py`, each `find` occurring exactly once in the
+source). `overexpl score` requires `--corpus` and `validate()` enforces the
+presence and shape of these assets — a buildable brief without them makes the
+run not scorable. Demo-scale caveat as above: these assets shake out the
+mechanism; they are not a blind-authored production battery.

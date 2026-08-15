@@ -1,0 +1,52 @@
+{
+  "mutations": [
+    {
+      "label": "hit_returns_none",
+      "filename": "oracle.py",
+      "find": "results.append(cache[key])",
+      "replace": "results.append(None)"
+    },
+    {
+      "label": "miss_returns_zero",
+      "filename": "oracle.py",
+      "find": "results.append(None)",
+      "replace": "results.append(0)"
+    },
+    {
+      "label": "evict_mru",
+      "filename": "oracle.py",
+      "find": "cache.popitem(last=False)",
+      "replace": "cache.popitem(last=True)"
+    },
+    {
+      "label": "off_by_one_capacity",
+      "filename": "oracle.py",
+      "find": "len(cache) >= capacity",
+      "replace": "len(cache) > capacity"
+    },
+    {
+      "label": "swap_branches",
+      "filename": "oracle.py",
+      "find": "if kind == \"get\":",
+      "replace": "if kind == \"put\":"
+    },
+    {
+      "label": "swap_put_fields",
+      "filename": "oracle.py",
+      "find": "key, value = op[1], op[2]",
+      "replace": "value, key = op[1], op[2]"
+    },
+    {
+      "label": "update_without_refresh",
+      "filename": "oracle.py",
+      "find": "cache[key] = value\n                cache.move_to_end(key)",
+      "replace": "cache[key] = value"
+    },
+    {
+      "label": "seed_results",
+      "filename": "oracle.py",
+      "find": "results: list = []",
+      "replace": "results: list = [None]"
+    }
+  ]
+}

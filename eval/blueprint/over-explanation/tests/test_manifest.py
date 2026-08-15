@@ -170,14 +170,17 @@ def test_example_file_round_trips() -> None:
 
 def test_example_file_has_expected_shape() -> None:
     reg = load_manifest(EXAMPLE_PATH)
-    assert reg.version == "milestone-1"
+    # bench-registered manifests carry the audit-trail version prefix (§4).
+    assert reg.version == "bench-1-milestone-1"
     assert len(reg.briefs) == 9
     assert reg.seeds == (1, 2)
     assert len(reg.extractor_families) == 2
     arm_ids = {a.id for a in reg.arms}
-    assert {"A0", "A1", "A3_fair", "A2_placebo"} == arm_ids
+    assert {"A0", "A1", "A3_fair", "A2_placebo", "A3b_dumb"} == arm_ids
     # every brief carries a frozen regime
     assert all(isinstance(b.regime, Regime) for b in reg.briefs)
+    assert reg.bench is not None
+    assert set(reg.bench.u_arms) <= arm_ids
 
 
 def test_unknown_regime_raises(tmp_path: Path) -> None:
@@ -198,3 +201,246 @@ def test_unknown_regime_raises(tmp_path: Path) -> None:
     path.write_text(json.dumps(bad), encoding="utf-8")
     with pytest.raises(ValueError):
         load_manifest(path)
+
+
+# --------------------------------------------------------------------------- #
+# BenchThresholds (BLUEPRINT-BENCH §4)
+# --------------------------------------------------------------------------- #
+
+
+def _bench_reg(**bench_over) -> PreRegistration:
+    from eval_overexplanation.manifest import BenchThresholds
+    from eval_overexplanation.models import Arm
+
+    base = _minimal_reg()
+    arms = base.arms + (
+        Arm(id="A2_placebo", label="p", plugin_ref="r"),
+        Arm(id="A3_fair", label="f", plugin_ref="r"),
+        Arm(id="A3b_dumb", label="d", plugin_ref="r"),
+    )
+    bench_kwargs: dict = {
+        "implementer_ref": "pinned-model-x",
+        "preamble_template": "Implement {module}.{entrypoint} now.",
+    }
+    bench_kwargs.update(bench_over)
+    bench = BenchThresholds(**bench_kwargs)
+    return PreRegistration(
+        version="bench-1-test",
+        arms=arms,
+        briefs=base.briefs,
+        seeds=base.seeds,
+        extractor_families=base.extractor_families,
+        thresholds=base.thresholds,
+        bench=bench,
+    )
+
+
+def test_bench_round_trips_and_hashes_stably(tmp_path: Path) -> None:
+    reg = _bench_reg()
+    text = dump_manifest(reg)
+    path = tmp_path / "m.json"
+    path.write_text(text, encoding="utf-8")
+    loaded = load_manifest(path)
+    assert loaded == reg
+    assert dump_manifest(loaded) == text
+    assert loaded.content_hash() == reg.content_hash()
+
+
+def test_bench_absence_keeps_prebench_hash_shape() -> None:
+    # Pre-bench registrations must keep their historical hashes: no "bench"
+    # key is serialized when the block is absent.
+    reg = _minimal_reg()
+    assert "bench" not in json.loads(dump_manifest(reg))
+
+
+def test_bench_changes_the_hash_by_design() -> None:
+    import dataclasses
+
+    with_bench = _bench_reg()
+    without = dataclasses.replace(with_bench, bench=None)
+    assert with_bench.content_hash() != without.content_hash()
+
+
+def test_bench_threshold_edit_changes_the_hash() -> None:
+    import dataclasses
+
+    a = _bench_reg()
+    b = dataclasses.replace(a, bench=dataclasses.replace(a.bench,
+                                                         dead_end_cap=7))
+    assert a.content_hash() != b.content_hash()
+
+
+def test_bench_validate_clean_on_well_formed() -> None:
+    assert _bench_reg().validate() == ()
+
+
+def test_bench_validate_requires_version_prefix() -> None:
+    import dataclasses
+
+    reg = dataclasses.replace(_bench_reg(), version="milestone-1")
+    assert any("bench-1-" in p for p in reg.validate())
+
+
+def test_bench_validate_u_arms_subset_of_arms() -> None:
+    problems = _bench_reg(
+        u_arms=("A0", "A1", "A2_placebo", "A3_fair", "A3b_dumb", "A9"),
+    ).validate()
+    assert any("u_arms" in p and "A9" in p for p in problems)
+
+
+def test_bench_validate_requires_a3b_dumb_in_u_arms() -> None:
+    problems = _bench_reg(u_arms=("A0", "A1")).validate()
+    assert any("A3b_dumb" in p for p in problems)
+
+
+def test_bench_validate_weights_must_sum_to_one() -> None:
+    problems = _bench_reg(
+        weights={"C": 0.5, "U": 0.3, "O": 0.3}).validate()
+    assert any("sum to 1.0" in p for p in problems)
+
+
+def test_bench_validate_requires_both_placeholders() -> None:
+    problems = _bench_reg(
+        preamble_template="Implement {module} now.").validate()
+    assert any("{entrypoint}" in p for p in problems)
+
+
+def test_bench_validate_requires_nonempty_implementer_ref() -> None:
+    problems = _bench_reg(implementer_ref="").validate()
+    assert any("implementer_ref" in p for p in problems)
+
+
+def test_bench_validate_mutations_per_brief_is_eight() -> None:
+    problems = _bench_reg(mutations_per_brief=6).validate()
+    assert any("mutations_per_brief" in p for p in problems)
+
+
+@pytest.mark.parametrize("field, value", [
+    ("win_alpha", 0.01),
+    ("c_min_den", 0.03),
+    ("u_min_den", 0.06),
+    ("u_noise_multiple", 3.0),
+    ("o_weight_correctness", 0.6),
+    ("o_weight_kill", 0.25),
+    ("o_weight_bloat", 0.15),
+    ("max_o_term_skipped_fraction", 0.2),
+])
+def test_bench_operative_field_edit_changes_the_hash(field, value) -> None:
+    # Regression (round-3 MAJOR): every operative scoring number must live
+    # under content_hash — an edit that leaves the hash unmoved would dodge
+    # the audit trail.
+    import dataclasses
+
+    a = _bench_reg()
+    b = dataclasses.replace(
+        a, bench=dataclasses.replace(a.bench, **{field: value}))
+    assert a.content_hash() != b.content_hash(), field
+
+
+def test_bench_validate_o_weights_must_sum_to_one() -> None:
+    problems = _bench_reg(o_weight_correctness=0.7).validate()
+    assert any("o_weight" in p and "sum to 1.0" in p for p in problems)
+
+
+def _asset_corpus(tmp_path: Path, *, holdout: bool = True,
+                  mutations: int | None = 8) -> Path:
+    corpus = tmp_path / "corpus"
+    d = corpus / "b01"   # _bench_reg's only buildable brief
+    d.mkdir(parents=True)
+    (d / "brief.json").write_text(json.dumps(
+        {"id": "b01", "module": "m", "entrypoint": "e"}))
+    (d / "cases.json").write_text(json.dumps({"cases": []}))
+    if holdout:
+        (d / "cases_holdout.json").write_text(json.dumps({"cases": []}))
+    if mutations is not None:
+        (d / "mutations.json").write_text(json.dumps({"mutations": [
+            {"label": f"m{i}", "filename": "m.py", "find": "a",
+             "replace": "b"} for i in range(mutations)]}))
+    return corpus
+
+
+def test_validate_corpus_root_clean_when_assets_present(
+        tmp_path: Path) -> None:
+    corpus = _asset_corpus(tmp_path)
+    assert _bench_reg().validate(corpus_root=corpus) == ()
+
+
+def test_validate_corpus_root_flags_missing_holdout(tmp_path: Path) -> None:
+    # §4 asset rule: a buildable brief without its blind holdout is a
+    # manifest problem (=> scorable:false), never a quiet per-cell skip.
+    corpus = _asset_corpus(tmp_path, holdout=False)
+    problems = _bench_reg().validate(corpus_root=corpus)
+    assert any("b01" in p and "cases_holdout.json" in p for p in problems)
+
+
+def test_validate_corpus_root_flags_missing_mutations(tmp_path: Path) -> None:
+    corpus = _asset_corpus(tmp_path, mutations=None)
+    problems = _bench_reg().validate(corpus_root=corpus)
+    assert any("b01" in p and "mutations.json" in p for p in problems)
+
+
+def test_validate_corpus_root_flags_wrong_mutation_count(
+        tmp_path: Path) -> None:
+    corpus = _asset_corpus(tmp_path, mutations=5)
+    problems = _bench_reg().validate(corpus_root=corpus)
+    assert any("b01" in p and "5 mutations" in p for p in problems)
+
+
+def test_validate_corpus_root_flags_missing_interface_pin(
+        tmp_path: Path) -> None:
+    corpus = _asset_corpus(tmp_path)
+    (corpus / "b01" / "brief.json").write_text(json.dumps({"id": "b01"}))
+    problems = _bench_reg().validate(corpus_root=corpus)
+    assert any("b01" in p and "module/entrypoint" in p for p in problems)
+
+
+def test_validate_corpus_root_ignores_non_buildable_briefs(
+        tmp_path: Path) -> None:
+    # b02 is buildable:false — no corpus dir needed for it.
+    corpus = _asset_corpus(tmp_path)
+    problems = _bench_reg().validate(corpus_root=corpus)
+    assert not any("b02" in p for p in problems)
+
+
+def test_validate_without_corpus_root_skips_asset_rules() -> None:
+    assert _bench_reg().validate() == ()
+
+
+def test_bench_keeps_two_distinct_noise_multiples() -> None:
+    # The §4 trap the score fixer closed: gate (2.0) and scale (4.0) are two
+    # separate frozen fields, and the shipped demo manifest carries both.
+    demo = load_manifest(
+        EXAMPLE_PATH.parent / "manifest.demo.json")
+    assert demo.bench is not None
+    assert demo.bench.c1_gate_noise_multiple == 2.0
+    assert demo.bench.c_scale_noise_multiple == 4.0
+    assert demo.validate() == ()
+
+
+def test_demo_manifest_preamble_matches_run_implementer_template() -> None:
+    # The manifest's frozen preamble must be the byte-identical template
+    # run-implementer.sh embeds (preamble_template_sha is a U0 gate input).
+    import re
+
+    demo = load_manifest(EXAMPLE_PATH.parent / "manifest.demo.json")
+    script = (EXAMPLE_PATH.parents[1] / "scripts" /
+              "run-implementer.sh").read_text(encoding="utf-8")
+    match = re.search(r"PREAMBLE_TEMPLATE='([^']*)'", script)
+    assert match is not None
+    assert demo.bench is not None
+    assert demo.bench.preamble_template == match.group(1)
+
+
+def test_demo_manifest_max_retries_matches_run_implementer_default() -> None:
+    # bench.max_retries is consumed as run-implementer.sh's MAX_RETRIES
+    # default; a drift between the frozen manifest and the script would make
+    # the recorded retry budget a fiction.
+    import re
+
+    demo = load_manifest(EXAMPLE_PATH.parent / "manifest.demo.json")
+    script = (EXAMPLE_PATH.parents[1] / "scripts" /
+              "run-implementer.sh").read_text(encoding="utf-8")
+    match = re.search(r'MAX_RETRIES="\$\{MAX_RETRIES:-(\d+)\}"', script)
+    assert match is not None
+    assert demo.bench is not None
+    assert demo.bench.max_retries == int(match.group(1))

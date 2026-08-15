@@ -1,0 +1,64 @@
+{
+  "entrypoint": "allowed",
+  "cases": [
+    {
+      "label": "h_two_windows",
+      "args": [
+        [
+          3,
+          4,
+          5,
+          21,
+          22
+        ],
+        2,
+        7
+      ],
+      "expected": [
+        true,
+        true,
+        false,
+        true,
+        true
+      ]
+    },
+    {
+      "label": "h_limit_three",
+      "args": [
+        [
+          14,
+          15,
+          16,
+          17,
+          28
+        ],
+        3,
+        14
+      ],
+      "expected": [
+        true,
+        true,
+        true,
+        false,
+        true
+      ]
+    },
+    {
+      "label": "h_sparse",
+      "args": [
+        [
+          100,
+          250,
+          400
+        ],
+        1,
+        50
+      ],
+      "expected": [
+        true,
+        true,
+        true
+      ]
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "entrypoint": "page",
+  "cases": [
+    {
+      "label": "h_mid_cursor",
+      "args": [
+        [
+          2,
+          4,
+          6,
+          8,
+          9
+        ],
+        5,
+        3
+      ],
+      "expected": [
+        [
+          6,
+          8,
+          9
+        ],
+        9
+      ]
+    },
+    {
+      "label": "h_size_one",
+      "args": [
+        [
+          11,
+          13,
+          17
+        ],
+        null,
+        1
+      ],
+      "expected": [
+        [
+          11
+        ],
+        11
+      ]
+    },
+    {
+      "label": "h_beyond_all",
+      "args": [
+        [
+          7,
+          8
+        ],
+        9,
+        2
+      ],
+      "expected": [
+        [],
+        null
+      ]
+    }
+  ]
+}

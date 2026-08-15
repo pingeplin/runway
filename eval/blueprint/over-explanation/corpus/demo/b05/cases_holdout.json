@@ -1,0 +1,58 @@
+{
+  "entrypoint": "validate_rows",
+  "cases": [
+    {
+      "label": "h_bool_column",
+      "args": [
+        [
+          {
+            "flag": true,
+            "age": 4
+          },
+          {
+            "flag": 1,
+            "age": 5
+          }
+        ],
+        {
+          "flag": "bool",
+          "age": "int"
+        }
+      ],
+      "expected": [
+        "row 1: column 'flag' expected bool, got int"
+      ]
+    },
+    {
+      "label": "h_missing_mid",
+      "args": [
+        [
+          {
+            "city": "Oslo"
+          },
+          {}
+        ],
+        {
+          "city": "str"
+        }
+      ],
+      "expected": [
+        "row 1: missing column 'city'"
+      ]
+    },
+    {
+      "label": "h_all_good",
+      "args": [
+        [
+          {
+            "n": 8
+          }
+        ],
+        {
+          "n": "int"
+        }
+      ],
+      "expected": []
+    }
+  ]
+}

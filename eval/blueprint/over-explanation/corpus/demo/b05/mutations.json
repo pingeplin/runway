@@ -1,0 +1,52 @@
+{
+  "mutations": [
+    {
+      "label": "invert_missing_check",
+      "filename": "oracle.py",
+      "find": "if col not in row:",
+      "replace": "if col in row:"
+    },
+    {
+      "label": "misspell_missing",
+      "filename": "oracle.py",
+      "find": "missing column '{col}'",
+      "replace": "absent column '{col}'"
+    },
+    {
+      "label": "invert_type_check",
+      "filename": "oracle.py",
+      "find": "type(value) is not expected",
+      "replace": "type(value) is expected"
+    },
+    {
+      "label": "one_based_rows",
+      "filename": "oracle.py",
+      "find": "enumerate(rows)",
+      "replace": "enumerate(rows, start=1)"
+    },
+    {
+      "label": "truncate_errors",
+      "filename": "oracle.py",
+      "find": "return errors",
+      "replace": "return errors[:1]"
+    },
+    {
+      "label": "seed_errors",
+      "filename": "oracle.py",
+      "find": "errors: list[str] = []",
+      "replace": "errors: list[str] = [\"x\"]"
+    },
+    {
+      "label": "swap_type_table",
+      "filename": "oracle.py",
+      "find": "{\"int\": int, \"str\": str, \"bool\": bool}",
+      "replace": "{\"int\": int, \"str\": str, \"bool\": int}"
+    },
+    {
+      "label": "actual_is_expected",
+      "filename": "oracle.py",
+      "find": "actual = type(value).__name__",
+      "replace": "actual = type_name"
+    }
+  ]
+}

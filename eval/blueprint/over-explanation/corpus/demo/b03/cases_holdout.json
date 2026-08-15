@@ -1,0 +1,125 @@
+{
+  "entrypoint": "lru_results",
+  "cases": [
+    {
+      "label": "h_capacity_three",
+      "args": [
+        [
+          [
+            "put",
+            "p",
+            7
+          ],
+          [
+            "put",
+            "q",
+            8
+          ],
+          [
+            "put",
+            "r",
+            9
+          ],
+          [
+            "get",
+            "p"
+          ],
+          [
+            "put",
+            "s",
+            10
+          ],
+          [
+            "get",
+            "q"
+          ],
+          [
+            "get",
+            "r"
+          ],
+          [
+            "get",
+            "s"
+          ]
+        ],
+        3
+      ],
+      "expected": [
+        7,
+        null,
+        9,
+        10
+      ]
+    },
+    {
+      "label": "h_get_refreshes",
+      "args": [
+        [
+          [
+            "put",
+            "p",
+            1
+          ],
+          [
+            "put",
+            "q",
+            2
+          ],
+          [
+            "get",
+            "p"
+          ],
+          [
+            "put",
+            "r",
+            3
+          ],
+          [
+            "get",
+            "q"
+          ],
+          [
+            "get",
+            "p"
+          ]
+        ],
+        2
+      ],
+      "expected": [
+        1,
+        null,
+        1
+      ]
+    },
+    {
+      "label": "h_capacity_one",
+      "args": [
+        [
+          [
+            "put",
+            "z",
+            5
+          ],
+          [
+            "put",
+            "w",
+            6
+          ],
+          [
+            "get",
+            "z"
+          ],
+          [
+            "get",
+            "w"
+          ]
+        ],
+        1
+      ],
+      "expected": [
+        null,
+        6
+      ]
+    }
+  ]
+}

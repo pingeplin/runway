@@ -1,0 +1,52 @@
+{
+  "mutations": [
+    {
+      "label": "invert_seen_check",
+      "filename": "oracle.py",
+      "find": "if key in seen:",
+      "replace": "if key not in seen:"
+    },
+    {
+      "label": "forget_seen",
+      "filename": "oracle.py",
+      "find": "seen.add(key)",
+      "replace": "seen.discard(key)"
+    },
+    {
+      "label": "prepend_applied",
+      "filename": "oracle.py",
+      "find": "applied.append(key)",
+      "replace": "applied.insert(0, key)"
+    },
+    {
+      "label": "sort_applied",
+      "filename": "oracle.py",
+      "find": "return applied",
+      "replace": "return sorted(applied)"
+    },
+    {
+      "label": "only_first_event",
+      "filename": "oracle.py",
+      "find": "for key, _amount in events:",
+      "replace": "for key, _amount in events[:1]:"
+    },
+    {
+      "label": "seed_applied",
+      "filename": "oracle.py",
+      "find": "applied: list[str] = []",
+      "replace": "applied: list[str] = [\"sentinel\"]"
+    },
+    {
+      "label": "preseed_seen",
+      "filename": "oracle.py",
+      "find": "seen: set[str] = set()",
+      "replace": "seen: set[str] = {\"k1\"}"
+    },
+    {
+      "label": "stop_on_dupe",
+      "filename": "oracle.py",
+      "find": "continue",
+      "replace": "break"
+    }
+  ]
+}

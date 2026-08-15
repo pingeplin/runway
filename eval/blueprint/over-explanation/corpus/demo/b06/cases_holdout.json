@@ -1,0 +1,50 @@
+{
+  "entrypoint": "backoff_delays",
+  "cases": [
+    {
+      "label": "h_tripling",
+      "args": [
+        5,
+        0.5,
+        3.0,
+        12.0
+      ],
+      "expected": [
+        0.5,
+        1.5,
+        4.5,
+        12.0,
+        12.0
+      ]
+    },
+    {
+      "label": "h_fractional_factor",
+      "args": [
+        4,
+        8.0,
+        0.5,
+        100.0
+      ],
+      "expected": [
+        8.0,
+        4.0,
+        2.0,
+        1.0
+      ]
+    },
+    {
+      "label": "h_tight_cap",
+      "args": [
+        3,
+        2.5,
+        4.0,
+        2.5
+      ],
+      "expected": [
+        2.5,
+        2.5,
+        2.5
+      ]
+    }
+  ]
+}

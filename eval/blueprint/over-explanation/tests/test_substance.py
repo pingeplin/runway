@@ -137,3 +137,64 @@ def test_multiple_must_drops_all_collected() -> None:
     assert report.dropped_should == ("c",)
     assert report.survived == 0
     assert report.recall == 0.0
+
+
+# --------------------------------------------------------------------------- #
+# alignment_purity (BLUEPRINT-BENCH C4, reported only)
+# --------------------------------------------------------------------------- #
+
+
+def test_alignment_purity_all_aligned_is_one() -> None:
+    from eval_overexplanation.substance import alignment_purity
+
+    align = _alignment(
+        source_tiers={"a": Tier.SHOULD, "b": Tier.SHOULD},
+        relations={"a": Relation.PRESERVED, "b": Relation.MERGED_INTO},
+    )
+    assert alignment_purity(align) == pytest.approx(2 / align.target.distinct)
+
+
+def test_alignment_purity_dropped_links_do_not_count() -> None:
+    from eval_overexplanation.substance import alignment_purity
+
+    align = _alignment(
+        source_tiers={"a": Tier.SHOULD, "b": Tier.SHOULD, "c": Tier.SHOULD},
+        relations={"a": Relation.PRESERVED, "b": Relation.DROPPED,
+                   "c": Relation.DROPPED},
+    )
+    # one surviving link over the gold's distinct count
+    assert alignment_purity(align) == pytest.approx(1 / align.target.distinct)
+
+
+def test_alignment_purity_is_repetition_invariant() -> None:
+    from eval_overexplanation.substance import alignment_purity
+
+    base = _alignment(
+        source_tiers={"a": Tier.SHOULD},
+        relations={"a": Relation.PRESERVED},
+    )
+    # Re-mentioning the source claim five times changes neither the links nor
+    # the gold distinct count, so purity is untouched.
+    noisy_source = PropositionSet(
+        document_id="A0",
+        propositions=tuple(
+            Proposition(id=p.id, text=p.text, kind=p.kind, tier=p.tier,
+                        mention_sentences=(0, 1, 2, 3, 4))
+            for p in base.source.propositions
+        ),
+    )
+    noisy = Alignment(source=noisy_source, target=base.target,
+                      links=base.links)
+    assert alignment_purity(noisy) == alignment_purity(base)
+
+
+def test_alignment_purity_empty_gold_raises() -> None:
+    from eval_overexplanation.substance import alignment_purity
+
+    align = _alignment(
+        source_tiers={"a": Tier.SHOULD},
+        relations={"a": Relation.DROPPED},
+    )
+    assert align.target.distinct == 0
+    with pytest.raises(ValueError):
+        alignment_purity(align)

@@ -1,0 +1,52 @@
+{
+  "mutations": [
+    {
+      "label": "flip_limit_comparison",
+      "filename": "oracle.py",
+      "find": "used < limit",
+      "replace": "used <= limit"
+    },
+    {
+      "label": "window_modulo",
+      "filename": "oracle.py",
+      "find": "bucket = t // window",
+      "replace": "bucket = t % window"
+    },
+    {
+      "label": "never_consume",
+      "filename": "oracle.py",
+      "find": "counts[bucket] = used + 1",
+      "replace": "counts[bucket] = used"
+    },
+    {
+      "label": "always_reject_admit",
+      "filename": "oracle.py",
+      "find": "verdicts.append(True)",
+      "replace": "verdicts.append(False)"
+    },
+    {
+      "label": "always_admit_reject",
+      "filename": "oracle.py",
+      "find": "verdicts.append(False)",
+      "replace": "verdicts.append(True)"
+    },
+    {
+      "label": "preused_bucket",
+      "filename": "oracle.py",
+      "find": "counts.get(bucket, 0)",
+      "replace": "counts.get(bucket, 1)"
+    },
+    {
+      "label": "drop_last_request",
+      "filename": "oracle.py",
+      "find": "for t in timestamps:",
+      "replace": "for t in timestamps[:-1]:"
+    },
+    {
+      "label": "truncate_result",
+      "filename": "oracle.py",
+      "find": "return verdicts",
+      "replace": "return verdicts[:-1]"
+    }
+  ]
+}

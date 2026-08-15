@@ -1,0 +1,52 @@
+{
+  "mutations": [
+    {
+      "label": "min_becomes_max",
+      "filename": "oracle.py",
+      "find": "[min(cap, base * factor ** i) for",
+      "replace": "[max(cap, base * factor ** i) for"
+    },
+    {
+      "label": "shift_exponent",
+      "filename": "oracle.py",
+      "find": "factor ** i) for",
+      "replace": "factor ** (i + 1)) for"
+    },
+    {
+      "label": "extra_attempt",
+      "filename": "oracle.py",
+      "find": "range(retries)",
+      "replace": "range(retries + 1)"
+    },
+    {
+      "label": "add_not_multiply",
+      "filename": "oracle.py",
+      "find": "base * factor ** i) for",
+      "replace": "base + factor ** i) for"
+    },
+    {
+      "label": "cap_to_one",
+      "filename": "oracle.py",
+      "find": "return [min(cap,",
+      "replace": "return [min(1.0,"
+    },
+    {
+      "label": "undefined_index",
+      "filename": "oracle.py",
+      "find": "i) for i",
+      "replace": "i) for _i"
+    },
+    {
+      "label": "negate_cap",
+      "filename": "oracle.py",
+      "find": "[min(cap",
+      "replace": "[min(-cap"
+    },
+    {
+      "label": "drop_first_attempt",
+      "filename": "oracle.py",
+      "find": ") -> list[float]:",
+      "replace": ") -> list[float]:\n    retries = max(0, retries - 1)"
+    }
+  ]
+}
