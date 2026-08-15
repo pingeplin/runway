@@ -17,6 +17,29 @@ treatment cannot leak into scoring.
 
 Design rationale: `docs/designs/2608.0001_blueprint_eval_featurebench_ablation.md`.
 
+## Metrics
+
+Every task ships hidden **FAIL_TO_PASS tests** — the official oracle. They all
+fail until the feature is built correctly; the agent never sees them.
+
+- **Resolved** — did ALL of the task's hidden tests pass? Binary, strictest,
+  the leaderboard metric. One failing test = not resolved.
+- **Pass rate** — the FRACTION of hidden tests that pass (13 of 20 → 0.65).
+  The partial credit `resolved` throws away: two unresolved patches at 0.65
+  vs 0.37 are very different, and on a small panel pass-rate deltas are often
+  the only visible movement.
+- **Kill rate** (mutation overlay) — grades a different artifact: the tests
+  the AGENT ITSELF wrote. We plant deliberate bugs in the agent's own source
+  changes (flip a boundary, break a constant) and run the agent's own tests.
+  Test goes red → the bug is *killed* (the test works); stays green → the bug
+  *survived* (the test is decoration). Kill rate = killed / planted. This is
+  the only metric here that catches vacuous tests — 100% coverage with a ~4%
+  mutation score is invisible to `resolved`/pass rate. Shipping no tests at
+  all is scored 0.0, not skipped.
+
+Shorthand: resolved asks "is it done?", pass rate "how close?", kill rate
+"is the agent's own QA real?".
+
 ## Prerequisites
 
 | Requirement | Notes |
