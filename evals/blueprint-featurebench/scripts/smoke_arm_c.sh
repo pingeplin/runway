@@ -37,7 +37,7 @@ limit = 3
 n_concurrent = 2
 
 [spec]
-model = "claude-sonnet-4-5"
+model = "claude-sonnet-5"
 timeout_seconds = 120
 claude_args = ["--permission-mode", "bypassPermissions"]
 
@@ -46,7 +46,7 @@ model = "claude-opus-4-1"
 timeout_seconds = 240
 
 [infer]
-model = "claude-sonnet-4-5"
+model = "claude-sonnet-5"
 fb_config_path = "fb_config.toml"
 n_concurrent = 1
 timeout_seconds = 1800
@@ -373,7 +373,7 @@ assert set(cmds) == {"C", "C0"}, cmds
 for arm, cmd in cmds.items():
     assert cmd[:2] == ["fb", "infer"], cmd
     assert cmd[cmd.index("--agent") + 1] == "claude_code"
-    assert cmd[cmd.index("--model") + 1] == "claude-sonnet-4-5"
+    assert cmd[cmd.index("--model") + 1] == "claude-sonnet-5"
     assert cmd[cmd.index("--split") + 1] == "lite"
     assert cmd[cmd.index("--dataset") + 1].endswith(f"results/dataset_arm_{arm.lower()}"), cmd
     assert cmd[cmd.index("--output-dir") + 1].endswith(f"results/infer_arm_{arm.lower()}"), cmd

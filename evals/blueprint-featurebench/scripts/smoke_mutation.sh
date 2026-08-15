@@ -39,7 +39,7 @@ split = "lite"
 limit = 0
 
 [mutation]
-model = "claude-sonnet-4-5"
+model = "claude-sonnet-5"
 timeout_seconds = 120
 claude_args = ["--permission-mode", "bypassPermissions"]
 n_mutations = 3

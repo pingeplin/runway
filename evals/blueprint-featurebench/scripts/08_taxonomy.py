@@ -478,7 +478,7 @@ def main() -> int:
 
     cfg = load_config(args.config)
     taxonomy_cfg = cfg.get("taxonomy", {})
-    model = taxonomy_cfg.get("model", "claude-sonnet-4-5")
+    model = taxonomy_cfg.get("model", "claude-sonnet-5")
     timeout_s = int(taxonomy_cfg.get("timeout_seconds", 300))
     claude_args = list(taxonomy_cfg.get("claude_args", []))
 

@@ -32,12 +32,12 @@ limit = 4
 n_concurrent = 2
 
 [spec]
-model = "claude-sonnet-4-5"
+model = "claude-sonnet-5"
 timeout_seconds = 120
 claude_args = ["--permission-mode", "bypassPermissions"]
 
 [infer]
-model = "claude-sonnet-4-5"
+model = "claude-sonnet-5"
 fb_config_path = "fb_config.toml"
 n_concurrent = 1
 timeout_seconds = 1800
@@ -226,7 +226,7 @@ for arm, cmd in cmds.items():
     assert cmd[:2] == ["fb", "infer"], cmd
     assert "--agent" in cmd and cmd[cmd.index("--agent") + 1] == "claude_code"
     assert cmd[cmd.index("--split") + 1] == "lite"
-    assert cmd[cmd.index("--model") + 1] == "claude-sonnet-4-5"
+    assert cmd[cmd.index("--model") + 1] == "claude-sonnet-5"
     ids = cmd[cmd.index("--task-id") + 1:]
     assert ids == ["acme__widget-1.lv1", "acme__widget-2.lv1", "acme__widget-3.lv1"], ids
 a, b = cmds["A"], cmds["B"]

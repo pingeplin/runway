@@ -544,7 +544,7 @@ def run_cell(
         payload, err = run_claude(
             claude_cmd=args.claude_cmd,
             prompt=prompt,
-            model=mut_cfg.get("model", "claude-sonnet-4-5"),
+            model=mut_cfg.get("model", "claude-sonnet-5"),
             claude_args=list(mut_cfg.get("claude_args", [])),
             timeout_s=int(mut_cfg.get("timeout_seconds", 600)),
         )

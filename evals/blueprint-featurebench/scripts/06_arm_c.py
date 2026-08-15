@@ -340,7 +340,7 @@ def verify_one(
         claude_cmd=args.claude_cmd,
         prompt=prompt,
         workspace=workspace,
-        model=verify_cfg.get("model", "claude-sonnet-4-5"),
+        model=verify_cfg.get("model", "claude-sonnet-5"),
         claude_args=list(verify_cfg.get("claude_args", [])),
         timeout_s=int(verify_cfg.get("timeout_seconds", 900)),
     )

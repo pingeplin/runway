@@ -165,7 +165,7 @@ def process_task(
         claude_cmd=args.claude_cmd,
         prompt=prompt,
         workspace=workspace,
-        model=spec_cfg.get("model", "claude-sonnet-4-5"),
+        model=spec_cfg.get("model", "claude-sonnet-5"),
         claude_args=list(spec_cfg.get("claude_args", [])),
         timeout_s=int(spec_cfg.get("timeout_seconds", 900)),
     )
