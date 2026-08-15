@@ -451,14 +451,31 @@ def truncate(text: str, limit: int) -> str:
     return text[:limit] + f"\n… [truncated, {len(text) - limit} more characters]"
 
 
+# fb's claude_code adapter passes the whole problem_statement as ONE argv
+# element of `claude -p`; Linux caps a single arg at ~128KiB, and blowing it
+# kills the cell with "exec: Argument list too long". Budget with margin.
+MAX_STATEMENT_CHARS = 110_000
+
+
 def build_statement(
     original: str, spec_text: str, patch: str, feedback_block: str,
     repair_template: str, max_patch_chars: int,
 ) -> str:
     arm_b = (original or "") + SPEC_SEPARATOR + spec_text.strip()
-    round2 = repair_template.replace("{previous_patch}", truncate(patch.strip(), max_patch_chars))
-    round2 = round2.replace("{feedback_block}", feedback_block)
-    return arm_b + "\n\n" + round2.strip() + "\n"
+
+    def compose(patch_limit: int) -> str:
+        round2 = repair_template.replace("{previous_patch}", truncate(patch.strip(), patch_limit))
+        round2 = round2.replace("{feedback_block}", feedback_block)
+        return arm_b + "\n\n" + round2.strip() + "\n"
+
+    statement = compose(max_patch_chars)
+    if len(statement) > MAX_STATEMENT_CHARS:
+        # The patch is the least information-dense block — shrink it first.
+        overshoot = len(statement) - MAX_STATEMENT_CHARS
+        shrunk = max(2_000, min(max_patch_chars, len(patch)) - overshoot)
+        log(f"statement {len(statement)} chars exceeds {MAX_STATEMENT_CHARS}; patch truncated to {shrunk}")
+        statement = compose(shrunk)
+    return statement
 
 
 def write_dataset(rows: list[dict[str, Any]], split: str, out_dir: Path, readme: str) -> Path:
