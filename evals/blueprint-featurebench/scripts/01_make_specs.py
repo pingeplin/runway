@@ -220,6 +220,25 @@ def main() -> int:
         die("dataset split loaded zero rows")
     rows.sort(key=lambda r: r["instance_id"])
 
+    # GPU tasks cannot run on machines without nvidia (fb eval/infer refuse
+    # at container start), so drop them up front rather than fail late.
+    # Mirrors TaskInstance.get_docker_runtime_config's need_gpu detection.
+    def needs_gpu(row: dict[str, Any]) -> bool:
+        try:
+            settings = row.get("repo_settings") or "{}"
+            if isinstance(settings, str):
+                settings = json.loads(settings)
+            run_args = settings.get("docker_specs", {}).get("run_args", {})
+        except (json.JSONDecodeError, AttributeError):
+            return False
+        cuda = run_args.get("cuda_visible_num", run_args.get("cuda_visible_devices"))
+        return cuda > 0 if isinstance(cuda, int) else bool(cuda)
+
+    gpu_rows = [r["instance_id"] for r in rows if needs_gpu(r)]
+    if gpu_rows:
+        log(f"skipping {len(gpu_rows)} GPU-only task(s): {', '.join(gpu_rows[:5])}{' …' if len(gpu_rows) > 5 else ''}")
+        rows = [r for r in rows if not needs_gpu(r)]
+
     if args.task_ids_file:
         wanted = [
             line.strip()
