@@ -47,6 +47,11 @@ source:
 
 ## Operating rules for this run
 
+0. **Do all of the work in this session, inline.** Do not hand the referee to
+   a background task or an asynchronous agent and then wait for a
+   notification — this run is headless and nothing will deliver one. If the
+   skill would dispatch a subagent, perform its checks yourself instead. Do
+   not end your reply until the verdict file below actually exists on disk.
 1. **Never ask a question.** No clarification, no scope confirmation, no
    go/no-go. Decide yourself.
 2. **Never wait at an approval gate.** Wherever the skill would pause for

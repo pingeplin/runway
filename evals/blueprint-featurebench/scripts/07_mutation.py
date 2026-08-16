@@ -29,6 +29,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import shlex
@@ -854,11 +855,19 @@ def main() -> int:
 
         for i, tid in enumerate(task_ids, 1):
             cell_path = MUTATION_DIR / arm / f"{tid}.json"
+            fp = hashlib.sha256((preds[tid] or "").encode("utf-8")).hexdigest()
             if not args.force and cell_path.exists():
                 try:
-                    cells.append(read_json(cell_path))
-                    log(f"  [{i}/{len(task_ids)}] {tid}: cached, skipping")
-                    continue
+                    cached = read_json(cell_path)
+                    # A cell describes the tests inside ONE patch. If the patch
+                    # changed (rerun, different model, different arm round) the
+                    # cached cell is about code that no longer exists. Cells
+                    # predating the fingerprint are treated as stale.
+                    if cached.get("patch_sha256") == fp:
+                        cells.append(cached)
+                        log(f"  [{i}/{len(task_ids)}] {tid}: cached, skipping")
+                        continue
+                    log(f"  [{i}/{len(task_ids)}] {tid}: cached cell is for a different patch, recomputing")
                 except (OSError, json.JSONDecodeError):
                     pass
             row = by_id.get(tid)
@@ -874,6 +883,7 @@ def main() -> int:
 
             log(f"  [{i}/{len(task_ids)}] {tid}: container + patch + baseline + mutations")
             cell = run_cell(arm, row, preds[tid], args, mut_cfg, template)
+            cell["patch_sha256"] = fp
             write_json(cell_path, cell)
             cells.append(cell)
             log(f"  [{i}/{len(task_ids)}] {tid}: {cell['status']} {fmt_rate(cell)} ({cell['wall_seconds']}s)")

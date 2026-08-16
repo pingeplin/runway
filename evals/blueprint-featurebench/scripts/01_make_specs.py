@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -102,9 +103,14 @@ def run_claude(
 ) -> tuple[dict[str, Any], str | None]:
     """Run one headless claude pass. Returns (parsed_payload, error)."""
     argv = [claude_cmd, "-p", prompt, "--output-format", "json", *claude_args, "--model", model]
+    # A skill that dispatches work to a background subagent would otherwise be
+    # killed at the CLI's bounded background wait, after the tokens are spent.
+    # 0 = wait indefinitely; `timeout_s` stays the real bound. See 06_arm_c.
+    env = {**os.environ, "CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS": "0"}
     try:
         proc = subprocess.run(
-            argv, cwd=workspace, capture_output=True, text=True, timeout=timeout_s
+            argv, cwd=workspace, capture_output=True, text=True,
+            timeout=timeout_s, env=env,
         )
     except subprocess.TimeoutExpired:
         return {}, f"claude timed out after {timeout_s}s"

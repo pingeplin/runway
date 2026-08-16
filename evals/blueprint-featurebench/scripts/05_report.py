@@ -37,10 +37,13 @@ CAVEATS = """## Caveats
   is expected to be single-digit, so the McNemar p-value is **directional
   evidence only** — it is not a verdict, and it is not corrected for anything.
 - **End-to-end correctness only.** FeatureBench scores hidden fail-to-pass
-  tests. Test quality, anti-vacuity and design-argument quality — the referee
-  half of blueprint's value — are invisible here.
+  tests, so this table says nothing about the quality of the tests the agent
+  itself wrote. That is measured separately by the mutation overlay
+  (`mutation_report.md`); design-argument quality is measured by neither.
 - **Cost is one-sided.** The spec-stage cost above is spent by Arm B and not by
-  Arm A; the implementing agent's own token cost is not included in either arm.
+  Arm A. It is not the whole picture: the implementing agent's own in-container
+  token cost is reported separately in `cost_report.md` (stage 10), which is
+  where the all-in A-vs-B comparison lives.
 - **Model contamination** (the model may know these repos) dilutes both arms
   equally under pairing: it biases levels, not the A/B delta.
 """

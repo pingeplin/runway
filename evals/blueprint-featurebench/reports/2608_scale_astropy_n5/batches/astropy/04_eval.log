@@ -1,0 +1,98 @@
+[arm A] fb eval --config-path /Users/eplin/workspace/runway/evals/blueprint-featurebench/fb_config.toml --predictions-path /Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_a/2026-08-15__22-40-55/output.jsonl --dataset LiberCoders/FeatureBench --split fast --n-concurrent 4 --task-id astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1 astropy__astropy.b0db0daa.test_containers.6079987d.lv1 astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1 astropy__astropy.b0db0daa.test_table.48eef659.lv1 astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1
+
+============================================================
+FeatureBench Evaluation
+Predictions: 
+/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_a/2
+026-08-15__22-40-55/output.jsonl
+Output: 
+/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_a/2
+026-08-15__22-40-55
+Dataset: LiberCoders/FeatureBench
+Split: fast
+Workers: 4
+Timeout: from repo_settings
+GPUs: all available
+============================================================
+
+Loading dataset from HuggingFace...
+Repository: LiberCoders/FeatureBench
+Split: fast
+Using the latest cached version of the dataset since LiberCoders/FeatureBench couldn't be found on the Hugging Face Hub
+Found the latest cached dataset configuration 'default' at /Users/eplin/.cache/huggingface/datasets/LiberCoders___feature_bench/default/0.0.0/e99d6efdfe511ea832c1b5735c536129561ec96a (last modified on Sat Aug 15 12:54:01 2026).
+Loaded 100 Level 1 + 0 Level 2 = 100 instances from split 'fast'
+Loading predictions...
+Loaded 5 predictions
+Filtered to 5 predictions
+Tasks to evaluate: 5
+
+  Evaluating... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0✓ 5✗ 0:01:49
+No active task                                                                  
+Generating summary report...
+Report saved to: 
+/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_a/2
+026-08-15__22-40-55/report.json
+
+============================================================
+Evaluation Summary
+============================================================
+
+
+  Total: 5
+  Completed: 5
+  Resolved: 0 | Unresolved: 5
+  Not applied patch: empty: 0 | other: 0 | Errors: 0
+  Resolved rate: 0.0%
+  Avg F2P pass rate: 41.6%
+
+============================================================
+[arm A] report: /Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_a/2026-08-15__22-40-55/report.json
+[arm B] fb eval --config-path /Users/eplin/workspace/runway/evals/blueprint-featurebench/fb_config.toml --predictions-path /Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_b/2026-08-15__23-31-04/output.jsonl --dataset LiberCoders/FeatureBench --split fast --n-concurrent 4 --task-id astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1 astropy__astropy.b0db0daa.test_containers.6079987d.lv1 astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1 astropy__astropy.b0db0daa.test_table.48eef659.lv1 astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1
+
+============================================================
+FeatureBench Evaluation
+Predictions: 
+/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_b/2
+026-08-15__23-31-04/output.jsonl
+Output: 
+/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_b/2
+026-08-15__23-31-04
+Dataset: LiberCoders/FeatureBench
+Split: fast
+Workers: 4
+Timeout: from repo_settings
+GPUs: all available
+============================================================
+
+Loading dataset from HuggingFace...
+Repository: LiberCoders/FeatureBench
+Split: fast
+Using the latest cached version of the dataset since LiberCoders/FeatureBench couldn't be found on the Hugging Face Hub
+Found the latest cached dataset configuration 'default' at /Users/eplin/.cache/huggingface/datasets/LiberCoders___feature_bench/default/0.0.0/e99d6efdfe511ea832c1b5735c536129561ec96a (last modified on Sat Aug 15 12:54:01 2026).
+Loaded 100 Level 1 + 0 Level 2 = 100 instances from split 'fast'
+Loading predictions...
+Loaded 5 predictions
+Filtered to 5 predictions
+Tasks to evaluate: 5
+
+  Evaluating... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 3✓ 2✗ 0:01:24
+No active task                                                                  
+Generating summary report...
+Report saved to: 
+/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_b/2
+026-08-15__23-31-04/report.json
+
+============================================================
+Evaluation Summary
+============================================================
+
+
+  Total: 5
+  Completed: 5
+  Resolved: 3 | Unresolved: 2
+  Not applied patch: empty: 0 | other: 0 | Errors: 0
+  Resolved rate: 60.0%
+  Avg F2P pass rate: 79.5%
+
+============================================================
+[arm B] report: /Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_b/2026-08-15__23-31-04/report.json

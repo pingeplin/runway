@@ -1,0 +1,105 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+
+stage 07 arm A: 5 cell(s) from /Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_a/2026-08-15__22-40-55/output.jsonl
+  [1/5] astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1: cached, skipping
+  [2/5] astropy__astropy.b0db0daa.test_containers.6079987d.lv1: container + patch + baseline + mutations
+  [2/5] astropy__astropy.b0db0daa.test_containers.6079987d.lv1: no_agent_tests — (no_agent_tests) (0.0s)
+  [3/5] astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1: container + patch + baseline + mutations
+  [3/5] astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1: no_agent_tests — (no_agent_tests) (0.0s)
+  [4/5] astropy__astropy.b0db0daa.test_table.48eef659.lv1: container + patch + baseline + mutations
+  [4/5] astropy__astropy.b0db0daa.test_table.48eef659.lv1: no_agent_tests — (no_agent_tests) (0.0s)
+  [5/5] astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1: container + patch + baseline + mutations
+  [5/5] astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1: no_agent_tests — (no_agent_tests) (0.0s)
+
+stage 07 arm B: 5 cell(s) from /Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_b/2026-08-15__23-31-04/output.jsonl
+  [1/5] astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1: cached, skipping
+  [2/5] astropy__astropy.b0db0daa.test_containers.6079987d.lv1: container + patch + baseline + mutations
+      mutation 0: KILLED (rc=1)
+      mutation 1: KILLED (rc=1)
+      mutation 2: KILLED (rc=1)
+      mutation 3: KILLED (rc=1)
+      mutation 4: survived (rc=0)
+      mutation 5: KILLED (rc=1)
+  [2/5] astropy__astropy.b0db0daa.test_containers.6079987d.lv1: measured 0.83 (5/6) (59.11s)
+  [3/5] astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1: container + patch + baseline + mutations
+  [3/5] astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1: baseline_red — (baseline_red) (20.6s)
+  [4/5] astropy__astropy.b0db0daa.test_table.48eef659.lv1: container + patch + baseline + mutations
+      mutation 0: survived (rc=0)
+      mutation 1: survived (rc=0)
+      mutation 2: survived (rc=0)
+      mutation 3: survived (rc=0)
+      mutation 4: survived (rc=0)
+      mutation 5: KILLED (rc=1)
+  [4/5] astropy__astropy.b0db0daa.test_table.48eef659.lv1: measured 0.17 (1/6) (101.67s)
+  [5/5] astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1: container + patch + baseline + mutations
+      mutation 0: survived (rc=0)
+      mutation 1: survived (rc=0)
+      mutation 2: survived (rc=0)
+      mutation 3: survived (rc=0)
+      mutation 4: survived (rc=0)
+      mutation 5: survived (rc=0)
+  [5/5] astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1: measured 0.00 (0/6) (172.05s)
+
+stage 07 arm C: 5 cell(s) from /Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_c/2026-08-16__01-58-50/output.jsonl
+  [1/5] astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1: cached, skipping
+  [2/5] astropy__astropy.b0db0daa.test_containers.6079987d.lv1: container + patch + baseline + mutations
+      mutation 0: survived (rc=0)
+      mutation 1: KILLED (rc=1)
+      mutation 2: KILLED (rc=1)
+      mutation 3: KILLED (rc=1)
+      mutation 4: survived (rc=0)
+      mutation 5: KILLED (rc=1)
+  [2/5] astropy__astropy.b0db0daa.test_containers.6079987d.lv1: measured 0.67 (4/6) (213.26s)
+  [3/5] astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1: container + patch + baseline + mutations
+  [3/5] astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1: baseline_red — (baseline_red) (20.11s)
+  [4/5] astropy__astropy.b0db0daa.test_table.48eef659.lv1: container + patch + baseline + mutations
+      mutation 0: KILLED (rc=1)
+      mutation 1: survived (rc=0)
+      mutation 2: survived (rc=0)
+      mutation 3: survived (rc=0)
+      mutation 4: KILLED (rc=1)
+      mutation 5: KILLED (rc=1)
+  [4/5] astropy__astropy.b0db0daa.test_table.48eef659.lv1: measured 0.50 (3/6) (107.59s)
+  [5/5] astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1: container + patch + baseline + mutations
+      mutation 0: survived (rc=0)
+      mutation 1: KILLED (rc=1)
+      mutation 2: KILLED (rc=1)
+      mutation 3: survived (rc=0)
+      mutation 4: survived (rc=0)
+      mutation 5: survived (rc=0)
+  [5/5] astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1: measured 0.33 (2/6) (164.37s)
+
+stage 07 arm C0: 5 cell(s) from /Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_c0/2026-08-16__02-43-28/output.jsonl
+  [1/5] astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1: cached, skipping
+  [2/5] astropy__astropy.b0db0daa.test_containers.6079987d.lv1: container + patch + baseline + mutations
+      mutation 0: survived (rc=0)
+      mutation 1: KILLED (rc=1)
+      mutation 2: KILLED (rc=1)
+      mutation 3: survived (rc=0)
+      mutation 4: survived (rc=0)
+      mutation 5: KILLED (rc=1)
+  [2/5] astropy__astropy.b0db0daa.test_containers.6079987d.lv1: measured 0.50 (3/6) (74.06s)
+  [3/5] astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1: container + patch + baseline + mutations
+  [3/5] astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1: baseline_red — (baseline_red) (20.3s)
+  [4/5] astropy__astropy.b0db0daa.test_table.48eef659.lv1: container + patch + baseline + mutations
+      mutation 0: KILLED (rc=1)
+      mutation 1: KILLED (rc=1)
+      mutation 2: KILLED (rc=1)
+      mutation 3: survived (rc=0)
+      mutation 4: KILLED (rc=1)
+      mutation 5: KILLED (rc=1)
+  [4/5] astropy__astropy.b0db0daa.test_table.48eef659.lv1: measured 0.83 (5/6) (127.39s)
+  [5/5] astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1: container + patch + baseline + mutations
+      mutation 0: KILLED (rc=1)
+      mutation 1: survived (rc=0)
+      mutation 2: skipped — find string absent
+      mutation 3: survived (rc=0)
+      mutation 4: survived (rc=0)
+      mutation 5: survived (rc=0)
+  [5/5] astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1: measured 0.20 (1/5) (365.99s)
+
+stage 07 done -> results/logs/astropy/mutation_report.md
+  arm A: measured=0 no_agent_tests=5 mean(measured)=None mean(no-tests=0)=0.0
+  arm B: measured=4 no_agent_tests=0 mean(measured)=0.4583 mean(no-tests=0)=0.4583
+  arm C: measured=4 no_agent_tests=0 mean(measured)=0.5 mean(no-tests=0)=0.5
+  arm C0: measured=4 no_agent_tests=0 mean(measured)=0.5833 mean(no-tests=0)=0.5833

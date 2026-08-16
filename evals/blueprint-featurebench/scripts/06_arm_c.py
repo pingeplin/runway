@@ -25,7 +25,9 @@ patch, or whose verify round failed, is dropped from both.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -235,15 +237,32 @@ def apply_patch(workspace: Path, patch: str) -> str | None:
         patch_file.unlink(missing_ok=True)
 
 
-def verdict_ok(task_id: str) -> bool:
-    """True when the verify round succeeded AND its verdict is still on disk."""
+def patch_fingerprint(patch: str) -> str:
+    return hashlib.sha256((patch or "").encode("utf-8")).hexdigest()
+
+
+def verdict_ok(task_id: str, patch: str | None = None) -> bool:
+    """True when the verify round succeeded AND its verdict is still on disk.
+
+    When `patch` is given, the verdict must also have been written against
+    THAT patch. A verdict is a judgement of one specific implementation, so a
+    cached verdict from an earlier run — a different model, a different Arm B
+    round — describes code that no longer exists. Reusing it silently feeds
+    Arm C a referee report about someone else's patch. Verdicts predating the
+    fingerprint (no `patch_sha256` key) are treated as stale by design.
+    """
     meta_path = VERDICTS_DIR / f"{task_id}.meta.json"
     if not meta_path.exists() or not (VERDICTS_DIR / f"{task_id}.md").exists():
         return False
     try:
-        return bool(read_json(meta_path).get("ok"))
+        meta = read_json(meta_path)
     except (OSError, json.JSONDecodeError):
         return False
+    if not meta.get("ok"):
+        return False
+    if patch is None:
+        return True
+    return meta.get("patch_sha256") == patch_fingerprint(patch)
 
 
 def newest_verdict_file(workspace: Path) -> Path | None:
@@ -278,9 +297,17 @@ def run_claude(
 ) -> tuple[dict[str, Any], str | None]:
     """One headless claude pass. Same contract as stage 01's runner."""
     argv = [claude_cmd, "-p", prompt, "--output-format", "json", *claude_args, "--model", model]
+    # The verify skill may dispatch its referee to a background subagent. In
+    # headless -p mode the CLI waits a bounded time for background work and
+    # then KILLS it ("Background tasks still running after 600s; terminating"),
+    # so the verdict file is never written and the run reports a nonzero exit
+    # having already spent the tokens. 0 = wait indefinitely; our own
+    # `timeout_s` remains the real bound.
+    env = {**os.environ, "CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS": "0"}
     try:
         proc = subprocess.run(
-            argv, cwd=workspace, capture_output=True, text=True, timeout=timeout_s
+            argv, cwd=workspace, capture_output=True, text=True,
+            timeout=timeout_s, env=env,
         )
     except subprocess.TimeoutExpired:
         return {}, f"claude timed out after {timeout_s}s"
@@ -314,7 +341,8 @@ def verify_one(
     template: str,
     workspace_src_root: Path,
 ) -> dict[str, Any]:
-    meta: dict[str, Any] = {"instance_id": task_id, "patch_chars": len(patch)}
+    meta: dict[str, Any] = {"instance_id": task_id, "patch_chars": len(patch),
+                            "patch_sha256": patch_fingerprint(patch)}
 
     spec_file = SPECS_DIR / f"{task_id}.md"
     if not spec_file.exists():
@@ -356,7 +384,12 @@ def verify_one(
         returncode=payload.get("returncode"),
     )
     if error:
-        meta.update(ok=False, error=error)
+        # Keep what the model actually said. Without it a failure is only
+        # diagnosable by paying to reproduce the run.
+        meta.update(ok=False, error=error,
+                    result_text=(payload.get("result") or "")[:2000],
+                    subtype=payload.get("subtype"),
+                    is_error=payload.get("is_error"))
         return meta
 
     verdict_file, how = locate_verdict(workspace, payload.get("result") or "")
@@ -407,7 +440,7 @@ def stage_verify(
 
     def run_one(idx: int, task_id: str) -> bool:
         meta_path = VERDICTS_DIR / f"{task_id}.meta.json"
-        if not args.force and verdict_ok(task_id):
+        if not args.force and verdict_ok(task_id, patches.get(task_id)):
             log(f"[{idx}/{total}] {task_id}: cached verdict, skipping")
             with lock:
                 ok_ids.append(task_id)
@@ -689,7 +722,7 @@ def main() -> int:
         # tasks whose verify round actually succeeded. Checking the meta (not
         # just the .md) matters: a failed --force rerun rewrites the meta but
         # leaves the previous verdict file behind.
-        task_ids = [i for i in task_ids if verdict_ok(i)]
+        task_ids = [i for i in task_ids if verdict_ok(i, patches.get(i))]
         if not task_ids:
             die(f"no verdicts under {VERDICTS_DIR} — run --stage verify first")
 

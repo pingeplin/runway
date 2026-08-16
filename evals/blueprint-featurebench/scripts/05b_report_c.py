@@ -46,13 +46,15 @@ CAVEATS = """## Caveats
 - **Round 2 restarts from the pristine repo.** Both C and C0 re-implement from
   scratch with the previous patch quoted in the prompt; neither continues an
   existing working tree, so this measures feedback quality, not patch repair.
-- **The spec upstream of all three arms had oracle access.** Stage 01 writes
-  its spec against the image's raw `/testbed`, which still contains the
-  reference implementation — `fb infer` only strips it (and deletes the
-  FAIL_TO_PASS tests) inside the container. B, C and C0 all inherit that spec,
-  so it biases their common level, not the C/C0 contrast. The verify round
-  here does reproduce the masked tree, so the referee saw what the
-  implementing agent saw.
+- **Oracle masking is applied upstream.** Stage 01 writes its spec against a
+  tree that has been masked exactly as `fb infer` masks it — the dataset's
+  mask patch applied and the FAIL_TO_PASS test files deleted
+  (`_common.mask_reference_solution`; a task whose mask fails to apply is
+  hard-failed, and each spec's `.meta.json` records `mask_applied` /
+  `f2p_deleted`). The verify round reproduces the same masking, so the referee
+  saw what the implementing agent saw. An earlier, pre-masking run of this
+  harness did leak the reference solution into the spec stage and its results
+  were discarded.
 - **Single seed, small N.** Discordant-pair counts are expected to be
   single-digit; the McNemar p-values are directional evidence only.
 - **Cost is one-sided.** Arm C additionally pays the verify-round cost shown

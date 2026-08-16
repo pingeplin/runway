@@ -1,0 +1,6 @@
+stage 10 ok: results/logs/astropy/cost_report.md
+  arm A: $26.42 over 5 task(s), mean $5.28
+  arm B: $29.68 over 5 task(s), mean $5.94
+  arm C: $21.69 over 5 task(s), mean $4.34
+  arm C0: $30.52 over 5 task(s), mean $6.10
+  specs $15.71 · verdicts $16.92 · panel $140.93

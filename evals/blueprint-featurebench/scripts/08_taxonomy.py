@@ -38,6 +38,7 @@ untouched statement, and reading it avoids any network dependency here.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import subprocess
 import sys
@@ -531,20 +532,33 @@ def main() -> int:
     n_ok = 0
     for arm, tid in cells:
         out_path = TAXONOMY_DIR / arm / f"{tid}.json"
+        # load_predictions returns the whole JSONL row per instance, so reach
+        # into it for the patch itself.
+        fp = hashlib.sha256(
+            (((predictions_by_arm.get(arm) or {}).get(tid) or {}).get("model_patch") or "")
+            .encode("utf-8")
+        ).hexdigest()
         if out_path.exists() and not args.force:
-            log(f"  {tid} [{arm}]: cached, skipping")
             try:
-                if read_json(out_path).get("ok"):
-                    n_ok += 1
+                cached = read_json(out_path)
             except (OSError, json.JSONDecodeError):
-                pass
-            continue
+                cached = {}
+            # The classification describes ONE patch's failure. A cell cached
+            # against a different patch (rerun, other model) is about code that
+            # no longer exists; cells predating the fingerprint are stale.
+            if cached.get("patch_sha256") == fp:
+                log(f"  {tid} [{arm}]: cached, skipping")
+                if cached.get("ok"):
+                    n_ok += 1
+                continue
+            log(f"  {tid} [{arm}]: cached cell is for a different patch, recomputing")
         if arm not in predictions_by_arm or arm not in eval_outputs_dirs:
             log(f"  {tid} [{arm}]: FAILED — arm missing output_jsonl/eval_outputs_dir in runs.json")
             continue
 
         bundle = build_bundle(arm, tid, canonical_ps, predictions_by_arm, eval_outputs_dirs)
         meta = process_cell(arm, tid, bundle, template, args.claude_cmd, model, claude_args, timeout_s)
+        meta["patch_sha256"] = fp
         write_json(out_path, meta)
         if meta.get("ok"):
             n_ok += 1

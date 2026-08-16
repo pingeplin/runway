@@ -1,0 +1,98 @@
+{
+  "A": {
+    "arm": "A",
+    "dataset": "LiberCoders/FeatureBench",
+    "split": "fast",
+    "task_ids": [
+      "astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1",
+      "astropy__astropy.b0db0daa.test_containers.6079987d.lv1",
+      "astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1",
+      "astropy__astropy.b0db0daa.test_table.48eef659.lv1",
+      "astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1"
+    ],
+    "source_run_dirs": [
+      "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_a/2026-08-15__22-40-55"
+    ],
+    "eval_outputs_dirs": [
+      "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_a/2026-08-15__22-40-55/eval_outputs"
+    ],
+    "output_jsonl": "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/merged/output_A.jsonl",
+    "report_json": "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/merged/report_A.json",
+    "merged_from": [
+      "astropy"
+    ],
+    "eval_outputs_dir": "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_a/2026-08-15__22-40-55/eval_outputs"
+  },
+  "B": {
+    "arm": "B",
+    "dataset": "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/dataset_arm_b",
+    "split": "fast",
+    "task_ids": [
+      "astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1",
+      "astropy__astropy.b0db0daa.test_containers.6079987d.lv1",
+      "astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1",
+      "astropy__astropy.b0db0daa.test_table.48eef659.lv1",
+      "astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1"
+    ],
+    "source_run_dirs": [
+      "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_b/2026-08-15__23-31-04"
+    ],
+    "eval_outputs_dirs": [
+      "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_b/2026-08-15__23-31-04/eval_outputs"
+    ],
+    "output_jsonl": "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/merged/output_B.jsonl",
+    "report_json": "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/merged/report_B.json",
+    "merged_from": [
+      "astropy"
+    ],
+    "eval_outputs_dir": "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_b/2026-08-15__23-31-04/eval_outputs"
+  },
+  "C": {
+    "arm": "C",
+    "dataset": "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/dataset_arm_c",
+    "split": "fast",
+    "task_ids": [
+      "astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1",
+      "astropy__astropy.b0db0daa.test_containers.6079987d.lv1",
+      "astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1",
+      "astropy__astropy.b0db0daa.test_table.48eef659.lv1",
+      "astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1"
+    ],
+    "source_run_dirs": [
+      "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_c/2026-08-16__01-58-50"
+    ],
+    "eval_outputs_dirs": [
+      "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_c/2026-08-16__01-58-50/eval_outputs"
+    ],
+    "output_jsonl": "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/merged/output_C.jsonl",
+    "report_json": "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/merged/report_C.json",
+    "merged_from": [
+      "astropy"
+    ],
+    "eval_outputs_dir": "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_c/2026-08-16__01-58-50/eval_outputs"
+  },
+  "C0": {
+    "arm": "C0",
+    "dataset": "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/dataset_arm_c0",
+    "split": "fast",
+    "task_ids": [
+      "astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1",
+      "astropy__astropy.b0db0daa.test_containers.6079987d.lv1",
+      "astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1",
+      "astropy__astropy.b0db0daa.test_table.48eef659.lv1",
+      "astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1"
+    ],
+    "source_run_dirs": [
+      "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_c0/2026-08-16__02-43-28"
+    ],
+    "eval_outputs_dirs": [
+      "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_c0/2026-08-16__02-43-28/eval_outputs"
+    ],
+    "output_jsonl": "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/merged/output_C0.jsonl",
+    "report_json": "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/merged/report_C0.json",
+    "merged_from": [
+      "astropy"
+    ],
+    "eval_outputs_dir": "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/infer_arm_c0/2026-08-16__02-43-28/eval_outputs"
+  }
+}

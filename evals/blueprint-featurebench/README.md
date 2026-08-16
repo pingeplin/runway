@@ -191,6 +191,83 @@ cost and wall time), a totals row, the discordant-pair counts `b` (A-only
 resolved) and `c` (B-only resolved), an exact two-sided McNemar p-value, the
 total spec-stage cost, and a caveats block.
 
+## Running a multi-image panel
+
+A panel that spans several repositories cannot be run in one pass: FeatureBench
+images are 18–22GB each and the podman VM is capped (93GB here). So the panel is
+executed **one image at a time**, and the per-batch results are stitched back
+together afterwards.
+
+```bash
+bash scripts/run_batch.sh astropy docker.io/libercoders/featurebench-specs_astropy-instance_493bb78b
+bash scripts/11_finalize.sh 2608_scale_astropy_n5 samples/batch_astropy.txt
+```
+
+`run_batch.sh` runs one batch end to end — pull → 01 → **spec gate** → 02/03/04/05
+→ 06/05b → 07 → 10 → 08 → archive to `results/batches/<name>/` → `docker rmi` →
+`fstrim`. Then `09_merge.py` stitches the archives into `results/merged/`, shaped
+so the *unmodified* report stages consume it, and `11_finalize.sh` writes the
+published artifact to `reports/<name>/`.
+
+Four things that are easy to get wrong:
+
+- **Stage 03 is the expensive, non-idempotent stage** (~$56 per 5 tasks, two
+  arms). A batch that dies later must be resumed past it:
+  `START_AT=06 bash scripts/run_batch.sh …`. Never restart from 00.
+- **The spec gate is not optional.** Stage 01 exits 0 on *partial* failure, but
+  stage 02 drops non-`spec_ok` tasks from **both** arms — silently shrinking the
+  panel, discoverable only at merge time once the image is gone. The gate fails
+  the batch while the image is still resident, and on a `START_AT` resume it also
+  asserts `tasks.json` holds *this* batch.
+- **`docker rmi` does not return disk to the host.** The podman VM's `.raw` is
+  sparse and never re-punches holes: it sat at 84GB allocated against 26GB live.
+  `podman machine ssh <machine> "sudo fstrim -av"` reclaimed 60GB in seconds.
+  `run_batch.sh` does this after every batch.
+- **Don't `pgrep -f "run_batch.sh <arg>"` to wait on a batch.** A watcher whose
+  own command line contains that string matches itself and reports "running"
+  forever. Use `scripts/watch_pid.sh <pid>`.
+
+### Stage 10 — cost ledger
+
+```bash
+uv run --with datasets python3 scripts/10_costs.py --task-ids-file samples/batch_astropy.txt
+```
+
+`fb infer` preserves the in-container agent's transcript at
+`run_outputs/<id>/attempt-*/claude_code_stream_output.jsonl`, whose terminal
+`result` event carries `total_cost_usd`. Joined against the `.meta.json` sidecars
+from stages 01/06, that yields the all-in A-vs-B comparison and **cost per extra
+task resolved**. Pass `--task-ids-file`: the `specs/` and `verdicts/` directories
+accumulate across runs, and an earlier run's sidecars would otherwise be billed
+to this panel. Arms with no transcript are reported as *unmeasured*, never $0.
+
+## Cached artifacts are fingerprinted
+
+Verdicts (06), mutation cells (07) and taxonomy cells (08) are all expensive
+LLM artifacts cached by `(arm, instance_id)`. That key is **not sufficient** —
+it does not say *which implementation* the artifact describes. Reusing a verdict
+written against a previous run's patch silently feeds Arm C a referee report
+about code that no longer exists, and nothing in any output looks wrong.
+
+Each cached artifact therefore records `patch_sha256` of the patch it judged and
+is invalidated when that changes; artifacts predating the fingerprint are treated
+as stale by design. This was a real defect, not a hypothetical: a pilot verdict
+(30419-char patch) was reused to referee a 20399-char one.
+
+## Headless skills and background subagents
+
+A skill that dispatches work to a **background subagent** does not survive
+headless `claude -p`: the CLI waits a bounded time for background tasks and then
+kills them, so no artifact is written — after the tokens are spent. This hit
+`/verify` under sonnet-5 (which dispatches its referee; sonnet-4-5 ran it
+inline), producing 1/5 verdicts. The tell is `num_turns` ~5 instead of ~56.
+
+Both stages that shell out to `claude` set
+`CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0` so the CLI waits indefinitely, bounded
+instead by the harness's own `timeout_seconds`; and `prompts/verify_headless.md`
+forbids background dispatch outright. The underlying fix belongs in the plugin —
+`/verify` is affected in any headless context, not just this harness.
+
 ## Verifying the harness offline
 
 ```bash

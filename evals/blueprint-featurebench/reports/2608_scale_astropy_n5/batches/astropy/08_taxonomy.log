@@ -1,0 +1,13 @@
+stage 08: 11 failing cell(s) selected
+  astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1 [A]: cached, skipping
+  astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1 [B]: cached, skipping
+  astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1 [C]: impl_wrong / neutral ($0.2289)
+  astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1 [C0]: impl_wrong / neutral ($0.2362)
+  astropy__astropy.b0db0daa.test_containers.6079987d.lv1 [A]: impl_wrong / None ($0.1723)
+  astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1 [A]: impl_wrong / None ($0.5873)
+  astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1 [B]: spec_wrong / harmed ($0.7592)
+  astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1 [C]: spec_wrong / harmed ($0.6785)
+  astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1 [C0]: spec_wrong / harmed ($0.6888)
+  astropy__astropy.b0db0daa.test_table.48eef659.lv1 [A]: impl_wrong / None ($0.1535)
+  astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1 [A]: impl_wrong / None ($0.2084)
+stage 08 done: 11/11 cells ok -> /Users/eplin/workspace/runway/evals/blueprint-featurebench/results/taxonomy_report.md
