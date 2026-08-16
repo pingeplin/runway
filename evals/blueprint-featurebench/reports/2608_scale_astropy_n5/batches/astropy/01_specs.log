@@ -1,0 +1,8 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+stage 01: 5 task(s) from LiberCoders/FeatureBench:fast
+[1/5] astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1: cached spec, skipping
+[2/5] astropy__astropy.b0db0daa.test_containers.6079987d.lv1: cached spec, skipping
+[3/5] astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1: cached spec, skipping
+[4/5] astropy__astropy.b0db0daa.test_table.48eef659.lv1: cached spec, skipping
+[5/5] astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1: cached spec, skipping
+stage 01 done: 5/5 specs ok -> /Users/eplin/workspace/runway/evals/blueprint-featurebench/results/tasks.json

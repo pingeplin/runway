@@ -1,0 +1,22 @@
+# FeatureBench's own config, passed as `fb infer --config-path` /
+# `fb eval --config-path`. Copy to fb_config.toml and fill in.
+# This file holds secrets — fb_config.toml is gitignored.
+
+# Injected into every FeatureBench container at runtime.
+[env_vars]
+# Optional: only needed for gated/private datasets or a HF mirror.
+HF_TOKEN = ""
+HF_ENDPOINT = ""
+
+# The implementing agent that runs inside the task's docker image.
+# Auth: EITHER set ANTHROPIC_API_KEY (API billing) OR leave it empty and set
+# CLAUDE_CODE_OAUTH_TOKEN to the output of `claude setup-token` (subscription
+# auth — consumes your plan's usage blocks). FeatureBench injects every
+# non-empty key in this section into the container's environment.
+[infer_config.claude_code]
+ANTHROPIC_API_KEY = ""
+CLAUDE_CODE_OAUTH_TOKEN = ""
+# Optional: custom gateway.
+ANTHROPIC_BASE_URL = ""
+# Optional: pin the Claude Code version installed in the container.
+CLAUDE_CODE_VERSION = ""
