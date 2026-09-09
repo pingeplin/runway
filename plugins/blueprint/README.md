@@ -108,7 +108,7 @@ If you want a spec-as-source-of-truth model (BDD with maintained acceptance docs
 
 ## Benchmark
 
-Does handing a coding agent a blueprint spec actually change what it builds? Measured on [FeatureBench](https://github.com/LiberCoders/FeatureBench), which grades a patch against hidden fail-to-pass tests the agent never sees. The numbers below were produced with blueprint 4.0; a 5.0 rerun on the same panel is the first follow-up.
+Does handing a coding agent a blueprint spec actually change what it builds? Measured on [FeatureBench](https://github.com/LiberCoders/FeatureBench), which grades a patch against hidden fail-to-pass tests the agent never sees. The numbers below were produced with blueprint 4.0. The 5.0 rerun of Arm B on the same panel is at the end of this section.
 
 **Panel:** 5 astropy tasks, FeatureBench `fast` split, paired, single seed. The implementing agent is `claude_code` / `claude-sonnet-5` in **every** arm — the only thing that differs is the problem statement it receives. Both arms are scored by the unmodified `fb eval` against the official dataset.
 
@@ -136,6 +136,20 @@ But read the next row too: Arm B's tests kill only 25% of planted bugs, and two 
 - **This is a self-run evaluation of our own plugin.** It is not independent.
 
 Harness, full reports and the exact task list: [`evals/blueprint-featurebench/`](../../evals/blueprint-featurebench/README.md). Every number above is regenerable from the archived run in [`reports/2608_scale_astropy_n5/`](../../evals/blueprint-featurebench/reports/2608_scale_astropy_n5/README.md).
+
+### 5.0 rerun — the loop did not pay for itself here
+
+Same five tasks, same implementing agent, one seed, Arm B only, specs written by 5.0's `/spec` loop instead of 4.0's single evaluator pass ([`reports/2609_v5_astropy_n5/`](../../evals/blueprint-featurebench/reports/2609_v5_astropy_n5/README.md)):
+
+| | 4.0 `/spec` | 5.0 `/spec` ⟲ |
+|---|---|---|
+| Resolved | 3 / 5 | 2 / 5 |
+| Mean pass rate | 0.79 | 0.71 |
+| Tasks where the agent wrote any tests | 5 / 5 | **2 / 5** |
+| Spec cost per task | $2.30 | **$14.00** |
+| Spec wall time per task | 14 min | 47 min |
+
+One task flipped to resolved, two flipped away — noise-level on *resolved* at this N. The two clear signals are cost (6× on the spec stage) and a regression on the one thing the 4.0 spec reliably caused: the agent stopped writing tests on three of five tasks. The 5.0 specs are longer and more prescriptive (they cite existing suites as "your primary feedback loop" and enumerate which scenarios need new tests); whether that, or seed noise, drove the drop is not established by this run. The loop's intended benefit — fewer contradictions in the spec text — is not measured by this harness at all. Read this as: the loop's cost is proven, its benefit is not, and the next experiment should measure spec coherence directly and rerun 4.0 paired on the same day.
 
 ## Comparison
 
