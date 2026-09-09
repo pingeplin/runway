@@ -46,6 +46,7 @@ from _common import (
     die,
     load_config,
     load_script_module,
+    reinit_git,
     load_split_rows,
     read_json,
     read_runs,
@@ -195,9 +196,18 @@ def prepare_workspace(src: Path, dest: Path, row: dict[str, Any], spec_text: str
             ["git", "apply", "--whitespace=fix", str(mask_file)],
             cwd=dest, capture_output=True, text=True,
         )
-        mask_file.unlink(missing_ok=True)
-        info["mask_applied"] = proc.returncode == 0
         if proc.returncode != 0:
+            # Stage 01 now masks AND re-inits git, so a workspace copied from it
+            # already carries the mask as its only commit. Reverse-check tells
+            # "already applied" apart from "does not apply".
+            already = subprocess.run(
+                ["git", "apply", "--reverse", "--check", str(mask_file)],
+                cwd=dest, capture_output=True, text=True,
+            )
+            info["mask_already_applied"] = already.returncode == 0
+        mask_file.unlink(missing_ok=True)
+        info["mask_applied"] = proc.returncode == 0 or info.get("mask_already_applied", False)
+        if not info["mask_applied"]:
             # fb only warns here too; the Arm B patch will fail next if it matters.
             info["mask_error"] = (proc.stderr or proc.stdout or "").strip()[-300:]
 
@@ -206,6 +216,7 @@ def prepare_workspace(src: Path, dest: Path, row: dict[str, Any], spec_text: str
         if target.is_file():
             target.unlink()
             info["f2p_deleted"] += 1
+    info["git_reinit"] = reinit_git(dest)
 
     spec_dest = dest / WORKSPACE_SPEC_REL
     spec_dest.parent.mkdir(parents=True, exist_ok=True)

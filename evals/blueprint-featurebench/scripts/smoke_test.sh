@@ -140,8 +140,17 @@ for tid in ids:
         "oracle survived masking"
     i = tid.split("-")[1].split(".")[0]
     assert not (ws / "tests" / f"test_{i}.py").exists(), "F2P test file not deleted"
+    # History must not leak either: one commit, and HEAD's tree is the masked tree.
+    import subprocess
+    assert meta["git_reinit"] is True, meta
+    count = subprocess.run(["git", "rev-list", "--count", "HEAD"], cwd=ws, capture_output=True, text=True)
+    assert count.stdout.strip() == "1", f"expected a single commit, got {count.stdout!r}"
+    head_src = subprocess.run(["git", "show", "HEAD:src/widget.py"], cwd=ws, capture_output=True, text=True)
+    assert "REFERENCE_SOLUTION" not in head_src.stdout, "oracle recoverable via git show HEAD"
+    head_test = subprocess.run(["git", "show", f"HEAD:tests/test_{i}.py"], cwd=ws, capture_output=True, text=True)
+    assert head_test.returncode != 0, "deleted F2P test recoverable via git show HEAD"
 PY
-pass "tasks.json / specs / metas written; oracle masked, F2P tests deleted"
+pass "tasks.json / specs / metas written; oracle masked, F2P tests deleted, git history re-initialised"
 
 # Resume path: a second run must not re-invoke claude.
 BROKEN="$TMP/broken-claude"

@@ -110,6 +110,8 @@ If you want a spec-as-source-of-truth model (BDD with maintained acceptance docs
 
 Does handing a coding agent a blueprint spec actually change what it builds? Measured on [FeatureBench](https://github.com/LiberCoders/FeatureBench), which grades a patch against hidden fail-to-pass tests the agent never sees. The numbers below were produced with blueprint 4.0. The 5.0 rerun of Arm B on the same panel is at the end of this section.
 
+> **Validity caveat.** Both runs below were produced before the harness masked git *history*: the spec writer could read the reference solution and the hidden tests with `git show HEAD:`, and the 4.0 specs demonstrably did. The implementing agent never had that access, so Arm A stands; the spec-arm numbers are contaminated upper bounds. The harness is fixed (`_common.reinit_git`); the panel has not yet been rerun on it. Read everything below as provisional.
+
 **Panel:** 5 astropy tasks, FeatureBench `fast` split, paired, single seed. The implementing agent is `claude_code` / `claude-sonnet-5` in **every** arm — the only thing that differs is the problem statement it receives. Both arms are scored by the unmodified `fb eval` against the official dataset.
 
 | | **A** — problem statement | **B** — problem statement + `/spec` |

@@ -294,6 +294,16 @@ that shows the codebase to a model reproduces that masking
 unmasked tree is written with oracle access and its results are invalid —
 stage 01 hard-fails a task whose mask patch does not apply.
 
+The working tree is only half of the oracle. An extracted `/testbed` carries
+the upstream git history, so `git show HEAD:<path>` returns the reference
+implementation and the deleted FAIL_TO_PASS tests even after masking — and
+the 2608 specs demonstrably used it ("recoverable via `git show HEAD:…`").
+`mask_reference_solution` therefore also re-initialises git to a single
+commit of the masked tree (`_common.reinit_git`), exactly as `fb infer` does
+in the container. Every result produced before this fix (the 2608 archives
+and the 2609 5.0 rerun) was written with history access and is flagged as
+such in its README.
+
 ## Troubleshooting
 
 **Stage 01 produces no spec (`spec_failed`).** This is the known risk: the
