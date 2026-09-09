@@ -11,6 +11,10 @@ This stage joins that against the host-side stages that already record cost
 (01 specs, 06 verdicts) to answer the question a README reader actually asks:
 **what does the spec arm cost per extra task resolved?**
 
+The same `result` events (and the `.meta.json` sidecars) also carry a `usage`
+payload with input/cache-write/cache-read/output token counts, so token
+totals are reported alongside cost from the identical source.
+
   uv run --with datasets python3 scripts/10_costs.py --out results/cost_report.md
 
 Reads runs.json (use --runs results/merged/runs.json for the whole panel).
@@ -36,9 +40,46 @@ from _common import (
 VERDICTS_DIR = RESULTS_DIR / "verdicts"
 REPORT_PATH = RESULTS_DIR / "cost_report.md"
 
+TOKEN_KEYS = ("input", "cache_write", "cache_read", "output")
+
 
 def log(msg: str) -> None:
     print(msg, flush=True)
+
+
+def extract_tokens(usage: Any) -> dict[str, int] | None:
+    """{input, cache_write, cache_read, output} from a `usage` payload.
+
+    None when `usage` is absent — an unmeasured task, never a free one.
+    """
+    if not isinstance(usage, dict):
+        return None
+    return {
+        "input": int(usage.get("input_tokens") or 0),
+        "cache_write": int(usage.get("cache_creation_input_tokens") or 0),
+        "cache_read": int(usage.get("cache_read_input_tokens") or 0),
+        "output": int(usage.get("output_tokens") or 0),
+    }
+
+
+def add_tokens(a: dict[str, int] | None, b: dict[str, int] | None) -> dict[str, int] | None:
+    """Key-wise sum; either side unmeasured poisons the sum to unmeasured."""
+    if a is None or b is None:
+        return None
+    return {k: a[k] + b[k] for k in TOKEN_KEYS}
+
+
+def sum_tokens(records: list[dict[str, int] | None]) -> dict[str, int] | None:
+    total: dict[str, int] | None = {k: 0 for k in TOKEN_KEYS}
+    for r in records:
+        total = add_tokens(total, r)
+        if total is None:
+            return None
+    return total
+
+
+def tokens_total(tokens: dict[str, int] | None) -> int | None:
+    return sum(tokens.values()) if tokens is not None else None
 
 
 def stream_cost(path: Path) -> dict[str, Any] | None:
@@ -65,6 +106,7 @@ def stream_cost(path: Path) -> dict[str, Any] | None:
         "turns": last.get("num_turns"),
         "seconds": (last.get("duration_ms") or 0) / 1000.0,
         "subtype": last.get("subtype"),
+        "tokens": extract_tokens(last.get("usage")),
     }
 
 
@@ -93,6 +135,7 @@ def infer_costs(run_entry: dict[str, Any]) -> dict[str, dict[str, Any]]:
             if prior:
                 prior["cost_usd"] += rec["cost_usd"]
                 prior["seconds"] += rec["seconds"]
+                prior["tokens"] = add_tokens(prior["tokens"], rec["tokens"])
             else:
                 out[tid] = rec
     return out
@@ -152,12 +195,17 @@ def host_stage_costs(directory: Path, panel: set[str] | None = None) -> dict[str
         cost = data.get("cost_usd")
         if isinstance(cost, (int, float)):
             out[tid] = {"cost_usd": float(cost),
-                        "seconds": float(data.get("wall_seconds") or 0.0)}
+                        "seconds": float(data.get("wall_seconds") or 0.0),
+                        "tokens": extract_tokens(data.get("usage"))}
     return out
 
 
 def fmt_usd(v: Any) -> str:
     return f"${v:,.2f}" if isinstance(v, (int, float)) else "—"
+
+
+def fmt_tokens(v: Any) -> str:
+    return f"{round(v):,}" if isinstance(v, (int, float)) else "—"
 
 
 def main() -> int:
@@ -190,9 +238,11 @@ def main() -> int:
         costs = infer_costs(entry)
         report_json = entry.get("report_json")
         resolved = count_resolved(Path(report_json)) if report_json else 0
+        infer_tokens = sum_tokens([c["tokens"] for c in costs.values()])
         per_arm[arm] = {
             "infer": costs,
             "infer_total": sum(c["cost_usd"] for c in costs.values()),
+            "infer_tokens": infer_tokens,
             "n_measured": len(costs),
             "n_tasks": len(entry.get("task_ids") or []) or len(costs),
             "resolved": resolved,
@@ -201,13 +251,17 @@ def main() -> int:
     # Host-side stages are spent by the arms that consume them.
     spec_total = sum(v["cost_usd"] for v in spec.values())
     verdict_total = sum(v["cost_usd"] for v in verdict.values())
+    spec_tokens = sum_tokens([v["tokens"] for v in spec.values()])
+    verdict_tokens = sum_tokens([v["tokens"] for v in verdict.values()])
 
     lines: list[str] = ["# Cost ledger\n"]
     lines.append(
         "In-container inference cost is read from each task's Claude Code "
         "stream-json (`total_cost_usd` on the terminal `result` event); host "
-        "stages from their `.meta.json` sidecars. Arms with no stream file are "
-        "reported as unmeasured, never as $0.\n"
+        "stages from their `.meta.json` sidecars. Token counts (input, cache "
+        "write, cache read, output) come from the same `usage` payload in "
+        "each source. Arms with no stream file are reported as unmeasured, "
+        "never as $0 or 0 tokens.\n"
     )
 
     lines.append("## Per-arm inference\n")
@@ -224,14 +278,38 @@ def main() -> int:
         )
     lines.append("")
 
+    lines.append("## Per-arm tokens\n")
+    lines.append("| arm | input | cache write | cache read | output | total | mean total/task | total/resolved |")
+    lines.append("|---|---|---|---|---|---|---|---|")
+    for arm, d in per_arm.items():
+        tok = d["infer_tokens"]
+        n = d["n_measured"]
+        total = tokens_total(tok)
+        mean = total / n if (total is not None and n) else None
+        per_res = total / d["resolved"] if (total is not None and d["resolved"]) else None
+        if tok is None:
+            row_vals = ("—", "—", "—", "—")
+        else:
+            row_vals = tuple(fmt_tokens(tok[k]) for k in TOKEN_KEYS)
+        lines.append(
+            f"| {arm} | {row_vals[0]} | {row_vals[1]} | {row_vals[2]} | {row_vals[3]} | "
+            f"{fmt_tokens(total)} | {fmt_tokens(mean)} | {fmt_tokens(per_res)} |"
+        )
+    lines.append("")
+
     lines.append("## Host-side stages\n")
-    lines.append("| stage | tasks | cost | mean/task |")
-    lines.append("|---|---|---|---|")
-    for label, data, total in [("01 specs (Arm B/C input)", spec, spec_total),
-                               ("06 verdicts (Arm C input)", verdict, verdict_total)]:
+    lines.append("| stage | tasks | cost | mean/task | input | cache write | cache read | output | total tokens |")
+    lines.append("|---|---|---|---|---|---|---|---|---|")
+    for label, data, total, tok in [
+        ("01 specs (Arm B/C input)", spec, spec_total, spec_tokens),
+        ("06 verdicts (Arm C input)", verdict, verdict_total, verdict_tokens),
+    ]:
         n = len(data)
+        tok_cells = tuple(fmt_tokens(tok[k]) for k in TOKEN_KEYS) if tok is not None else ("—",) * 4
         lines.append(f"| {label} | {n} | {fmt_usd(total)} | "
-                     f"{fmt_usd(total / n if n else None)} |")
+                     f"{fmt_usd(total / n if n else None)} | "
+                     f"{tok_cells[0]} | {tok_cells[1]} | {tok_cells[2]} | {tok_cells[3]} | "
+                     f"{fmt_tokens(tokens_total(tok))} |")
     lines.append("")
 
     # The headline: what the treatment costs over the control, end to end.
@@ -241,15 +319,30 @@ def main() -> int:
         a_total = a["infer_total"]
         b_total = b["infer_total"] + spec_total
         delta_resolved = b.get("resolved", 0) - a.get("resolved", 0)
+        a_tok_total = tokens_total(a["infer_tokens"])
+        b_tok = add_tokens(b["infer_tokens"], spec_tokens)
+        b_tok_total = tokens_total(b_tok)
         lines.append("## Arm A vs Arm B, all-in\n")
-        lines.append(f"- Arm A (inference only): **{fmt_usd(a_total)}**")
+        lines.append(f"- Arm A (inference only): **{fmt_usd(a_total)}**, "
+                     f"**{fmt_tokens(a_tok_total)} tokens**")
         lines.append(f"- Arm B (inference + spec stage): **{fmt_usd(b_total)}** "
-                     f"= {fmt_usd(b['infer_total'])} infer + {fmt_usd(spec_total)} spec")
+                     f"= {fmt_usd(b['infer_total'])} infer + {fmt_usd(spec_total)} spec, "
+                     f"**{fmt_tokens(b_tok_total)} tokens** "
+                     f"= {fmt_tokens(tokens_total(b['infer_tokens']))} infer + "
+                     f"{fmt_tokens(tokens_total(spec_tokens))} spec")
         lines.append(f"- Spec overhead: **{fmt_usd(b_total - a_total)}** "
                      f"({((b_total / a_total - 1) * 100):+.0f}%)")
+        if a_tok_total is not None and b_tok_total is not None and a_tok_total:
+            lines.append(f"- Token overhead: **{fmt_tokens(b_tok_total - a_tok_total)}** "
+                         f"({((b_tok_total / a_tok_total - 1) * 100):+.0f}%)")
+        else:
+            lines.append("- Token overhead: **—** (unmeasured tokens on one arm)")
         if delta_resolved > 0:
             lines.append(f"- Extra tasks resolved by B: **{delta_resolved}** → "
                          f"**{fmt_usd((b_total - a_total) / delta_resolved)}** per extra resolve")
+            if a_tok_total is not None and b_tok_total is not None:
+                lines.append(f"- Tokens per extra resolve: "
+                             f"**{fmt_tokens((b_tok_total - a_tok_total) / delta_resolved)}**")
         else:
             lines.append(f"- Extra tasks resolved by B: **{delta_resolved}** — "
                          "cost per extra resolve is undefined; the spec arm's return "
@@ -266,8 +359,10 @@ def main() -> int:
     log(f"stage 10 ok: {out_path}")
     for arm, d in per_arm.items():
         n = d["n_measured"]
+        tok_total = tokens_total(d["infer_tokens"])
         log(f"  arm {arm}: {fmt_usd(d['infer_total'])} over {n} task(s)"
-            + (f", mean {fmt_usd(d['infer_total']/n)}" if n else ""))
+            + (f", mean {fmt_usd(d['infer_total']/n)}" if n else "")
+            + f", {fmt_tokens(tok_total)} tokens")
     log(f"  specs {fmt_usd(spec_total)} · verdicts {fmt_usd(verdict_total)} "
         f"· panel {fmt_usd(total_all)}")
     return 0

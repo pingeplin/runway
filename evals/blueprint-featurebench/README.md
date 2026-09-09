@@ -240,6 +240,9 @@ from stages 01/06, that yields the all-in A-vs-B comparison and **cost per extra
 task resolved**. Pass `--task-ids-file`: the `specs/` and `verdicts/` directories
 accumulate across runs, and an earlier run's sidecars would otherwise be billed
 to this panel. Arms with no transcript are reported as *unmeasured*, never $0.
+Token usage (input, cache write, cache read, output) is read from the same
+`usage` payload and reported alongside cost, with the same unmeasured-not-zero
+handling.
 
 ## Cached artifacts are fingerprinted
 
