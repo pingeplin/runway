@@ -13,23 +13,18 @@ This skill handles two distinct tasks. The mode matters; do not default to "fill
 - **Writing a new doc** (work starts before the template — see Workflow A below)
 - **Critiquing an existing draft** (work is finding what's missing or hand-waved — see Workflow B below)
 
-After the doc is written, dispatch the `design-evaluator` subagent to review it. The evaluator is a separate agent with fresh context and no sunk-cost bias — it scans for the common failure modes and surfaces what genuinely needs human judgment.
+After the doc is written, run the loop in `${CLAUDE_PLUGIN_ROOT}/references/loop.md`: dispatch the `evaluator` subagent to judge it, rewrite the whole doc against its findings, and repeat — up to three rounds. The evaluator is a separate agent with fresh context and no sunk-cost bias; it reports, it never edits. See Next Step.
 
 ## Where this fits in the blueprint pipeline
 
 ```
-/design ──→ /spec ──→ ⟦ any coding agent implements ⟧ ──→ /verify ──→ /commit
+/design ⟲ ──→ /spec ⟲ ──→ ⟦ implement ⟲ /verify ⟧ ──→ /commit
    │
    │  Optional — use when the approach itself is in question.
    │  Skip and go straight to /spec when the design is settled.
 ```
 
-`/design` is **upstream** of `/spec`. The two skills do different jobs:
-
-- `/design` argues *which approach to take*. Output is an argument with alternatives, trade-offs, and a load-bearing assumption.
-- `/spec` defines *the testable behavior* of the chosen approach. Output is the agent-executable contract that an implementing agent builds against and `/verify` checks.
-
-After a design is approved, run `/spec` to translate the chosen approach into a behavioral contract.
+`/design` is **upstream** of `/spec`: `/design` argues *which approach to take* (alternatives, trade-offs, a load-bearing assumption); `/spec` defines *the testable behavior* of the chosen approach (the contract an implementing agent builds against and `/verify` checks). After a design is approved, run `/spec`.
 
 ## ID System
 
@@ -88,7 +83,7 @@ This works because:
 - The user is calibrating against an artifact, not a hypothetical. People are much better at reacting to a wrong answer than at producing a right one from scratch.
 - Naming the assumption is the same epistemic act as asking the question — just packaged for less friction.
 
-Close your first-cut response with:
+The inline assumptions travel with the draft through the loop (the evaluator judges them as written). When the loop exits, close the presentation with:
 
 > **Things to confirm or correct before this goes for review:** [list of 3-7 inline assumptions, especially anything load-bearing — scope, audience, decided-vs-open, constraints, success metric].
 
@@ -168,7 +163,7 @@ If the user pastes or links a draft, do this before anything else:
 
 Then give feedback as a reviewer would, prioritized: structural problems first (missing decision, missing alternatives), then specific weaknesses, then nits last. Don't rewrite the doc unless asked.
 
-If the draft is already in `docs/designs/`, dispatch the `design-evaluator` subagent on it directly rather than reviewing it inline.
+If the draft is already in `docs/designs/`, run the loop from Next Step on it directly rather than critiquing it inline — the evaluator's ledger is the critique, and the rewrite is yours.
 
 ## Writing technique that matters
 
@@ -206,19 +201,18 @@ Read these on demand, not eagerly:
 
 Don't write a design doc that reads like it was generated. Signs that you've slipped into that mode: every section starts with the section name as a sentence ("The goal of this design is to..."), checklists where prose belongs, hedging language ("This solution may potentially..."), excessive headers for short content. Write like an engineer making a case to a colleague who will push back. Confident, specific, and willing to name what's hard.
 
-## Next Step
+## Next Step — the design loop
 
-After generating or substantially revising the design file, **dispatch the `design-evaluator` subagent** using the `Agent` tool with `subagent_type: design-evaluator`. Pass the design file path in the prompt. Wait for its report, surface the findings to the user, and address any "Needs Human Input" items before suggesting:
+After writing the design file, run the loop from `${CLAUDE_PLUGIN_ROOT}/references/loop.md` with this session as producer and `evaluator` as judge:
+
+1. **Judge.** Dispatch the `evaluator` subagent via the `Agent` tool with `subagent_type: evaluator` and the prompt from `loop.md`: the design file path, `${CLAUDE_PLUGIN_ROOT}/references/review-design.md` as the methodology, and the ledger's open rows (`none` on round 1).
+2. **Merge.** Fold its ledger update into your ledger. Apply the stop rules in order: `READY` → exit; `NEEDS-HUMAN` → exit with the questions; round 3 → exit; nothing resolved and nothing new → exit as stuck.
+3. **Revise.** On `REVISE`, rewrite the **whole document** with the full ledger in hand — do not patch individual findings — then go to 1.
+
+Present to the user only at loop exit: the doc, the final ledger, and any questions. Do not show intermediate rounds. Then suggest:
 
 ```
 /spec docs/designs/{yymm.xxxx}_{topic}.md
 ```
 
-`/spec` will use the design as input to generate the agent-executable contract for the chosen approach.
-
-The full workflow chain:
-```
-/design → /spec → ⟦ any coding agent implements ⟧ → /verify → /commit
-```
-
-Or via the orchestrator: `/blueprint "feature name"` (which auto-detects when `/design` is worth running).
+`/spec` will use the design as input to generate the agent-executable contract for the chosen approach. Or via the orchestrator: `/blueprint "feature name"`, which auto-detects when `/design` is worth running.

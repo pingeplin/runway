@@ -72,6 +72,16 @@ Scan for:
 - **Implicit requirements** — Behaviors implied by the design but never stated (e.g., creation described but duplicate creation unaddressed)
 - **Missing error handling** — Happy path described but failure modes absent
 
-## Phase 5 — Spec Summary
+## Phase 5 — Coherence
+
+Read the spec as a document, not a checklist. This is where contradictions and muddled wording hide:
+
+1. **One term per concept.** The same agent, artifact, or state is called one thing throughout. Flag any pair of names used for one concept (e.g. "referee" and "verifier").
+2. **Scenario IDs match the Definition of Done.** Every scenario ID the Definition of Done cites exists, and every scenario is reachable from the Definition of Done.
+3. **Section order serves a first-time reader.** Contract before scenarios, scenarios before done-criteria; nothing is used before it is introduced.
+4. **One claim per sentence.** Flag sentences that bundle two behaviors or hedge one behind another.
+5. **No section restates another.** Flag paragraphs that repeat an earlier section in different words instead of adding to it.
+
+## Phase 6 — Spec Summary
 
 Output: overall testability (High/Medium/Low), critical issues blocking downstream work, improvement suggestions, and a **Ready for handoff** verdict (Yes/No with conditions) — i.e., is this a self-contained, referee-able contract a coding agent could build against and `/verify` could check?

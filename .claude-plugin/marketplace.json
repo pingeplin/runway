@@ -12,16 +12,31 @@
     {
       "name": "blueprint",
       "source": "./plugins/blueprint",
-      "description": "Intent producer + invariant referee. Produces design docs (motivation, approach, alternatives) and agent-executable specs (interface contract, acceptance scenarios, Definition of Done), hands implementation to any coding agent, then referees the result against the spec — scenario coverage, anti-vacuity check, and Test Desiderata scoring. Tests remain the durable contract.",
+      "description": "Intent producer + invariant referee. Produces design docs (motivation, approach, alternatives) and agent-executable specs (interface contract, acceptance scenarios, Definition of Done), hands implementation to any coding agent, then referees the result against the spec — scenario coverage, anti-vacuity check, and Test Desiderata scoring. Every stage runs one bounded produce → judge → revise loop (fresh judge each round, whole-artifact rewrite, three rounds max) and the human reviews once at loop exit. Tests remain the durable contract.",
       "category": "planning",
-      "tags": ["design-doc", "rfc", "adr", "spec", "tdd", "verification", "referee"]
+      "tags": [
+        "design-doc",
+        "rfc",
+        "adr",
+        "spec",
+        "tdd",
+        "verification",
+        "referee",
+        "loop"
+      ]
     },
     {
       "name": "thinking-craft",
       "source": "./plugins/thinking-craft",
       "description": "Personal thinking tools that coach — not automate — the craft of structured thought. Includes guided note-making, Zettelkasten workflows, and reflective writing practices.",
       "category": "thinking",
-      "tags": ["zettelkasten", "permanent-notes", "note-making", "thinking", "reflection"]
+      "tags": [
+        "zettelkasten",
+        "permanent-notes",
+        "note-making",
+        "thinking",
+        "reflection"
+      ]
     }
   ]
 }

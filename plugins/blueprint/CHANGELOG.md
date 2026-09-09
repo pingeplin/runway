@@ -1,8 +1,65 @@
 # Changelog
 
-All notable changes to the `blueprint` TDD plugin are documented here.
+All notable changes to the `blueprint` plugin are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/);
 versions follow SemVer.
+
+## [5.0.0] — 2026-09-10
+
+**Blueprint slims to the path that is actually used, and the loop that
+made it work becomes the tool.** The pipeline is now
+`/design ⟲ ──→ /spec ⟲ ──→ ⟦ implement ⟲ /verify ⟧ ──→ /commit`, where
+every ⟲ is the same bounded produce → judge → revise loop and the human
+reviews once per stage, at loop exit.
+
+Design doc: `docs/designs/2609.0001_blueprint_5_slim_loop_evaluator.md`.
+Spec: `.blueprint/specs/2609.0001_blueprint_5_slim_loop_evaluator.md`.
+Both were written with blueprint's own `/design` and `/spec`.
+
+### Why
+
+Three months on 4.0 showed that only `/blueprint → /spec → implement →
+/verify → /commit` was ever exercised; that the spec and design
+evaluators, editing documents inside their own context, produced specs
+with contradictions and muddled ordering; and that the
+implement↔verify loop which pays off on hard tasks was driven by hand
+with an external `/loop`, gated after every round.
+
+### Added
+
+- **`references/loop.md`** — the one loop protocol: whole-artifact
+  revise, a fresh judge every round, a ledger owned by the calling
+  skill, round cap 3, stop rules `READY` → `NEEDS-HUMAN` → cap → stuck.
+  Implement rounds work on the current tree and share their handoff
+  shape with the FeatureBench Arm C repair instruction.
+- **`evaluator` agent** — the single, report-only document judge for
+  `/design` and `/spec`. Takes an artifact path, a methodology reference
+  path, and the ledger's open rows; returns a ledger update and a
+  verdict. No `Edit` tool.
+- **Coherence phase** in `references/review-spec.md` and
+  `references/review-design.md`: one term per concept, section order,
+  one claim per sentence, no restated sections, scenario IDs matching
+  the Definition of Done.
+- `/verify` accepts an optional ledger and forwards it in the referee's
+  dispatch prompt; `referee.md` itself is unchanged.
+
+### Removed (breaking)
+
+- Skills `/refactor`, `/review`, `/test-conventions`.
+- Agents `spec-evaluator`, `design-evaluator`, `conventions-evaluator`,
+  `test-runner`, `commit-writer`. Any external prompt that dispatched
+  one of these by name breaks. The FeatureBench harness dispatches only
+  the `spec` and `verify` skills and is unaffected.
+- References `review-test.md` and `eval-methodology.md`.
+
+### Changed
+
+- `/commit` writes the message inline, from the diff, with the rule
+  that the implementation conversation is not a source.
+- `/design` and `/spec` run the loop instead of one evaluator pass and
+  present the document only at loop exit, with its final ledger.
+- `/blueprint` has exactly three human gates — design approval, spec
+  approval, verdict review — and no per-round gate.
 
 ## [4.0.0] — 2026-06-05
 
