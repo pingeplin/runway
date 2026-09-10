@@ -1,0 +1,52 @@
+{
+  "instance_id": "astropy__astropy.b0db0daa.test_table.48eef659.lv1",
+  "image_name": "libercoders/featurebench-specs_astropy-instance_493bb78b",
+  "mask_applied": true,
+  "f2p_deleted": 1,
+  "git_reinit": true,
+  "cost_usd": 21.09891835,
+  "duration_ms": 3833014,
+  "duration_api_ms": 3827915,
+  "wall_seconds": 3836.53,
+  "num_turns": 83,
+  "usage": {
+    "input_tokens": 156,
+    "cache_creation_input_tokens": 234859,
+    "cache_read_input_tokens": 11077808,
+    "output_tokens": 113810,
+    "output_tokens_details": {
+      "thinking_tokens": 29464
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 234859,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 107,
+        "cache_read_input_tokens": 253483,
+        "cache_creation_input_tokens": 659,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 659
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "returncode": 0,
+  "ok": true,
+  "error": null,
+  "spec_located_by": "marker",
+  "spec_source": ".blueprint/specs/2609.0001_quantity_concatenate_and_votable_table_ops.md",
+  "spec_path": "results/specs/astropy__astropy.b0db0daa.test_table.48eef659.lv1.md",
+  "spec_chars": 62818
+}
