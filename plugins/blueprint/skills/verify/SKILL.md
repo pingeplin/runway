@@ -1,23 +1,28 @@
 ---
 name: verify
 description: Referee an implementation against its spec — the post-implementation gate of the blueprint workflow. ALWAYS use this skill after any coding agent (or a human) has implemented a spec, when the user wants to verify the implementation, referee the result, check that the code satisfies the spec, check scenario coverage, ask "are these tests actually testing anything?", "did the agent really build what the spec asked?", "is this vacuous?", or run the final quality gate before /commit. Works regardless of which agent produced the code — blueprint does not need to have driven the implementation.
-argument-hint: '[path-to-spec] [optional-base-git-ref] [optional-ledger]'
+argument-hint: '[path-to-spec] [optional-base-git-ref]'
 ---
 
 # Verify
 
 Referee a finished implementation against its spec. `/verify` is the
-**judge** end of blueprint's produce → judge → revise loop: `/design`
-and `/spec` produce the contract, any coding agent satisfies it, and
-`/verify` decides whether it actually did — no matter how the code was
-built. The agent that wrote the code may have been Claude Code, Codex,
-Cursor, a human, or anything else. The spec is the only thing `/verify`
-trusts; the code is treated as code of unknown provenance.
+**referee** end of blueprint's producer→referee architecture: `/design` and
+`/spec` produce the contract, any coding agent satisfies it, and `/verify`
+decides whether it actually did — no matter how the code was built.
 
-Invoked standalone, `/verify` runs **one round**: one referee dispatch,
-one verdict. Inside `/blueprint`, it is the judge step of the implement
-loop in `${CLAUDE_PLUGIN_ROOT}/references/loop.md`, called once per
-round with the ledger from the previous round.
+## Where this fits
+
+```
+/design ──→ /spec ──→ ⟦ any coding agent implements ⟧ ──→ /verify ──→ /commit
+                                                              ▲
+                                              you are here — the gate
+```
+
+`/verify` does **not** assume blueprint drove the implementation. The agent
+that wrote the code may have been Claude Code, Codex, Cursor, a human, or
+anything else. The spec is the only thing `/verify` trusts; the code is
+treated as code of unknown provenance.
 
 ## What it checks
 
@@ -35,7 +40,7 @@ bias) to run five checks against the produced code + tests:
 4. **Test Desiderata** — scores tests against Kent Beck's properties
    (`references/test-desiderata.md`) and the anti-patterns checklist
    (`references/anti-patterns.md`), plus this repo's own conventions when a
-   `docs/testing/test-conventions.md` exists.
+   `docs/testing/test-conventions.md` (from `/test-conventions`) exists.
 5. **Implementation quality** — flags stale docstrings, restated-*what*
    comments, dead code, stubs (`references/review-impl.md`).
 
@@ -48,23 +53,17 @@ read from two ends.
 - **Spec** — if `$ARGUMENTS` names a spec path, use it. Otherwise locate the
   most recently modified spec under `.blueprint/specs/` and confirm with the
   user. `/verify` needs **no plan file** — none exists in this workflow.
-- **Base git ref (optional)** — the commit the implementation started from,
-  so the referee can scope its review to `git diff {base}..HEAD`. Without
-  one, the referee reviews the working tree and the files relevant to the
-  spec's scenarios.
-- **Ledger (optional)** — the open rows from the previous round, in the
-  format of `references/loop.md`. They are forwarded **verbatim** inside
-  the dispatch prompt in `references/loop.md` so the referee re-checks each one. Absent on
-  a standalone run.
+- **Base git ref (optional)** — if the user provides the commit the
+  implementation started from, pass it to the referee so it can scope its
+  review to `git diff {base}..HEAD`. Without one, the referee reviews the
+  working tree and the files relevant to the spec's scenarios.
 
 ## Workflow
 
-1. **Resolve the spec** (and base ref and ledger, if given) per Inputs above.
+1. **Resolve the spec** (and base ref, if given) per Inputs above.
 2. **Dispatch the `referee` subagent** via the `Agent` tool with
-   `subagent_type: referee` and the implement-round dispatch prompt from
-   `${CLAUDE_PLUGIN_ROOT}/references/loop.md` — spec path, base git ref,
-   and the ledger's open rows under `Ledger open items`, verbatim. The
-   referee knows nothing about ledgers, so the prompt carries them.
+   `subagent_type: referee`. Pass the spec path and the base ref (if any) in
+   the prompt. The referee runs the five checks in a fresh context.
 3. **Surface the referee's report** — coverage matrix, the thought-mutation
    table, desiderata scores, implementation-quality flags, and the verdict.
 4. **Recommend the next step** based on the verdict:
@@ -72,17 +71,17 @@ read from two ends.
      scenarios, no blocking quality flags) → recommend `/commit`.
    - **Does not meet Done** → summarize exactly what's missing — uncovered
      scenarios, covered-but-vacuous scenarios (with the surviving mutation),
-     or quality blockers — as a punch list. Standalone, hand it to the
-     implementing agent. Inside `/blueprint`, the orchestrator turns it
-     into ledger rows and runs the next round. Do **not** fix it here;
-     `/verify` referees, it does not build.
+     or quality blockers — as a punch list for the implementing agent's next
+     pass. Do **not** fix it here; `/verify` referees, it does not build.
 
 ## Principles
 
 - **Coverage is necessary, not sufficient.** A scenario with a test that
   wouldn't fail when the behavior breaks is not done. The thought-mutation
-  check (3) is where this gate earns its keep — treat it as the headline.
+  check (3) is where this gate earns its keep — treat it as the headline,
+  not an afterthought.
 - **Honest verdict.** Until real mutation tooling backs check 3, the verdict
-  is *advisory-strong*, not *proven* — say so.
+  is *advisory-strong*, not *proven* — say so. Don't launder a reasoning
+  pass into a guarantee.
 - **The referee assesses; it never edits.** Fixes are the implementing
   agent's job (or a human's). Keep generation and judgment separate.

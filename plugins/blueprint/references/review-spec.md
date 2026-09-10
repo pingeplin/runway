@@ -63,28 +63,15 @@ If the spec includes Acceptance Scenarios, audit them:
 
 If no Acceptance Scenarios section exists, flag this as a critical gap.
 
-**Scope completeness — read the touched files (always, whether or not a scenarios section exists).** For every file the spec touches, open it. Anything referenced-but-undefined, stubbed, or missing that the feature's code path or its tests would reach is goal-related scope the spec does not cover: report it as an `uncovered` finding with `Fix: add as prerequisite or scenario, marked [INFERRED]`. The fix is never `mark out of scope`. A spec that fences such an item off — "do not restore", "leave as-is", "out of scope for this work", or a "Known blockers" / "Environment blockers" / "pre-existing gaps" section that names an undefined symbol and says not to fix it — has a `contradiction` finding with `Fix: remove the fence and cover it`; see the scope rule in `references/loop.md`. Grep the spec for those phrases as part of this check.
-
 ## Phase 4 — Ambiguity and Contradiction Detection
 
 Scan for:
 
-- **Ambiguous language** — "should", "might", "ideally", "as appropriate", "etc." — these create undefined behavior that leads to undertested code. Resolve by committing to inclusion whenever the goal, the code path, and the existing tests determine the behavior (an `uncovered` finding); route to the human only when resolving it means choosing among behaviors the goal leaves open (a `behavior-change` finding).
-- **Out-of-scope entries that are not declined decisions** — an "Out of Scope" / "not in scope" / "do not restore" entry is valid only when it records a `behavior-change` decision a human declined; any other such entry is a `contradiction` finding (`Fix: remove the fence and cover it`).
+- **Ambiguous language** — "should", "might", "ideally", "as appropriate", "etc." — these create undefined behavior that leads to undertested code
 - **Contradictions** — Two sections that imply different behavior for the same scenario
 - **Implicit requirements** — Behaviors implied by the design but never stated (e.g., creation described but duplicate creation unaddressed)
 - **Missing error handling** — Happy path described but failure modes absent
 
-## Phase 5 — Coherence
-
-Read the spec as a document, not a checklist. This is where contradictions and muddled wording hide:
-
-1. **One term per concept.** The same agent, artifact, or state is called one thing throughout. Flag any pair of names used for one concept (e.g. "referee" and "verifier").
-2. **Scenario IDs match the Definition of Done.** Every scenario ID the Definition of Done cites exists, and every scenario is reachable from the Definition of Done.
-3. **Section order serves a first-time reader.** Contract before scenarios, scenarios before done-criteria; nothing is used before it is introduced.
-4. **One claim per sentence.** Flag sentences that bundle two behaviors or hedge one behind another.
-5. **No section restates another.** Flag paragraphs that repeat an earlier section in different words instead of adding to it.
-
-## Phase 6 — Spec Summary
+## Phase 5 — Spec Summary
 
 Output: overall testability (High/Medium/Low), critical issues blocking downstream work, improvement suggestions, and a **Ready for handoff** verdict (Yes/No with conditions) — i.e., is this a self-contained, referee-able contract a coding agent could build against and `/verify` could check?

@@ -12,9 +12,9 @@ A reviewer should be able to read the first paragraph and know what's being prop
 2. **Is it one decision, or a bundle?** Multi-decision docs are unreviewable because reviewers can't approve some parts and reject others. Flag if the doc bundles independent decisions.
 3. **Is the doc type matched to the situation?** An RFC for a settled decision is theatre; an ADR for an open decision is premature. If a mismatch is obvious, flag.
 
-**Fix to report:** Hoist a buried TL;DR to the top if the content exists further down. Add a missing doc-type header.
+**Autonomous fixes:** Hoist a buried TL;DR to the top if the content exists further down. Add a missing doc-type header.
 
-**Flag for human (`behavior-change` row):** Decision absent, or doc clearly bundling independent decisions.
+**Flag for human:** Decision absent, or doc clearly bundling independent decisions.
 
 ## Phase 2 — Alternative Quality
 
@@ -30,9 +30,9 @@ For each alternative, check:
 2. **Is the rejection reason load-bearing, or hand-wave?** "Doesn't scale" without numbers is hand-wave. "Hits ~400ms in our benchmark, target is <200ms" is load-bearing.
 3. **Is the comparison made *given the constraints*?** Alternatives often look bad when stripped of context.
 
-**Fix to report:** None — you cannot strengthen an alternative without technical judgment.
+**Autonomous fixes:** None — you cannot strengthen an alternative without technical judgment.
 
-**Flag for human (`behavior-change` row):** Any alternative that reads as a straw man. Specifically: "Alternative N (`{name}`) is dismissed for `{reason}` — is this dismissal fair? If yes, please add the evidence behind it; if no, this alternative may be the right choice."
+**Flag for human:** Any alternative that reads as a straw man. Specifically: "Alternative N (`{name}`) is dismissed for `{reason}` — is this dismissal fair? If yes, please add the evidence behind it; if no, this alternative may be the right choice."
 
 ## Phase 3 — Trade-off Honesty
 
@@ -44,9 +44,9 @@ Check:
 2. **Is at least one downside of the chosen approach named explicitly?** Operational complexity, cost, future flexibility, latency, team learning curve — something concrete.
 3. **Does the "Trade-offs" section (if present) actually take a position?** Listing trade-offs without picking sides ("we could do X or Y; both have merits") is completionism, not argument.
 
-**Fix to report:** If a downside is mentioned implicitly elsewhere (e.g., in "Risks" or "Open Questions") but not surfaced in a trade-off statement, hoist it.
+**Autonomous fixes:** If a downside is mentioned implicitly elsewhere (e.g., in "Risks" or "Open Questions") but not surfaced in a trade-off statement, hoist it.
 
-**Flag for human (`behavior-change` row):** No downside named anywhere. "The chosen approach reads as dominant on every axis — what are we giving up?"
+**Flag for human:** No downside named anywhere. "The chosen approach reads as dominant on every axis — what are we giving up?"
 
 ## Phase 4 — Load-bearing Assumption
 
@@ -58,9 +58,9 @@ Check:
 2. **Is it justified?** Numbers, prior data, stakeholder confirmation.
 3. **Does the doc say what happens if the assumption breaks?** "If write volume grows past X, we'd revisit the cache-aside choice."
 
-**Fix to report:** If a load-bearing assumption is stated implicitly (e.g., in problem-statement numbers) but never called out, add a "Key Assumption" section that names it explicitly.
+**Autonomous fixes:** If a load-bearing assumption is stated implicitly (e.g., in problem-statement numbers) but never called out, add a "Key Assumption" section that names it explicitly.
 
-**Flag for human (`behavior-change` row):** No assumption findable. "I can't identify the load-bearing assumption from the draft — what would force a rewrite if it turned out to be wrong?"
+**Flag for human:** No assumption findable. "I can't identify the load-bearing assumption from the draft — what would force a rewrite if it turned out to be wrong?"
 
 ## Phase 5 — Success Criteria & Specificity
 
@@ -72,37 +72,26 @@ Check:
 2. **Are problem statements quantified?** "Search is slow" is not reviewable. "p95 800ms" is.
 3. **Are adjectives doing the work numbers should?** Scan for "fast," "scalable," "reliable," "performant," "robust" used without quantification.
 
-**Fix to report:** Tighten a vague metric if a concrete baseline appears elsewhere in the doc. Replace adjective-only claims with the numeric form when the numbers are present in the doc body.
+**Autonomous fixes:** Tighten a vague metric if a concrete baseline appears elsewhere in the doc. Replace adjective-only claims with the numeric form when the numbers are present in the doc body.
 
-**Flag for human (`behavior-change` row):** Adjective-only success criteria when no numbers are available. "Success metric '{metric}' is qualitative — what's the baseline and target?"
+**Flag for human:** Adjective-only success criteria when no numbers are available. "Success metric '{metric}' is qualitative — what's the baseline and target?"
 
 ## Phase 6 — Ambiguity, Scope, and Completionism
 
 A final scan for the small failure modes that compound:
 
 1. **Hedging language.** "Should," "might," "ideally," "as appropriate," "etc." — flag instances and rewrite to commitments where the doc's other content makes the commitment unambiguous.
-2. **Scope expansion.** Doc starts about caching, ends up touching the data model. Do not trim. Sort each expansion by the loop's one test — is a choice required? Expansion whose resolution requires choosing among behaviors the goal leaves open is a `behavior-change` row (a question for the human). Goal-determined expansion — plumbing the chosen approach needs, neighbours its code path reaches — is an `uncovered` row: include it, marked `[INFERRED]`.
-3. **Out-of-scope section.** Valid only for `behavior-change` decisions the human declined. An exclusion that fences off goal-determined work is a `contradiction` row (`Fix: remove the fence and cover it`); never propose adding such an exclusion.
+2. **Scope creep.** Doc starts about caching, ends up redesigning the data model. Check whether the proposed approach has expanded beyond the problem statement.
+3. **Out-of-scope section.** If scope creep is detected and no "Out of Scope" section exists, add one with the specific exclusions you observed.
 4. **Open questions as escape hatches.** Any open question that, if answered wrong, would invalidate the design. Those aren't open questions; they're unaddressed risks.
 5. **Template completionism.** Sections filled in without committing to a position. Headings that restate themselves as the first sentence. Flag for the human to either rewrite or delete.
 6. **Implementation in disguise.** Pages of class hierarchies, helper functions, or detailed sequencing that belong in code, not the doc. Flag.
 
-**Fix to report:** Tighten hedging language where the doc commits unambiguously elsewhere. For each expansion, the row kind and — for `uncovered` — the `[INFERRED]` addition to make. Remove any exclusion that fences goal-determined work. Tighten self-referential headings.
+**Autonomous fixes:** Tighten hedging language where the doc commits unambiguously elsewhere. Add "Out of Scope" header with observed exclusions. Tighten self-referential headings.
 
-**Flag for human (`behavior-change` row):** Open questions that look design-invalidating. Implementation-in-disguise sections (suggest moving to code review).
+**Flag for human:** Open questions that look design-invalidating. Implementation-in-disguise sections (suggest moving to code review).
 
-## Phase 7 — Coherence
-
-Read the doc as a document. Contradictions and muddled wording survive every phase above if nobody reads for them:
-
-1. **One term per concept.** The same component, agent, or decision is called one thing throughout. Flag any pair of names used for one concept.
-2. **Section order serves a first-time reader.** Problem before approach, approach before alternatives, alternatives before trade-offs; nothing is used before it is introduced.
-3. **One claim per sentence.** Flag sentences that bundle two claims or hedge one behind another.
-4. **No section restates another.** Flag paragraphs that repeat an earlier section in different words instead of adding to it.
-
-**Fix to report:** the term to keep, the section to move, the sentence to split, the paragraph to cut.
-
-## Phase 8 — Summary
+## Phase 7 — Summary
 
 Output:
 

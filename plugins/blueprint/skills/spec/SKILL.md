@@ -13,12 +13,12 @@ behavior, and it is the single thing `/verify` checks the result against.
 
 A spec defines the **testable behavioral contract** of a feature. If the question is "which approach should we take" rather than "what should this approach do," use `/design` first — design docs argue for a decision; specs translate a chosen decision into the contract.
 
-The spec is the keystone of blueprint's produce → judge → revise pipeline:
+The spec is the keystone of blueprint's producer→referee pipeline:
 
 ```
-/design ⟲ ──→ /spec ⟲ ──→ ⟦ implement ⟲ /verify ⟧ ──→ /commit
-                ▲                            ▲
-         the contract               checks against it
+/design ──→ /spec ──→ ⟦ any coding agent implements ⟧ ──→ /verify ──→ /commit
+              ▲                                              ▲
+       the contract                                  checks against it
 ```
 
 Because blueprint no longer drives the implementation step, the spec has to
@@ -29,7 +29,7 @@ principles, and a Definition of Done worded as exactly what `/verify`
 verifies. A spec that's merely "a list of nice-to-haves" will produce
 code no one can referee.
 
-After the spec is written, run the loop in `${CLAUDE_PLUGIN_ROOT}/references/loop.md`: dispatch the `evaluator` subagent to judge it for testability and coherence, rewrite the whole spec against its findings, and repeat — up to three rounds. The evaluator is a separate agent with fresh context and no sunk-cost bias; it reports, it never edits. See Next Step.
+After the spec is written, dispatch the `spec-evaluator` subagent to review it. The evaluator is a separate agent with fresh context and no sunk-cost bias — it reviews the spec for testability, fixes what it can directly in the file, and surfaces only items needing human input.
 
 ## ID System
 
@@ -238,15 +238,9 @@ Done is when `/verify` passes against this spec:
 - If no `$ARGUMENTS` are provided, ask the user for a feature name and a brief description before generating
 - **If an upstream `/design` doc exists with the same ID in `docs/designs/`, link it:** `**Design doc:** [yymm.xxxx](../../docs/designs/{yymm.xxxx}_{topic}.md)` — and use its chosen approach as the starting point for the Proposed Solution
 
-## Next Step — the spec loop
+## Next Step
 
-After writing the spec file, run the loop from `${CLAUDE_PLUGIN_ROOT}/references/loop.md` with this session as producer and `evaluator` as judge:
-
-1. **Judge.** Dispatch the `evaluator` subagent via the `Agent` tool with `subagent_type: evaluator` and the prompt from `loop.md`: the spec file path, `${CLAUDE_PLUGIN_ROOT}/references/review-spec.md` as the methodology, and the ledger's open rows (`none` on round 1).
-2. **Merge.** Fold its ledger update into your ledger and append the merged snapshot to `.blueprint/specs/{yymm.xxxx}_{feature_name}.ledger.md` as `## Ledger — round {n}`. Apply the stop rules of `references/loop.md` in order: (1) `READY` → exit; (2) round 3 → exit, presenting open `behavior-change` rows as questions; (3) nothing resolved and nothing new → exit as stuck, same presentation; (4) no open `contradiction` or `uncovered` row and at least one open `behavior-change` row → exit with the questions (`NEEDS-HUMAN`); (5) otherwise `REVISE`. At exit, append an `## Exit` line naming the rule that fired.
-3. **Revise.** On `REVISE`, rewrite the **whole spec** with the full ledger in hand — do not patch individual findings — then go to 1. Fix every open `contradiction`; add every open `uncovered` item to the spec (as a prerequisite, a scenario, or an interface line) marked `[INFERRED]`; never move a goal-related item to Out of Scope — the loop adds scope and never narrows it. Contradictions and muddled wording are what the whole-document rewrite exists to remove.
-
-Present to the user only at loop exit: the spec, the final ledger, the list of `[INFERRED]` items for the human to keep or strike, and any questions. Do not show intermediate rounds.
+After generating the spec file, **dispatch the `spec-evaluator` subagent** using the `Agent` tool with `subagent_type: spec-evaluator`. Pass the spec file path in the prompt so the evaluator knows which file to review. Wait for its report, surface the findings to the user, and address any "Needs Human Input" items.
 
 Once the spec is approved, it is ready to **hand to a coding agent** — Claude Code, Codex, Cursor, a teammate, whoever. The spec is self-contained: the agent builds against the acceptance scenarios and the "For the Implementing Agent" instruction. Blueprint does not drive that step.
 
@@ -258,4 +252,9 @@ When the implementation comes back, referee it:
 
 `/verify` checks the result against this spec — coverage, non-vacuity (thought-mutation), desiderata, and implementation quality — and recommends `/commit` or returns a punch list.
 
-`/design` is optional and runs upstream when the approach itself is in question. Or via the orchestrator: `/blueprint "feature name"`, which auto-detects whether `/design` is worth running and drives the implement loop — build, `/verify`, revise — without a human gate between rounds.
+The full workflow chain:
+```
+[/design] → /spec → ⟦ any coding agent implements ⟧ → /verify → /commit
+```
+
+`/design` is optional and runs upstream when the approach itself is in question. Or via the orchestrator: `/blueprint "feature name"` (which auto-detects whether `/design` is worth running). Standalone utilities — `/refactor`, `/review` — are available any time.

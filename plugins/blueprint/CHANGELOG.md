@@ -1,115 +1,21 @@
 # Changelog
 
-All notable changes to the `blueprint` plugin are documented here.
+All notable changes to the `blueprint` TDD plugin are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/);
 versions follow SemVer.
 
-## [5.1.1] — 2026-09-10
+## [Unreleased]
 
-**A fence is a fence whatever it is called.** The 5.1 FeatureBench run
-(`reports/2609_clean_paired_astropy_n5/v51/`) recovered pass rate 0.37 →
-0.70 and resolved `vo`, but the `lombscargle` spec relabelled its fence
-"Known Environment Blockers — do not attempt to fix `get_err_str`" and
-the agent obeyed. `loop.md`'s scope rule, `review-spec.md` Phase 3, and
-`evaluator.md` now name that pattern: "known blocker", "environment
-blocker", "pre-existing gap", "unrelated breakage", "do not attempt to
-fix" — an undefined or stubbed symbol the feature's code path or tests
-reach is `uncovered`, however cross-cutting. Only a missing build
-dependency is an environment note.
-
-## [5.1.0] — 2026-09-10
-
-**Loop findings never narrow scope; the ledger persists.** Spec:
-`.blueprint/specs/2609.0002_loop_scope_inclusion_and_ledger.md`.
-
-The clean FeatureBench rerun
-(`evals/blueprint-featurebench/reports/2609_clean_paired_astropy_n5/`)
-showed 5.0's `/spec` loop fencing specs to the literal problem statement
-and cutting hidden-test pass rate below no-spec. 5.1 reverses that
-discipline: the loop's job is coherence and completeness against the
-goal, and it errs toward inclusion.
-
-### Changed
-
-- Every ledger row carries a `Kind`: `contradiction` (producer fixes),
-  `uncovered` (goal-determined scope the artifact lacks — producer
-  **adds** it, marked `[INFERRED]`), or `behavior-change` (a choice the
-  goal leaves open — one question per row to the human). The test is
-  "is a choice required?"; when in doubt, `uncovered`.
-- Scope rule in `references/loop.md`: a judge may add scope and never
-  removes goal-related scope. An out-of-scope entry is valid only for a
-  declined `behavior-change`; any other fence is a `contradiction`.
-- Stop rules reordered: `READY` → round cap → stuck → `NEEDS-HUMAN`
-  (only when no autonomous row is open) → `REVISE`. `NEEDS-HUMAN` no
-  longer halts a loop that still has contradictions to fix.
-- `review-spec.md` Phase 3 gains "scope completeness — read the touched
-  files"; Phase 4 resolves hedges toward inclusion. `review-design.md`
-  Phase 6 sorts expansion by kind instead of trimming it; its flag lines
-  are `behavior-change` rows.
-- `/spec` and `/design` write the ledger as `{artifact}.ledger.md`, one
-  merged snapshot per round plus an `## Exit` line, and present the
-  `[INFERRED]` items at the gate for the human to strike.
-- Artifact discovery by "most recently modified `.md`" excludes
-  `*.ledger.md`.
-
-
-
-## [5.0.0] — 2026-09-10
-
-**Blueprint slims to the path that is actually used, and the loop that
-made it work becomes the tool.** The pipeline is now
-`/design ⟲ ──→ /spec ⟲ ──→ ⟦ implement ⟲ /verify ⟧ ──→ /commit`, where
-every ⟲ is the same bounded produce → judge → revise loop and the human
-reviews once per stage, at loop exit.
-
-Design doc: `docs/designs/2609.0001_blueprint_5_slim_loop_evaluator.md`.
-Spec: `.blueprint/specs/2609.0001_blueprint_5_slim_loop_evaluator.md`.
-Both were written with blueprint's own `/design` and `/spec`.
-
-### Why
-
-Three months on 4.0 showed that only `/blueprint → /spec → implement →
-/verify → /commit` was ever exercised; that the spec and design
-evaluators, editing documents inside their own context, produced specs
-with contradictions and muddled ordering; and that the
-implement↔verify loop which pays off on hard tasks was driven by hand
-with an external `/loop`, gated after every round.
-
-### Added
-
-- **`references/loop.md`** — the one loop protocol: whole-artifact
-  revise, a fresh judge every round, a ledger owned by the calling
-  skill, round cap 3, stop rules `READY` → `NEEDS-HUMAN` → cap → stuck.
-  Implement rounds work on the current tree and share their handoff
-  shape with the FeatureBench Arm C repair instruction.
-- **`evaluator` agent** — the single, report-only document judge for
-  `/design` and `/spec`. Takes an artifact path, a methodology reference
-  path, and the ledger's open rows; returns a ledger update and a
-  verdict. No `Edit` tool.
-- **Coherence phase** in `references/review-spec.md` and
-  `references/review-design.md`: one term per concept, section order,
-  one claim per sentence, no restated sections, scenario IDs matching
-  the Definition of Done.
-- `/verify` accepts an optional ledger and forwards it in the referee's
-  dispatch prompt; `referee.md` itself is unchanged.
-
-### Removed (breaking)
-
-- Skills `/refactor`, `/review`, `/test-conventions`.
-- Agents `spec-evaluator`, `design-evaluator`, `conventions-evaluator`,
-  `test-runner`, `commit-writer`. Any external prompt that dispatched
-  one of these by name breaks. The FeatureBench harness dispatches only
-  the `spec` and `verify` skills and is unaffected.
-- References `review-test.md` and `eval-methodology.md`.
-
-### Changed
-
-- `/commit` writes the message inline, from the diff, with the rule
-  that the implementation conversation is not a source.
-- `/design` and `/spec` run the loop instead of one evaluator pass and
-  present the document only at loop exit, with its final ledger.
-- `/blueprint` has exactly three human gates — design approval, spec
-  approval, verdict review — and no per-round gate.
+- **5.0 / 5.1 / 5.1.1 abandoned (2026-09-10).** A slimmed plugin with a
+  bounded produce → judge → revise loop at every stage was built,
+  measured on the history-masked FeatureBench harness, and dropped: the
+  document loop narrowed spec scope and cut hidden-test pass rate from
+  0.84 (4.0) to 0.37, and its intended benefit — spec coherence — was
+  never measured. Post-mortem: `docs/designs/2609.0003_blueprint_5_post_mortem.md`.
+  Implementation preserved on branch `worktree-blueprint-slim`.
+- **Benchmark numbers retracted and re-measured.** The 2608 run's spec
+  writer could read the oracle through git history. README's Benchmark
+  section now reports the clean paired run.
 
 ## [4.0.0] — 2026-06-05
 
