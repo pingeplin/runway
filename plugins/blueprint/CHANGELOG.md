@@ -4,6 +4,43 @@ All notable changes to the `blueprint` plugin are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/);
 versions follow SemVer.
 
+## [5.1.0] — 2026-09-10
+
+**Loop findings never narrow scope; the ledger persists.** Spec:
+`.blueprint/specs/2609.0002_loop_scope_inclusion_and_ledger.md`.
+
+The clean FeatureBench rerun
+(`evals/blueprint-featurebench/reports/2609_clean_paired_astropy_n5/`)
+showed 5.0's `/spec` loop fencing specs to the literal problem statement
+and cutting hidden-test pass rate below no-spec. 5.1 reverses that
+discipline: the loop's job is coherence and completeness against the
+goal, and it errs toward inclusion.
+
+### Changed
+
+- Every ledger row carries a `Kind`: `contradiction` (producer fixes),
+  `uncovered` (goal-determined scope the artifact lacks — producer
+  **adds** it, marked `[INFERRED]`), or `behavior-change` (a choice the
+  goal leaves open — one question per row to the human). The test is
+  "is a choice required?"; when in doubt, `uncovered`.
+- Scope rule in `references/loop.md`: a judge may add scope and never
+  removes goal-related scope. An out-of-scope entry is valid only for a
+  declined `behavior-change`; any other fence is a `contradiction`.
+- Stop rules reordered: `READY` → round cap → stuck → `NEEDS-HUMAN`
+  (only when no autonomous row is open) → `REVISE`. `NEEDS-HUMAN` no
+  longer halts a loop that still has contradictions to fix.
+- `review-spec.md` Phase 3 gains "scope completeness — read the touched
+  files"; Phase 4 resolves hedges toward inclusion. `review-design.md`
+  Phase 6 sorts expansion by kind instead of trimming it; its flag lines
+  are `behavior-change` rows.
+- `/spec` and `/design` write the ledger as `{artifact}.ledger.md`, one
+  merged snapshot per round plus an `## Exit` line, and present the
+  `[INFERRED]` items at the gate for the human to strike.
+- Artifact discovery by "most recently modified `.md`" excludes
+  `*.ledger.md`.
+
+
+
 ## [5.0.0] — 2026-09-10
 
 **Blueprint slims to the path that is actually used, and the loop that

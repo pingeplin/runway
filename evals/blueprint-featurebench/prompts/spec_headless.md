@@ -19,7 +19,8 @@ interfaces — not hypothetical ones.
    approved and continue to the next step.
 3. **Do not implement the feature.** Do not modify source files, do not write
    tests, do not run the test suite for the purpose of making it pass. The
-   only file you create is the spec (plus its directory).
+   only files you create are the spec, its `.ledger.md` sibling (the loop's
+   ledger, per the skill), and their directory.
 4. Write the spec to a file under `.blueprint/specs/` in the current working
    directory, following the skill's naming convention. Create the directory
    if it does not exist.

@@ -75,7 +75,7 @@ This ensures the design argues from the real state of the system, not a hypothet
 
 #### Default: draft with named assumptions
 
-If the user has given you enough to make a first cut, make it. Pick the most defensible interpretation of anything ambiguous, write the draft, and surface load-bearing assumptions inline as `[ASSUMPTION: …]` markers (or in a short consolidated list at the end). The user can scan, push back on the wrong ones, and the second turn produces a much better doc than four turns of interview would have.
+If the user has given you enough to make a first cut, make it. Pick the most defensible interpretation of anything ambiguous, write the draft, and surface load-bearing assumptions inline as `[ASSUMPTION: …]` markers (or in a short consolidated list at the end). `[ASSUMPTION: …]` is yours — a guess you made while drafting; it is not `[INFERRED]`, which marks scope the evaluator raised as `uncovered` and you then added during the loop. The user can scan, push back on the wrong ones, and the second turn produces a much better doc than four turns of interview would have.
 
 This works because:
 
@@ -186,7 +186,7 @@ When writing or reviewing, scan for these — they're the most frequent ways des
 - **Hidden trade-offs.** Every section says the chosen option wins. Real engineering choices have downsides.
 - **Open questions as escape hatches.** "How will we handle X? (open question)" — if X could invalidate the design, it's not an open question, it's an unaddressed risk.
 - **Vague success criteria.** "Improve performance" is not measurable. Always pin to a number with a baseline and target.
-- **Scope creep mid-doc.** Doc starts about caching, ends up redesigning the data model. Either split the doc or shrink the scope.
+- **Scope expansion mid-doc.** Doc starts about caching, ends up touching the data model. Don't shrink it: sort each expansion by whether a choice is required — goal-determined plumbing is `[INFERRED]` scope to keep; a real choice is a question for the reviewer.
 - **Template completionism.** Every section filled in, no actual argument.
 
 ## References
@@ -206,10 +206,10 @@ Don't write a design doc that reads like it was generated. Signs that you've sli
 After writing the design file, run the loop from `${CLAUDE_PLUGIN_ROOT}/references/loop.md` with this session as producer and `evaluator` as judge:
 
 1. **Judge.** Dispatch the `evaluator` subagent via the `Agent` tool with `subagent_type: evaluator` and the prompt from `loop.md`: the design file path, `${CLAUDE_PLUGIN_ROOT}/references/review-design.md` as the methodology, and the ledger's open rows (`none` on round 1).
-2. **Merge.** Fold its ledger update into your ledger. Apply the stop rules in order: `READY` → exit; `NEEDS-HUMAN` → exit with the questions; round 3 → exit; nothing resolved and nothing new → exit as stuck.
-3. **Revise.** On `REVISE`, rewrite the **whole document** with the full ledger in hand — do not patch individual findings — then go to 1.
+2. **Merge.** Fold its ledger update into your ledger and append the merged snapshot to `docs/designs/{yymm.xxxx}_{topic}.ledger.md` as `## Ledger — round {n}`. Apply the stop rules of `references/loop.md` in order: (1) `READY` → exit; (2) round 3 → exit, presenting open `behavior-change` rows as questions; (3) nothing resolved and nothing new → exit as stuck, same presentation; (4) no open `contradiction` or `uncovered` row and at least one open `behavior-change` row → exit with the questions (`NEEDS-HUMAN`); (5) otherwise `REVISE`. At exit, append an `## Exit` line naming the rule that fired.
+3. **Revise.** On `REVISE`, rewrite the **whole document** with the full ledger in hand — do not patch individual findings — then go to 1. Fix every open `contradiction`; add every open `uncovered` item marked `[INFERRED]`; never move a goal-related item to Out of Scope — the loop adds scope and never narrows it.
 
-Present to the user only at loop exit: the doc, the final ledger, and any questions. Do not show intermediate rounds. Then suggest:
+Present to the user only at loop exit: the doc, the final ledger, the list of `[INFERRED]` items for the human to keep or strike, and any questions. Do not show intermediate rounds. Then suggest:
 
 ```
 /spec docs/designs/{yymm.xxxx}_{topic}.md

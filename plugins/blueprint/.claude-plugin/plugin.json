@@ -1,7 +1,7 @@
 {
   "name": "blueprint",
   "description": "Intent producer + invariant referee, with one bounded produce→judge→revise loop at every stage. Generates design docs (RFC/ADR/etc.) that argue for an approach and agent-executable specs (interface contract, acceptance scenarios, Definition of Done), each judged by a fresh-context, report-only evaluator and rewritten whole against its ledger, up to three rounds. Hands implementation to any coding agent, then referees the produced code against the spec — scenario coverage, an anti-vacuity thought-mutation check, Test Desiderata scoring, and quality flags — looping build→verify→revise the same way, with the human reviewing once at loop exit. Tests remain the durable behavioral contract. Grounded in Kent Beck's Test Desiderata and Canon TDD principles.",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "author": {
     "name": "@pingeplin"
   }

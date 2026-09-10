@@ -243,10 +243,10 @@ Done is when `/verify` passes against this spec:
 After writing the spec file, run the loop from `${CLAUDE_PLUGIN_ROOT}/references/loop.md` with this session as producer and `evaluator` as judge:
 
 1. **Judge.** Dispatch the `evaluator` subagent via the `Agent` tool with `subagent_type: evaluator` and the prompt from `loop.md`: the spec file path, `${CLAUDE_PLUGIN_ROOT}/references/review-spec.md` as the methodology, and the ledger's open rows (`none` on round 1).
-2. **Merge.** Fold its ledger update into your ledger. Apply the stop rules in order: `READY` → exit; `NEEDS-HUMAN` → exit with the questions; round 3 → exit; nothing resolved and nothing new → exit as stuck.
-3. **Revise.** On `REVISE`, rewrite the **whole spec** with the full ledger in hand — do not patch individual findings — then go to 1. Contradictions and muddled wording are what the whole-document rewrite exists to remove.
+2. **Merge.** Fold its ledger update into your ledger and append the merged snapshot to `.blueprint/specs/{yymm.xxxx}_{feature_name}.ledger.md` as `## Ledger — round {n}`. Apply the stop rules of `references/loop.md` in order: (1) `READY` → exit; (2) round 3 → exit, presenting open `behavior-change` rows as questions; (3) nothing resolved and nothing new → exit as stuck, same presentation; (4) no open `contradiction` or `uncovered` row and at least one open `behavior-change` row → exit with the questions (`NEEDS-HUMAN`); (5) otherwise `REVISE`. At exit, append an `## Exit` line naming the rule that fired.
+3. **Revise.** On `REVISE`, rewrite the **whole spec** with the full ledger in hand — do not patch individual findings — then go to 1. Fix every open `contradiction`; add every open `uncovered` item to the spec (as a prerequisite, a scenario, or an interface line) marked `[INFERRED]`; never move a goal-related item to Out of Scope — the loop adds scope and never narrows it. Contradictions and muddled wording are what the whole-document rewrite exists to remove.
 
-Present to the user only at loop exit: the spec, the final ledger, and any questions. Do not show intermediate rounds.
+Present to the user only at loop exit: the spec, the final ledger, the list of `[INFERRED]` items for the human to keep or strike, and any questions. Do not show intermediate rounds.
 
 Once the spec is approved, it is ready to **hand to a coding agent** — Claude Code, Codex, Cursor, a teammate, whoever. The spec is self-contained: the agent builds against the acceptance scenarios and the "For the Implementing Agent" instruction. Blueprint does not drive that step.
 

@@ -14,7 +14,7 @@ A reviewer should be able to read the first paragraph and know what's being prop
 
 **Fix to report:** Hoist a buried TL;DR to the top if the content exists further down. Add a missing doc-type header.
 
-**Flag for human:** Decision absent, or doc clearly bundling independent decisions.
+**Flag for human (`behavior-change` row):** Decision absent, or doc clearly bundling independent decisions.
 
 ## Phase 2 — Alternative Quality
 
@@ -32,7 +32,7 @@ For each alternative, check:
 
 **Fix to report:** None — you cannot strengthen an alternative without technical judgment.
 
-**Flag for human:** Any alternative that reads as a straw man. Specifically: "Alternative N (`{name}`) is dismissed for `{reason}` — is this dismissal fair? If yes, please add the evidence behind it; if no, this alternative may be the right choice."
+**Flag for human (`behavior-change` row):** Any alternative that reads as a straw man. Specifically: "Alternative N (`{name}`) is dismissed for `{reason}` — is this dismissal fair? If yes, please add the evidence behind it; if no, this alternative may be the right choice."
 
 ## Phase 3 — Trade-off Honesty
 
@@ -46,7 +46,7 @@ Check:
 
 **Fix to report:** If a downside is mentioned implicitly elsewhere (e.g., in "Risks" or "Open Questions") but not surfaced in a trade-off statement, hoist it.
 
-**Flag for human:** No downside named anywhere. "The chosen approach reads as dominant on every axis — what are we giving up?"
+**Flag for human (`behavior-change` row):** No downside named anywhere. "The chosen approach reads as dominant on every axis — what are we giving up?"
 
 ## Phase 4 — Load-bearing Assumption
 
@@ -60,7 +60,7 @@ Check:
 
 **Fix to report:** If a load-bearing assumption is stated implicitly (e.g., in problem-statement numbers) but never called out, add a "Key Assumption" section that names it explicitly.
 
-**Flag for human:** No assumption findable. "I can't identify the load-bearing assumption from the draft — what would force a rewrite if it turned out to be wrong?"
+**Flag for human (`behavior-change` row):** No assumption findable. "I can't identify the load-bearing assumption from the draft — what would force a rewrite if it turned out to be wrong?"
 
 ## Phase 5 — Success Criteria & Specificity
 
@@ -74,22 +74,22 @@ Check:
 
 **Fix to report:** Tighten a vague metric if a concrete baseline appears elsewhere in the doc. Replace adjective-only claims with the numeric form when the numbers are present in the doc body.
 
-**Flag for human:** Adjective-only success criteria when no numbers are available. "Success metric '{metric}' is qualitative — what's the baseline and target?"
+**Flag for human (`behavior-change` row):** Adjective-only success criteria when no numbers are available. "Success metric '{metric}' is qualitative — what's the baseline and target?"
 
 ## Phase 6 — Ambiguity, Scope, and Completionism
 
 A final scan for the small failure modes that compound:
 
 1. **Hedging language.** "Should," "might," "ideally," "as appropriate," "etc." — flag instances and rewrite to commitments where the doc's other content makes the commitment unambiguous.
-2. **Scope creep.** Doc starts about caching, ends up redesigning the data model. Check whether the proposed approach has expanded beyond the problem statement.
-3. **Out-of-scope section.** If scope creep is detected and no "Out of Scope" section exists, add one with the specific exclusions you observed.
+2. **Scope expansion.** Doc starts about caching, ends up touching the data model. Do not trim. Sort each expansion by the loop's one test — is a choice required? Expansion whose resolution requires choosing among behaviors the goal leaves open is a `behavior-change` row (a question for the human). Goal-determined expansion — plumbing the chosen approach needs, neighbours its code path reaches — is an `uncovered` row: include it, marked `[INFERRED]`.
+3. **Out-of-scope section.** Valid only for `behavior-change` decisions the human declined. An exclusion that fences off goal-determined work is a `contradiction` row (`Fix: remove the fence and cover it`); never propose adding such an exclusion.
 4. **Open questions as escape hatches.** Any open question that, if answered wrong, would invalidate the design. Those aren't open questions; they're unaddressed risks.
 5. **Template completionism.** Sections filled in without committing to a position. Headings that restate themselves as the first sentence. Flag for the human to either rewrite or delete.
 6. **Implementation in disguise.** Pages of class hierarchies, helper functions, or detailed sequencing that belong in code, not the doc. Flag.
 
-**Fix to report:** Tighten hedging language where the doc commits unambiguously elsewhere. Add "Out of Scope" header with observed exclusions. Tighten self-referential headings.
+**Fix to report:** Tighten hedging language where the doc commits unambiguously elsewhere. For each expansion, the row kind and — for `uncovered` — the `[INFERRED]` addition to make. Remove any exclusion that fences goal-determined work. Tighten self-referential headings.
 
-**Flag for human:** Open questions that look design-invalidating. Implementation-in-disguise sections (suggest moving to code review).
+**Flag for human (`behavior-change` row):** Open questions that look design-invalidating. Implementation-in-disguise sections (suggest moving to code review).
 
 ## Phase 7 — Coherence
 

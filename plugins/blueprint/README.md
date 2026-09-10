@@ -45,9 +45,9 @@ The architecture is **producer → judge → revise**. Blueprint owns the two br
 One protocol, in `references/loop.md`, for all three stages:
 
 - **Producer** makes the whole artifact — a document, or code on the working tree.
-- **Judge** is a fresh subagent every round (`evaluator` for documents, `referee` for code). It sees only the artifact and the open rows of a **ledger**; it reports, it never edits.
+- **Judge** is a fresh subagent every round (`evaluator` for documents, `referee` for code). It sees only the artifact and the open rows of a **ledger**; it reports, it never edits. Every finding is a `contradiction`, an `uncovered` goal-related item, or a `behavior-change` question — and a judge may add scope, never remove it (the scope rule in `references/loop.md`).
 - **Revise** regenerates the whole artifact against the ledger — no local patching by a critic who has lost its freshness.
-- **Stop** on `READY`, on `NEEDS-HUMAN`, at round 3, or when a round resolves nothing and finds nothing new. Only `REVISE` continues.
+- **Stop** in this order: `READY`; round 3; stuck (nothing resolved, nothing new); `NEEDS-HUMAN` when only `behavior-change` rows remain open. Otherwise `REVISE`. The ledger is written next to the artifact as `{artifact}.ledger.md`, one snapshot per round.
 
 The human sees the artifact, the final ledger, and any open questions once, at loop exit. Inside a loop there is no gate.
 

@@ -103,9 +103,44 @@ esac
 mkdir -p .blueprint/specs
 spec=".blueprint/specs/2608.0001_mock_feature.md"
 printf '# Mock spec\n\nAcceptance scenario: widget() returns 42.\n' > "$spec"
+# Ledger sibling: two merged snapshots (loop.md format). Task 4 writes none;
+# task 3 writes one but omits the SPEC_PATH marker so the newest-file
+# fallback must skip the (newer) ledger.
+case "$(basename "$PWD")" in
+  *widget-4.*) ;;
+  *widget-2.*)
+    # Present but unparseable: no "## Ledger — round" heading at all.
+    sleep 1
+    printf '# notes\n\nno round tables here\n' > ".blueprint/specs/2608.0001_mock_feature.ledger.md"
+    ;;
+  *)
+    sleep 1
+    cat > ".blueprint/specs/2608.0001_mock_feature.ledger.md" <<'LEDGER'
+## Ledger — round 1
+
+| ID | Kind | Phase | Finding | Location | Fix | Status |
+|----|------|-------|---------|----------|-----|--------|
+| F1 | contradiction | Coherence | two names for widget | §1 | pick one | open |
+| F2 | uncovered | Scope | helper() is stripped | §2 | add [INFERRED] | open |
+
+## Ledger — round 2
+
+| ID | Kind | Phase | Finding | Location | Fix | Status |
+|----|------|-------|---------|----------|-----|--------|
+| F1 | contradiction | Coherence | two names for widget | §1 | pick one | resolved |
+| F2 | uncovered | Scope | helper() is stripped | §2 | add [INFERRED] | resolved |
+| F3 | behavior-change | Testability | reject bad input? | §S3 | ask | open |
+
+## Exit
+NEEDS-HUMAN
+LEDGER
+    ;;
+esac
+marker="SPEC_PATH: $spec"
+case "$(basename "$PWD")" in *widget-3.*) marker="(no marker)";; esac
 cat <<JSON
 {"type":"result","subtype":"success","is_error":false,
- "result":"Wrote the spec.\n\nSPEC_PATH: $spec",
+ "result":"Wrote the spec.\n\n$marker",
  "total_cost_usd":0.1234,"duration_ms":4200,"duration_api_ms":3900,"num_turns":6,
  "usage":{"input_tokens":1000,"output_tokens":250}}
 JSON
@@ -132,7 +167,30 @@ for tid in ids:
     meta = json.loads((ev / "results/specs" / f"{tid}.meta.json").read_text())
     assert md.exists() and "Mock spec" in md.read_text(), md
     assert meta["ok"] is True and meta["cost_usd"] == 0.1234, meta
-    assert meta["spec_located_by"] == "marker", meta
+    i = tid.split("-")[1].split(".")[0]
+    if i == "3":
+        assert meta["spec_located_by"] == "fallback_newest", meta
+        assert meta["spec_source"].endswith("2608.0001_mock_feature.md"), meta
+        assert not meta["spec_source"].endswith(".ledger.md"), "fallback picked the ledger"
+    else:
+        assert meta["spec_located_by"] == "marker", meta
+    if i == "4":
+        assert meta["ledger_found"] is False and meta["ledger_rounds"] == 0 and meta["ledger_rows"] == [], meta
+    elif i == "2":
+        assert meta["ledger_found"] is True and meta["ledger_rounds"] == 0 and meta["ledger_rows"] == [], meta
+        assert meta["ok"] is True, meta
+    else:
+        assert meta["ledger_found"] is True and meta["ledger_rounds"] == 2, meta
+        assert meta["ledger_rows"][0]["contradiction"] == {"open": 1, "resolved": 0}, meta["ledger_rows"]
+        assert meta["ledger_rows"][1]["contradiction"] == {"open": 0, "resolved": 1}, meta["ledger_rows"]
+        assert meta["ledger_rows"][1]["behavior-change"] == {"open": 1, "resolved": 0}, meta["ledger_rows"]
+        assert set(meta["ledger_rows"][0]) == {"contradiction", "uncovered", "behavior-change"}, meta["ledger_rows"]
+        assert meta["ledger_rows"][0]["uncovered"] == {"open": 1, "resolved": 0}, meta["ledger_rows"]
+        assert meta["ledger_rows"][0]["behavior-change"] == {"open": 0, "resolved": 0}, "kinds must be zero-filled"
+        assert meta["ledger_rows"][1]["uncovered"] == {"open": 0, "resolved": 1}, meta["ledger_rows"]
+        copied = ev / "results/specs" / f"{tid}.ledger.md"
+        original = ev / "results/workspaces" / tid / ".blueprint/specs/2608.0001_mock_feature.ledger.md"
+        assert copied.read_bytes() == original.read_bytes(), "ledger copy differs"
     assert meta["duration_ms"] == 4200 and meta["usage"]["input_tokens"] == 1000, meta
     assert meta["mask_applied"] is True and meta["f2p_deleted"] == 1, meta
     ws = ev / "results/workspaces" / tid
@@ -150,7 +208,7 @@ for tid in ids:
     head_test = subprocess.run(["git", "show", f"HEAD:tests/test_{i}.py"], cwd=ws, capture_output=True, text=True)
     assert head_test.returncode != 0, "deleted F2P test recoverable via git show HEAD"
 PY
-pass "tasks.json / specs / metas written; oracle masked, F2P tests deleted, git history re-initialised"
+pass "tasks.json / specs / metas written; oracle masked, F2P tests deleted, git history re-initialised, ledger captured (2 rounds, zero-filled kinds), no-ledger, unparseable-ledger and fallback cases"
 
 # Resume path: a second run must not re-invoke claude.
 BROKEN="$TMP/broken-claude"

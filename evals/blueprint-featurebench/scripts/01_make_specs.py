@@ -71,11 +71,51 @@ def extract_testbed(image: str, workspace: Path, mock_testbed: str | None) -> No
 
 
 def newest_spec_file(workspace: Path) -> Path | None:
+    # The ledger sibling (<spec>.ledger.md) is always newer than its spec;
+    # it is never the artifact.
     specs = sorted(
-        (workspace / ".blueprint" / "specs").glob("**/*.md"),
+        (p for p in (workspace / ".blueprint" / "specs").glob("**/*.md") if not p.name.endswith(".ledger.md")),
         key=lambda p: p.stat().st_mtime,
     )
     return specs[-1] if specs else None
+
+
+LEDGER_KINDS = ("contradiction", "uncovered", "behavior-change")
+LEDGER_ROUND_RE = re.compile(r"^## Ledger — round\s+\d+", re.M)
+
+
+def parse_ledger(text: str) -> list[dict[str, dict[str, int]]]:
+    """One {kind: {open, resolved}} map per `## Ledger — round` section, in file order.
+
+    Each section is the merged snapshot after that round (loop.md), so
+    `resolved` is cumulative. Rows are `| ID | Kind | ... | Status |`.
+    """
+    rounds: list[dict[str, dict[str, int]]] = []
+    starts = [m.start() for m in LEDGER_ROUND_RE.finditer(text)]
+    for i, start in enumerate(starts):
+        end = starts[i + 1] if i + 1 < len(starts) else len(text)
+        counts = {k: {"open": 0, "resolved": 0} for k in LEDGER_KINDS}
+        for line in text[start:end].splitlines():
+            cells = [c.strip() for c in line.strip().strip("|").split("|")]
+            if len(cells) < 3 or cells[0] in ("ID", "") or set(cells[0]) <= {"-"}:
+                continue
+            kind, status = cells[1].strip("`"), cells[-1].strip("`").lower()
+            if kind in counts and status in ("open", "resolved"):
+                counts[kind][status] += 1
+        rounds.append(counts)
+    return rounds
+
+
+def attach_ledger(meta: dict, spec_file: Path, task_id: str) -> None:
+    sibling = spec_file.with_name(spec_file.name[:-3] + ".ledger.md")
+    if not sibling.is_file():
+        meta.update(ledger_found=False, ledger_rounds=0, ledger_rows=[])
+        return
+    dest = SPECS_DIR / f"{task_id}.ledger.md"
+    shutil.copyfile(sibling, dest)
+    rows = parse_ledger(sibling.read_text(encoding="utf-8"))
+    meta.update(ledger_found=True, ledger_rounds=len(rows), ledger_rows=rows,
+                ledger_path=str(dest.relative_to(EVAL_ROOT)))
 
 
 def locate_spec(workspace: Path, result_text: str) -> tuple[Path | None, str]:
@@ -206,6 +246,7 @@ def process_task(
         spec_path=str(dest.relative_to(EVAL_ROOT)),
         spec_chars=dest.stat().st_size,
     )
+    attach_ledger(meta, spec_file, task_id)
     return meta
 
 
