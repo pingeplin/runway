@@ -1,6 +1,10 @@
-# 5.1 acceptance probe — `test_vo`, one task (2026-09-10)
+# Ouroboros B acceptance probe — `test_vo`, one task (2026-09-10)
 
-Stage 01 only, history-masked harness, blueprint **5.1** (commit
+> **Naming.** The abandoned 5.x line is referred to as **Ouroboros** so that the
+> version number stays free: Ouroboros A = the 5.0 build, Ouroboros B = 5.1,
+> Ouroboros B′ = 5.1.1. Commit hashes in this document are unchanged.
+
+Stage 01 only, history-masked harness, blueprint **Ouroboros B** (commit
 `e6ecf86` + the ledger-status normalisation that followed it) via
 `--plugin-dir`. The acceptance criterion from spec 2609.0002: the spec
 names the definitions stripped from `astropy/io/votable/tree.py` as
@@ -20,7 +24,7 @@ in-scope prerequisites, contains no "leave untouched" fence, and lands a
 - "Treat `xml_check`/`iterparser` as out of scope because they live
   outside `astropy/io/votable/`" and "Leave the ten prerequisite gaps out
   of scope" both appear only under **Alternatives Considered — Rejected**.
-  The 5.0 spec for the same task had fenced exactly these off.
+  The Ouroboros A spec for the same task had fenced exactly these off.
 - Two `astropy/table` / `astropy/units` internals are kept as an explicit
   "Known blockers" note (acknowledged, reasoned, not fully specified).
   Whether that is `uncovered` or a legitimate boundary is the one
@@ -29,7 +33,7 @@ in-scope prerequisites, contains no "leave untouched" fence, and lands a
   3 contradiction / 17 uncovered / 1 behavior-change; round 2: 4 / 7;
   round 3: 4 / 6. The loop was still finding items at the cap.
 
-| | 5.0 (clean run) | 5.1 probe |
+| | Ouroboros A (clean run) | Ouroboros B probe |
 |---|---|---|
 | Spec cost | $12.72 | $19.94 |
 | Wall | 45 min | 53 min |

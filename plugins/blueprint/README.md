@@ -115,11 +115,11 @@ Does handing a coding agent a blueprint spec actually change what it builds? Mea
 ### What this does not show
 
 - **N=5, one repository, one seed.** Directional, not significant.
-- **Nothing here measures spec coherence** — contradictions, terminology drift, ordering inside the document. That was the target of the abandoned 5.x line; see `docs/designs/2609.0003_blueprint_5_post_mortem.md`.
+- **Nothing here measures spec coherence** — contradictions, terminology drift, ordering inside the document. That was the target of the abandoned Ouroboros line (the 5.x builds, renamed so the version number stays free); see `docs/designs/2609.0003_blueprint_5_post_mortem.md`.
 - **The benchmark rewards broad scope.** "Restore a stripped feature" penalises fencing; a task shape where over-reaching costs points would grade differently.
 - **This is a self-run evaluation of our own plugin.** It is not independent.
 
-Harness, full reports and the exact task list: [`evals/blueprint-featurebench/`](../../evals/blueprint-featurebench/README.md). Every number above is regenerable from [`reports/2609_clean_paired_astropy_n5/`](../../evals/blueprint-featurebench/reports/2609_clean_paired_astropy_n5/README.md), which also carries the abandoned 5.0 / 5.1 arms for comparison.
+Harness, full reports and the exact task list: [`evals/blueprint-featurebench/`](../../evals/blueprint-featurebench/README.md). Every number above is regenerable from [`reports/2609_clean_paired_astropy_n5/`](../../evals/blueprint-featurebench/reports/2609_clean_paired_astropy_n5/README.md), which also carries the abandoned Ouroboros A / B arms for comparison.
 
 ## Comparison
 

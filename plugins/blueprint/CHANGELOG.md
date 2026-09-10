@@ -6,7 +6,7 @@ versions follow SemVer.
 
 ## [Unreleased]
 
-- **5.0 / 5.1 / 5.1.1 abandoned (2026-09-10).** A slimmed plugin with a
+- **Ouroboros (the 5.0 / 5.1 / 5.1.1 builds) abandoned (2026-09-10).** The name frees the version number for a future release; A slimmed plugin with a
   bounded produce → judge → revise loop at every stage was built,
   measured on the history-masked FeatureBench harness, and dropped: the
   document loop narrowed spec scope and cut hidden-test pass rate from

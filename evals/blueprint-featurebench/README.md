@@ -301,7 +301,7 @@ the 2608 specs demonstrably used it ("recoverable via `git show HEAD:…`").
 `mask_reference_solution` therefore also re-initialises git to a single
 commit of the masked tree (`_common.reinit_git`), exactly as `fb infer` does
 in the container. Every result produced before this fix (the 2608 archives
-and the 2609 5.0 rerun) was written with history access and is flagged as
+and the 2609 Ouroboros A rerun) was written with history access and is flagged as
 such in its README.
 
 ## Troubleshooting
