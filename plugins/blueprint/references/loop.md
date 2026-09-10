@@ -76,7 +76,14 @@ mentions, or rewriting a working function's return type, is
 scope. An "Out of Scope" / "do not restore" / "leave as-is" entry is
 valid only when it names a `behavior-change` decision a human declined;
 any other such entry is itself a `contradiction` finding with
-`Fix: remove the fence and cover it`. When in doubt between `uncovered`
+`Fix: remove the fence and cover it`. A fence is a fence whatever it is
+called: "known blocker", "environment blocker", "pre-existing gap",
+"unrelated breakage", "do not attempt to fix", "outside this task" —
+if the symbol is undefined or stubbed and the feature's code path or
+tests reach it, it is `uncovered`, however cross-cutting, and the spec
+must cover it. Only a sandbox that lacks a *build dependency* (a compiled
+extension, a missing package) is an environment note, and it never
+excuses an undefined symbol in the source tree. When in doubt between `uncovered`
 and `behavior-change`, prefer `uncovered`: the `[INFERRED]` marker puts
 the addition in front of the human at the gate, where striking it costs a
 glance.

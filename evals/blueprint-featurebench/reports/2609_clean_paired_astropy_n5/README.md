@@ -1,4 +1,4 @@
-# Clean paired rerun 2609 — blueprint 4.0 vs 5.0 specs, astropy, N=5 (2026-09-10)
+# Clean paired rerun 2609 — blueprint 4.0 vs 5.0 vs 5.1 specs, astropy, N=5 (2026-09-10)
 
 First run on the harness with **git-history masking** (`_common.reinit_git`,
 commit `1910873`). The spec writer could no longer read the reference
@@ -13,32 +13,36 @@ had history access, so it is valid as-is.
   `spec-evaluator` pass)
 - `v5/` — specs from blueprint **5.0** (`--plugin-dir` at commit `2063a62`;
   `/spec` runs the produce → judge → revise loop, ≤3 rounds)
+- `v51/` — specs from blueprint **5.1** (`--plugin-dir` at commit `d5bc1bc`;
+  same loop, findings typed `contradiction` / `uncovered` / `behavior-change`,
+  scope rule "add, never remove", ledger persisted) — run the same day,
+  ~5 h after `v5/`
 
 Each side has `report.md` (paired vs Arm A), `mutation_report.md`,
 `cost_report.md`, `specs/`, and the manifests.
 
 ## Headline
 
-| | A — no spec | B — 4.0 spec | B — 5.0 spec ⟲ |
-|---|---|---|---|
-| Resolved | 0 / 5 | 1 / 5 | 1 / 5 |
-| Mean pass rate | 0.42 | **0.84** | **0.37** |
-| Tasks where the agent wrote any tests | 0 / 5 | 3 / 5 | 4 / 5 |
-| Kill rate (no-tests = 0) | 0.00 | 0.22 | 0.39 |
-| Spec cost / task | — | $15.88 | $15.36 |
-| Spec wall / task | — | 33 min | 52 min |
-| Spec length, lines (mean) | — | 634 | 647 |
-| In-container inference / task | $5.28 | $3.84 | $3.96 |
+| | A — no spec | B — 4.0 spec | B — 5.0 spec ⟲ | B — 5.1 spec ⟲ |
+|---|---|---|---|---|
+| Resolved | 0 / 5 | 1 / 5 | 1 / 5 | 1 / 5 |
+| Mean pass rate | 0.42 | **0.84** | **0.37** | **0.70** |
+| Tasks where the agent wrote any tests | 0 / 5 | 3 / 5 | 4 / 5 | 4 / 5 |
+| Kill rate (no-tests = 0) | 0.00 | 0.22 | 0.39 | 0.29 |
+| Spec cost / task | — | $15.88 | $15.36 | $18.69 |
+| Spec wall / task | — | 33 min | 52 min | 56 min |
+| Spec length, lines (mean) | — | 634 | 647 | 704 |
+| In-container inference / task | $5.28 | $3.84 | $3.96 | $5.67 |
 
 Per task, pass rate:
 
-| task | A | 4.0 B | 5.0 B |
-|---|---|---|---|
-| `test_basic_rgb` | 0.94 | 0.94 | **1.00** ✓ |
-| `test_containers` | 0.67 | **1.00** ✓ | 0.52 |
-| `test_lombscargle_multiband` | 0.03 | **0.96** | 0.03 |
-| `test_table` | 0.44 | 0.35 | 0.30 |
-| `test_vo` | 0.00 | **0.95** | 0.00 |
+| task | A | 4.0 B | 5.0 B | 5.1 B |
+|---|---|---|---|---|
+| `test_basic_rgb` | 0.94 | 0.94 | **1.00** ✓ | 0.94 |
+| `test_containers` | 0.67 | **1.00** ✓ | 0.52 | 0.67 |
+| `test_lombscargle_multiband` | 0.03 | **0.96** | 0.03 | 0.03 |
+| `test_table` | 0.44 | 0.35 | 0.30 | **0.88** |
+| `test_vo` | 0.00 | **0.95** | 0.00 | **1.00** ✓ |
 
 ## What this run says
 
@@ -81,6 +85,31 @@ $15.88/task and 5.0 $15.36/task — the "6× loop cost" in the leaky rerun
 was 4.0's cheap copying, not the loop. The loop still takes 1.6× the wall
 time.
 
+## 5.1 — the scope fix, measured
+
+5.1 (spec 2609.0002) types every finding and forbids the judge from
+narrowing scope: anything the feature's code path or tests reach is
+`uncovered` and gets added, marked `[INFERRED]`. Same panel, same day:
+
+- **`vo` recovers completely** — 0.00 → **1.00**, and it is the one task
+  5.1 resolves. Its spec lists ten stripped `tree.py` neighbours as
+  in-scope prerequisites, the exact section 5.0 had fenced off. `table`
+  recovers most of the way (0.30 → 0.88).
+- **`lombscargle` and `containers` do not move** (0.03, 0.67 — identical
+  to no-spec). The `lombscargle` spec shows why: it carries a section
+  titled "Known Environment Blockers" that says of `get_err_str`, an
+  undefined symbol on the feature's own error path, *"do not attempt to
+  fix `get_err_str`"*. The agent obeyed, marked the scenario `xfail`, and
+  the hidden tests failed. 4.0's spec put the same symbol under
+  "Companion gaps found during review — restore these" and scored 0.96.
+  The 5.1 rule blocks the words "out of scope"; the producer reached for
+  "environment blocker" instead. Same fence, new label.
+- **Cost**: $18.69 per spec, 56 min — the loop ran to its 3-round cap
+  on every task and was still raising items at the cap (ledger totals
+  per task: 20–40 rows, roughly two `uncovered` per `contradiction`).
+- Net: 5.1 recovers 0.37 → 0.70 of a 0.84 target. The remaining gap is
+  one named fence pattern, not the loop's design.
+
 ## What this does not show
 
 - N=5, one repository, one seed, single-day. The pass-rate gap between
@@ -97,8 +126,11 @@ time.
 
 ## Provenance
 
-- Specs: `v4/specs/*.meta.json`, `v5/specs/*.meta.json` carry
-  `mask_applied=true`, `f2p_deleted=1`, `git_reinit=true`.
+- Specs: `v4/specs/*.meta.json`, `v5/specs/*.meta.json`, `v51/specs/*.meta.json`
+  carry `mask_applied=true`, `f2p_deleted=1`, `git_reinit=true`. The 5.1
+  metas also carry `ledger_rounds` / `ledger_rows` (the `vo` meta predates
+  the status-normalisation fix and shows zero-count rows; its ledger
+  re-parses to 3/17/1, 4/7/0, 4/6/0).
 - v4 stage 01 was interrupted once by user request after 4/5 and resumed
   for `vo` (the interrupted attempt's partial cost is not in the ledger).
 - The first 5.0 inference attempt ran on a podman machine that had been

@@ -112,18 +112,20 @@ Does handing a coding agent a blueprint spec actually change what it builds? Mea
 
 **Panel:** 5 astropy tasks, FeatureBench `fast` split, paired, single seed, single day. The implementing agent is `claude_code` / `claude-sonnet-5` in **every** arm — the only thing that differs is the problem statement it receives. All arms are scored by the unmodified `fb eval` against the official dataset. The spec writer sees a masked tree **and a masked git history** (an earlier run leaked the oracle through `git show HEAD:`; those numbers are retracted — see the harness README).
 
-| | **A** — problem statement | **B** — + 4.0 `/spec` | **B** — + 5.0 `/spec` ⟲ |
-|---|---|---|---|
-| Resolved (every hidden test passes) | 0 / 5 | 1 / 5 | 1 / 5 |
-| Mean pass rate (fraction of hidden tests) | 0.42 | **0.84** | **0.37** |
-| Tasks where the agent wrote any tests | 0 / 5 | 3 / 5 | 4 / 5 |
-| Mutation kill rate of the agent's own tests (no tests = 0) | 0.00 | 0.22 | 0.39 |
-| Spec cost per task | — | $15.88 | $15.36 |
-| In-container inference per task | $5.28 | $3.84 | $3.96 |
+| | **A** — problem statement | **B** — + 4.0 `/spec` | **B** — + 5.0 `/spec` ⟲ | **B** — + 5.1 `/spec` ⟲ |
+|---|---|---|---|---|
+| Resolved (every hidden test passes) | 0 / 5 | 1 / 5 | 1 / 5 | 1 / 5 |
+| Mean pass rate (fraction of hidden tests) | 0.42 | **0.84** | **0.37** | **0.70** |
+| Tasks where the agent wrote any tests | 0 / 5 | 3 / 5 | 4 / 5 | 4 / 5 |
+| Mutation kill rate of the agent's own tests (no tests = 0) | 0.00 | 0.22 | 0.39 | 0.29 |
+| Spec cost per task | — | $15.88 | $15.36 | $18.69 |
+| In-container inference per task | $5.28 | $3.84 | $3.96 | $5.67 |
 
 **The 4.0 spec makes the agent build most of the feature instead of a fraction of it.** Pass rate doubles; three tasks go from near-zero to near-complete (`lombscargle` 0.03 → 0.96, `vo` 0.00 → 0.95). Only one fully resolves — the hidden suites are strict — but the agent is no longer building the wrong thing.
 
-**The 5.0 loop makes the spec worse for this job.** Pass rate falls below no-spec. The two specs for `vo` show why: 4.0's says "other definitions stripped from the same file are in scope — restore the prerequisites first"; 5.0's fences the task to the six members the problem statement names, and the agent's closing message reads *"extensive unrelated breakage outside my assigned scope … left untouched."* FeatureBench masks a whole feature, helpers included; a spec that fences the task to the literal request fences the agent away from what the oracle needs. The evaluator loop's scope discipline — a virtue in a design review — produces exactly that fence.
+**5.1 fixes most of it.** With findings typed and the judge forbidden to narrow scope (every neighbour the code path reaches is `uncovered` and gets added, marked `[INFERRED]`), pass rate recovers to 0.70 and `vo` resolves outright (0.00 → 1.00). The remaining gap to 4.0 is one task whose 5.1 spec relabelled the same fence "Known Environment Blockers — do not attempt to fix"; the next patch names that pattern too.
+
+**The 5.0 loop made the spec worse for this job.** Pass rate falls below no-spec. The two specs for `vo` show why: 4.0's says "other definitions stripped from the same file are in scope — restore the prerequisites first"; 5.0's fences the task to the six members the problem statement names, and the agent's closing message reads *"extensive unrelated breakage outside my assigned scope … left untouched."* FeatureBench masks a whole feature, helpers included; a spec that fences the task to the literal request fences the agent away from what the oracle needs. The evaluator loop's scope discipline — a virtue in a design review — produces exactly that fence.
 
 **The spec is what makes the agent write tests at all.** Without one it wrote zero tests on all five tasks, under both plugin versions and in every run to date. With one it wrote tests on 3–4 of 5, and 5.0's tests kill more planted bugs than 4.0's.
 

@@ -16,8 +16,9 @@ every finding actionable, not to act on it.
 Your findings make the document more coherent and more complete against
 its goal. They never make it smaller: a finding may add scope and may
 never remove goal-related scope. Never propose an out-of-scope fence,
-a "do not restore", or a "leave as-is" for goal-related work — such an
-entry already in the document is itself a `contradiction` finding.
+a "do not restore", a "leave as-is", or a "known / environment blocker"
+for goal-related work — such an entry already in the document is itself
+a `contradiction` finding, whatever heading it sits under.
 
 ## Inputs
 

@@ -1,0 +1,102 @@
+{
+  "instance_id": "astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1",
+  "image_name": "libercoders/featurebench-specs_astropy-instance_493bb78b",
+  "mask_applied": true,
+  "f2p_deleted": 1,
+  "git_reinit": true,
+  "cost_usd": 19.184044299999996,
+  "duration_ms": 4061930,
+  "duration_api_ms": 4036323,
+  "wall_seconds": 4066.68,
+  "num_turns": 74,
+  "usage": {
+    "input_tokens": 128,
+    "cache_creation_input_tokens": 238588,
+    "cache_read_input_tokens": 9969204,
+    "output_tokens": 129326,
+    "output_tokens_details": {
+      "thinking_tokens": 59945
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 238588,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 35,
+        "cache_read_input_tokens": 256014,
+        "cache_creation_input_tokens": 625,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 625
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "returncode": 0,
+  "ok": true,
+  "error": null,
+  "spec_located_by": "marker",
+  "spec_source": ".blueprint/specs/2609.0001_utility_interfaces.md",
+  "spec_path": "results/specs/astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1.md",
+  "spec_chars": 43800,
+  "ledger_found": true,
+  "ledger_rounds": 3,
+  "ledger_rows": [
+    {
+      "contradiction": {
+        "open": 0,
+        "resolved": 6
+      },
+      "uncovered": {
+        "open": 0,
+        "resolved": 14
+      },
+      "behavior-change": {
+        "open": 0,
+        "resolved": 0
+      },
+      "unclassified": 2
+    },
+    {
+      "contradiction": {
+        "open": 0,
+        "resolved": 0
+      },
+      "uncovered": {
+        "open": 0,
+        "resolved": 0
+      },
+      "behavior-change": {
+        "open": 0,
+        "resolved": 0
+      },
+      "unclassified": 18
+    },
+    {
+      "contradiction": {
+        "open": 0,
+        "resolved": 0
+      },
+      "uncovered": {
+        "open": 0,
+        "resolved": 0
+      },
+      "behavior-change": {
+        "open": 0,
+        "resolved": 0
+      },
+      "unclassified": 0
+    }
+  ],
+  "ledger_path": "results/specs/astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1.ledger.md"
+}

@@ -4,6 +4,19 @@ All notable changes to the `blueprint` plugin are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/);
 versions follow SemVer.
 
+## [5.1.1] — 2026-09-10
+
+**A fence is a fence whatever it is called.** The 5.1 FeatureBench run
+(`reports/2609_clean_paired_astropy_n5/v51/`) recovered pass rate 0.37 →
+0.70 and resolved `vo`, but the `lombscargle` spec relabelled its fence
+"Known Environment Blockers — do not attempt to fix `get_err_str`" and
+the agent obeyed. `loop.md`'s scope rule, `review-spec.md` Phase 3, and
+`evaluator.md` now name that pattern: "known blocker", "environment
+blocker", "pre-existing gap", "unrelated breakage", "do not attempt to
+fix" — an undefined or stubbed symbol the feature's code path or tests
+reach is `uncovered`, however cross-cutting. Only a missing build
+dependency is an environment note.
+
 ## [5.1.0] — 2026-09-10
 
 **Loop findings never narrow scope; the ledger persists.** Spec:

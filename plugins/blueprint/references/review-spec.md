@@ -63,7 +63,7 @@ If the spec includes Acceptance Scenarios, audit them:
 
 If no Acceptance Scenarios section exists, flag this as a critical gap.
 
-**Scope completeness — read the touched files (always, whether or not a scenarios section exists).** For every file the spec touches, open it. Anything referenced-but-undefined, stubbed, or missing that the feature's code path or its tests would reach is goal-related scope the spec does not cover: report it as an `uncovered` finding with `Fix: add as prerequisite or scenario, marked [INFERRED]`. The fix is never `mark out of scope`. A spec that fences such an item off ("do not restore", "leave as-is", "out of scope for this work") has a `contradiction` finding with `Fix: remove the fence and cover it` — see the scope rule in `references/loop.md`.
+**Scope completeness — read the touched files (always, whether or not a scenarios section exists).** For every file the spec touches, open it. Anything referenced-but-undefined, stubbed, or missing that the feature's code path or its tests would reach is goal-related scope the spec does not cover: report it as an `uncovered` finding with `Fix: add as prerequisite or scenario, marked [INFERRED]`. The fix is never `mark out of scope`. A spec that fences such an item off — "do not restore", "leave as-is", "out of scope for this work", or a "Known blockers" / "Environment blockers" / "pre-existing gaps" section that names an undefined symbol and says not to fix it — has a `contradiction` finding with `Fix: remove the fence and cover it`; see the scope rule in `references/loop.md`. Grep the spec for those phrases as part of this check.
 
 ## Phase 4 — Ambiguity and Contradiction Detection
 
