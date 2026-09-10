@@ -130,6 +130,8 @@ case "$(basename "$PWD")" in
 | F1 | contradiction | Coherence | two names for widget | §1 | pick one | resolved |
 | F2 | uncovered | Scope | helper() is stripped | §2 | add [INFERRED] | resolved |
 | F3 | behavior-change | Testability | reject bad input? | §S3 | ask | open |
+| F4 | uncovered | Scope | docstring gap | §2 | add | fixed: added S9 (round 2 rewrite) |
+| F5 | uncovered | Scope | odd status | §2 | add | deliberate scope decision |
 
 ## Exit
 NEEDS-HUMAN
@@ -184,10 +186,11 @@ for tid in ids:
         assert meta["ledger_rows"][0]["contradiction"] == {"open": 1, "resolved": 0}, meta["ledger_rows"]
         assert meta["ledger_rows"][1]["contradiction"] == {"open": 0, "resolved": 1}, meta["ledger_rows"]
         assert meta["ledger_rows"][1]["behavior-change"] == {"open": 1, "resolved": 0}, meta["ledger_rows"]
-        assert set(meta["ledger_rows"][0]) == {"contradiction", "uncovered", "behavior-change"}, meta["ledger_rows"]
+        assert set(meta["ledger_rows"][0]) == {"contradiction", "uncovered", "behavior-change", "unclassified"}, meta["ledger_rows"]
         assert meta["ledger_rows"][0]["uncovered"] == {"open": 1, "resolved": 0}, meta["ledger_rows"]
         assert meta["ledger_rows"][0]["behavior-change"] == {"open": 0, "resolved": 0}, "kinds must be zero-filled"
-        assert meta["ledger_rows"][1]["uncovered"] == {"open": 0, "resolved": 1}, meta["ledger_rows"]
+        assert meta["ledger_rows"][1]["uncovered"] == {"open": 0, "resolved": 2}, "synonym 'fixed: …' must count as resolved"
+        assert meta["ledger_rows"][1]["unclassified"] == 1 and meta["ledger_rows"][0]["unclassified"] == 0, meta["ledger_rows"]
         copied = ev / "results/specs" / f"{tid}.ledger.md"
         original = ev / "results/workspaces" / tid / ".blueprint/specs/2608.0001_mock_feature.ledger.md"
         assert copied.read_bytes() == original.read_bytes(), "ledger copy differs"

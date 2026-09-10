@@ -39,7 +39,8 @@ Your prompt carries three things:
 1. Read the methodology and apply every phase, in order, to the artifact.
 2. For each open ledger row, decide whether the condition it describes
    is still present. Re-state the row under its **original ID** with
-   `Status` set to `resolved` or `open`. Never renumber, never drop a row.
+   `Status` set to exactly `resolved` or `open` — one word, never a
+   phrase. Never renumber, never drop a row, never drop a column.
 3. Record each new problem as a new row with a `Kind` from
    `references/loop.md` — `contradiction`, `uncovered`, or
    `behavior-change` — decided by one test: **is a choice required?**

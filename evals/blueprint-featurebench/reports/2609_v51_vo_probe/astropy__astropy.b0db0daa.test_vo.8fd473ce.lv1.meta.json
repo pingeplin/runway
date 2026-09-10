@@ -1,0 +1,99 @@
+{
+  "instance_id": "astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1",
+  "image_name": "libercoders/featurebench-specs_astropy-instance_493bb78b",
+  "mask_applied": true,
+  "f2p_deleted": 1,
+  "git_reinit": true,
+  "cost_usd": 19.94081595,
+  "duration_ms": 3152913,
+  "duration_api_ms": 3148121,
+  "wall_seconds": 3156.67,
+  "num_turns": 83,
+  "usage": {
+    "input_tokens": 148,
+    "cache_creation_input_tokens": 206798,
+    "cache_read_input_tokens": 10479286,
+    "output_tokens": 87672,
+    "output_tokens_details": {
+      "thinking_tokens": 17684
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 199450,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 435,
+        "cache_read_input_tokens": 218262,
+        "cache_creation_input_tokens": 471,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 471
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "returncode": 0,
+  "ok": true,
+  "error": null,
+  "spec_located_by": "marker",
+  "spec_source": ".blueprint/specs/2609.0001_votable_tree_navigation.md",
+  "spec_path": "results/specs/astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1.md",
+  "spec_chars": 39813,
+  "ledger_found": true,
+  "ledger_rounds": 3,
+  "ledger_rows": [
+    {
+      "contradiction": {
+        "open": 0,
+        "resolved": 0
+      },
+      "uncovered": {
+        "open": 0,
+        "resolved": 0
+      },
+      "behavior-change": {
+        "open": 0,
+        "resolved": 0
+      }
+    },
+    {
+      "contradiction": {
+        "open": 0,
+        "resolved": 0
+      },
+      "uncovered": {
+        "open": 0,
+        "resolved": 0
+      },
+      "behavior-change": {
+        "open": 0,
+        "resolved": 0
+      }
+    },
+    {
+      "contradiction": {
+        "open": 0,
+        "resolved": 0
+      },
+      "uncovered": {
+        "open": 0,
+        "resolved": 0
+      },
+      "behavior-change": {
+        "open": 0,
+        "resolved": 0
+      }
+    }
+  ],
+  "ledger_path": "results/specs/astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1.ledger.md"
+}

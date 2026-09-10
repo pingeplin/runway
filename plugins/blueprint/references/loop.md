@@ -101,8 +101,9 @@ guessed while drafting. `[INFERRED]` marks scope a *judge* raised as
 | F3 | behavior-change | Testability | spec is silent on whether malformed `arraysize` should raise | §S7 | ask: raise, or warn and skip? | open |
 ```
 
-`Status` is `open` or `resolved`. IDs are stable across rounds; a judge
-never renumbers. Every row carries a `Kind`, a `Location`, and a concrete
+`Status` is exactly one word, `open` or `resolved` — never a phrase;
+what was done goes in `Fix`. Every round's table keeps all seven columns.
+IDs are stable across rounds; a judge never renumbers. Every row carries a `Kind`, a `Location`, and a concrete
 `Fix` the producer can act on.
 
 ## Ledger file

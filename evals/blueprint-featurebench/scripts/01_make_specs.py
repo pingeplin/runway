@@ -82,6 +82,18 @@ def newest_spec_file(workspace: Path) -> Path | None:
 
 LEDGER_KINDS = ("contradiction", "uncovered", "behavior-change")
 LEDGER_ROUND_RE = re.compile(r"^## Ledger — round\s+\d+", re.M)
+# loop.md says Status is exactly `open` or `resolved`; producers still write
+# "resolved (round 2 rewrite)" or "fixed: …". Classify by the first word,
+# and surface everything else as `unclassified` so it is never silently lost.
+LEDGER_STATUS_WORDS = {
+    "open": "open", "unresolved": "open", "pending": "open",
+    "resolved": "resolved", "fixed": "resolved", "addressed": "resolved", "done": "resolved", "closed": "resolved",
+}
+
+
+def classify_status(cell: str) -> str | None:
+    word = re.split(r"[^a-z]+", cell.strip().strip("*`").lower(), maxsplit=1)[0]
+    return LEDGER_STATUS_WORDS.get(word)
 
 
 def parse_ledger(text: str) -> list[dict[str, dict[str, int]]]:
@@ -95,13 +107,16 @@ def parse_ledger(text: str) -> list[dict[str, dict[str, int]]]:
     for i, start in enumerate(starts):
         end = starts[i + 1] if i + 1 < len(starts) else len(text)
         counts = {k: {"open": 0, "resolved": 0} for k in LEDGER_KINDS}
+        counts["unclassified"] = 0
         for line in text[start:end].splitlines():
             cells = [c.strip() for c in line.strip().strip("|").split("|")]
             if len(cells) < 3 or cells[0] in ("ID", "") or set(cells[0]) <= {"-"}:
                 continue
-            kind, status = cells[1].strip("`"), cells[-1].strip("`").lower()
-            if kind in counts and status in ("open", "resolved"):
+            kind, status = cells[1].strip("`"), classify_status(cells[-1])
+            if kind in LEDGER_KINDS and status:
                 counts[kind][status] += 1
+            else:
+                counts["unclassified"] += 1
         rounds.append(counts)
     return rounds
 
