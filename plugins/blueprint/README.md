@@ -95,32 +95,31 @@ If you want a spec-as-source-of-truth model (BDD with maintained acceptance docs
 
 Does handing a coding agent a blueprint spec actually change what it builds? Measured on [FeatureBench](https://github.com/LiberCoders/FeatureBench), which grades a patch against hidden fail-to-pass tests the agent never sees.
 
-**Panel:** 5 astropy tasks, FeatureBench `fast` split, paired, single seed. The implementing agent is `claude_code` / `claude-sonnet-5` in **every** arm — the only thing that differs is the problem statement it receives. Both arms are scored by the unmodified `fb eval` against the official dataset.
+> **Retraction.** An earlier version of this section reported 0/5 → 3/5 resolved. That run's spec writer could read the reference solution and the hidden tests through the testbed's git history (`git show HEAD:`), and the specs demonstrably did. The harness now masks history; the numbers below are from the fixed harness. The retracted run is kept at `reports/2608_scale_astropy_n5/` with its caveat.
+
+**Panel:** 5 astropy tasks, FeatureBench `fast` split, paired, single seed. The implementing agent is `claude_code` / `claude-sonnet-5` in **every** arm — the only thing that differs is the problem statement it receives. Both arms are scored by the unmodified `fb eval` against the official dataset. The spec writer sees a masked tree and a masked history.
 
 | | **A** — problem statement | **B** — problem statement + `/spec` |
 |---|---|---|
-| Resolved (every hidden test passes) | 0 / 5 | **3 / 5** |
-| Mean pass rate (fraction of hidden tests) | 0.42 | **0.79** |
-| Tasks where the agent wrote any tests | **0 / 5** | 5 / 5 |
-| Mutation kill rate of the agent's own tests | 0.00 | 0.25 |
-| All-in cost | $26.42 | $41.16 (+56%) |
+| Resolved (every hidden test passes) | 0 / 5 | 1 / 5 |
+| Mean pass rate (fraction of hidden tests) | 0.42 | **0.84** |
+| Tasks where the agent wrote any tests | **0 / 5** | 3 / 5 |
+| Mutation kill rate of the agent's own tests (no tests = 0) | 0.00 | 0.22 |
+| Spec cost per task | — | $15.88 |
+| In-container inference per task | $5.28 | $3.84 |
 
-**$4.91 per additional task resolved.**
+**The spec makes the agent build most of the feature instead of a fraction of it.** Pass rate doubles; three tasks go from near-zero to near-complete (`lombscargle` 0.03 → 0.96, `vo` 0.00 → 0.95, `containers` 0.67 → 1.00). Only one fully resolves — the hidden suites are strict — but the agent is no longer building the wrong thing. On this benchmark the spec's value is breadth: the 4.0 writer lists every definition the mask stripped from the touched files as an in-scope prerequisite.
 
-**The spec changes the outcome.** Three of five tasks flipped from unresolved to resolved, and pass rate moved on exactly those three while staying identical (0.94/0.94, 0.03/0.03) on the two that didn't. Arm A wasn't failing for mechanical reasons — every run in both arms terminated cleanly with a substantive patch. It simply built less, and built the wrong thing.
-
-**The spec is what makes the agent write tests at all.** Without one it wrote **zero tests on all five tasks**; with one it wrote tests on all five. This replicates an earlier 3-task pilot on a different model, where Arm A also wrote zero tests on 3/3.
-
-But read the next row too: Arm B's tests kill only 25% of planted bugs, and two of its four measurable cells killed **nothing**. A spec reliably gets tests *written*; it does not by itself make them *good*. That gap is exactly what `/verify` exists to catch — and the referee arm did raise kill rate (0.46 vs 0.25) without changing the resolved count.
+**The spec is what makes the agent write tests at all.** Without one it wrote zero tests on all five tasks, in every run to date. With one it wrote tests on three of five; those tests kill 22% of planted bugs, so a spec gets tests *written*, not yet *good*.
 
 ### What this does not show
 
-- **N=5, one repository, one seed.** The resolved delta rests on 3 discordant pairs, all one direction: exact McNemar **p = 0.25**. That is **not statistically significant**, and 5 tasks from a single codebase cannot show the effect generalises. A signal worth reproducing, not a proven result.
-- **The `/verify` referee loop did not improve outcomes here.** A second round carrying the referee's verdict and a control second round carrying only "review it yourself" both scored 3/5, with per-task identical pass rates. On test quality the control (0.59) edged the referee (0.46). At this N the referee is not separable from a plain second pass.
-- **On one task the spec actively hurt.** For `test_lombscargle_multiband` the spec declared the graded test file out of scope and told the agent not to restore it — but the hidden test set was composed entirely of that file. Arm A failed it too, so the score wasn't worsened, but the spec entrenched a wrong scope boundary.
+- **N=5, one repository, one seed.** Directional, not significant.
+- **Nothing here measures spec coherence** — contradictions, terminology drift, ordering inside the document. That was the target of the abandoned Ouroboros line (the 5.x builds, renamed so the version number stays free); see `docs/designs/2609.0003_blueprint_5_post_mortem.md`.
+- **The benchmark rewards broad scope.** "Restore a stripped feature" penalises fencing; a task shape where over-reaching costs points would grade differently.
 - **This is a self-run evaluation of our own plugin.** It is not independent.
 
-Harness, full reports and the exact task list: [`evals/blueprint-featurebench/`](../../evals/blueprint-featurebench/README.md). Every number above is regenerable from the archived run in [`reports/2608_scale_astropy_n5/`](../../evals/blueprint-featurebench/reports/2608_scale_astropy_n5/README.md).
+Harness, full reports and the exact task list: [`evals/blueprint-featurebench/`](../../evals/blueprint-featurebench/README.md). Every number above is regenerable from [`reports/2609_clean_paired_astropy_n5/`](../../evals/blueprint-featurebench/reports/2609_clean_paired_astropy_n5/README.md), which also carries the abandoned Ouroboros A / B arms for comparison.
 
 ## Comparison
 

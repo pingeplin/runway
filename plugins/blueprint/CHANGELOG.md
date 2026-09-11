@@ -4,6 +4,19 @@ All notable changes to the `blueprint` TDD plugin are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/);
 versions follow SemVer.
 
+## [Unreleased]
+
+- **Ouroboros (the 5.0 / 5.1 / 5.1.1 builds) abandoned (2026-09-10).** The name frees the version number for a future release; A slimmed plugin with a
+  bounded produce → judge → revise loop at every stage was built,
+  measured on the history-masked FeatureBench harness, and dropped: the
+  document loop narrowed spec scope and cut hidden-test pass rate from
+  0.84 (4.0) to 0.37, and its intended benefit — spec coherence — was
+  never measured. Post-mortem: `docs/designs/2609.0003_blueprint_5_post_mortem.md`.
+  Implementation preserved on branch `worktree-blueprint-slim`.
+- **Benchmark numbers retracted and re-measured.** The 2608 run's spec
+  writer could read the oracle through git history. README's Benchmark
+  section now reports the clean paired run.
+
 ## [4.0.0] — 2026-06-05
 
 **Blueprint becomes an intent producer + invariant referee. The

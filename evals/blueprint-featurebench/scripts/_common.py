@@ -32,10 +32,15 @@ def mask_reference_solution(workspace, row):
 
     fb infer does not hand the agent /testbed as-is: it applies the dataset's
     `patch` (a mask that removes the feature) and deletes the FAIL_TO_PASS
-    test files (featurebench/infer/runtime.py _initialize_level1). Any stage
-    that shows the codebase to a model MUST reproduce this, or the model sees
-    the oracle. Returns {"mask_applied": bool|None, "f2p_deleted": int,
-    "mask_error": str?}; mask_applied is None when the row carries no patch.
+    test files (featurebench/infer/runtime.py _initialize_level1), then
+    re-initialises git so the masked tree is the only commit. Any stage
+    that shows the codebase to a model MUST reproduce all three, or the model
+    sees the oracle: the working tree is only half of it — an extracted
+    /testbed carries the upstream git history, and `git show HEAD:<path>`
+    hands back both the reference implementation and the deleted
+    FAIL_TO_PASS tests. Returns {"mask_applied": bool|None, "f2p_deleted":
+    int, "git_reinit": bool, "mask_error": str?}; mask_applied is None when
+    the row carries no patch.
     """
     import json as _json
     import subprocess as _sp
@@ -67,7 +72,35 @@ def mask_reference_solution(workspace, row):
         if target.is_file():
             target.unlink()
             info["f2p_deleted"] += 1
+
+    info["git_reinit"] = reinit_git(workspace)
     return info
+
+
+def reinit_git(workspace) -> bool:
+    """Replace the tree's git history with a single commit of its current state.
+
+    Mirrors fb infer's `_initialize_level1` step 4 (and stage 07's in-container
+    re-init): the agent — or the spec writer, or the referee — must not be able
+    to recover the oracle from history. Returns True when the new repo has
+    exactly one commit whose tree is the working tree.
+    """
+    import shutil as _sh
+    import subprocess as _sp
+
+    _sh.rmtree(workspace / ".git", ignore_errors=True)
+    steps = (
+        ["git", "init", "-q"],
+        ["git", "config", "user.email", "fb@bench.com"],
+        ["git", "config", "user.name", "FeatureBench"],
+        ["git", "add", "-A"],
+        ["git", "commit", "-q", "-m", "base", "--allow-empty"],
+    )
+    for argv in steps:
+        if _sp.run(argv, cwd=workspace, capture_output=True, text=True).returncode != 0:
+            return False
+    log = _sp.run(["git", "rev-list", "--count", "HEAD"], cwd=workspace, capture_output=True, text=True)
+    return log.returncode == 0 and log.stdout.strip() == "1"
 
 
 def load_script_module(filename: str):

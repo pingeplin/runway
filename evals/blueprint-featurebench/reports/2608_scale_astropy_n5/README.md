@@ -1,5 +1,18 @@
 # Scale run 2608 — astropy, N=5, all four arms (2026-08-16)
 
+> **Validity caveat (added 2026-09-10).** The specs in this run were written
+> in a workspace whose git history still held the upstream commit, so the
+> spec writer could — and the 2608 specs demonstrably did — read the
+> reference implementation and the deleted FAIL_TO_PASS tests via
+> `git show HEAD:<path>`. Working-tree masking was in place; history masking
+> was not (fixed in `_common.reinit_git`, see the harness README "Oracle
+> masking"). The implementing agent never had history access (`fb infer`
+> re-inits git in the container), so Arm A is unaffected, but every spec
+> arm's numbers are upper bounds contaminated by however much of the oracle
+> the spec transcribed. Do not cite the spec-arm deltas until the panel is
+> rerun on the fixed harness.
+
+
 First all-arms run under `claude-sonnet-5`. Panel: 5 astropy tasks from the
 FeatureBench `fast` split (`panel_task_ids.txt`), one seed, implementing agent
 `claude_code`/`claude-sonnet-5` identical in every arm.
