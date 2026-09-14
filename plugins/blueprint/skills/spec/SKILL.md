@@ -257,4 +257,4 @@ The full workflow chain:
 [/design] → /spec → ⟦ any coding agent implements ⟧ → /verify → /commit
 ```
 
-`/design` is optional and runs upstream when the approach itself is in question. Or via the orchestrator: `/blueprint "feature name"` (which auto-detects whether `/design` is worth running). Standalone utilities — `/refactor`, `/review` — are available any time.
+`/design` is optional and runs upstream when the approach itself is in question. Or via the orchestrator: `/blueprint "feature name"` (which auto-detects whether `/design` is worth running). The standalone utility `/review` is available any time.
