@@ -1,0 +1,146 @@
+{
+  "model": "claude-opus-5",
+  "claude_args": [
+    "--tools",
+    ""
+  ],
+  "spec_sha256": "b40b7ae97c79489617d8a12cfdbddd6abadfa92e2f7628585e634345ca706ab2",
+  "prompt_sha256": "3de63f8b2eba9bf9c88e943497b14f685423b49d3ddec73f11ce6242c990872b",
+  "cost_usd": 0.5096245,
+  "wall_seconds": 134.37,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 20240,
+    "cache_read_input_tokens": 49105,
+    "output_tokens": 10733,
+    "output_tokens_details": {
+      "thinking_tokens": 9647
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 20240,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 10733,
+        "cache_read_input_tokens": 49105,
+        "cache_creation_input_tokens": 20240,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 20240
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "ok": true,
+  "error": null,
+  "result": {
+    "scenarios": [
+      {
+        "id": "S1",
+        "class": "behavioral",
+        "why": ""
+      },
+      {
+        "id": "S2",
+        "class": "behavioral",
+        "why": ""
+      },
+      {
+        "id": "S3",
+        "class": "behavioral",
+        "why": ""
+      },
+      {
+        "id": "S4",
+        "class": "behavioral",
+        "why": ""
+      },
+      {
+        "id": "S5",
+        "class": "behavioral",
+        "why": ""
+      },
+      {
+        "id": "S6",
+        "class": "behavioral",
+        "why": ""
+      },
+      {
+        "id": "S7",
+        "class": "behavioral",
+        "why": ""
+      },
+      {
+        "id": "S8",
+        "class": "behavioral",
+        "why": ""
+      },
+      {
+        "id": "S9",
+        "class": "behavioral",
+        "why": ""
+      },
+      {
+        "id": "S10",
+        "class": "behavioral",
+        "why": ""
+      },
+      {
+        "id": "S11",
+        "class": "behavioral",
+        "why": ""
+      },
+      {
+        "id": "S12",
+        "class": "behavioral",
+        "why": ""
+      },
+      {
+        "id": "S13",
+        "class": "behavioral",
+        "why": ""
+      },
+      {
+        "id": "S14",
+        "class": "behavioral",
+        "why": ""
+      },
+      {
+        "id": "S15",
+        "class": "behavioral",
+        "why": ""
+      },
+      {
+        "id": "S16",
+        "class": "behavioral",
+        "why": ""
+      },
+      {
+        "id": "S17",
+        "class": "behavioral",
+        "why": ""
+      },
+      {
+        "id": "S18",
+        "class": "behavioral",
+        "why": ""
+      }
+    ],
+    "has_definition_of_done": true,
+    "has_implementing_agent_instruction": true
+  },
+  "label": "v4",
+  "instance_id": "astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1",
+  "metric": "testability",
+  "repeat": 2
+}

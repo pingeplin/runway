@@ -1,0 +1,94 @@
+{
+  "model": "claude-opus-5",
+  "claude_args": [
+    "--tools",
+    ""
+  ],
+  "spec_sha256": "5f60498f48c44e11dd4fc9f52d1dbe43ae24d7c2bb50485bf20290454a750a16",
+  "prompt_sha256": "607a7f836caa988300e08a1ffb8e0bc6db47fdc27fbef90a18bd08ad4bb979ec",
+  "cost_usd": 1.9660380000000002,
+  "wall_seconds": 255.8,
+  "usage": {
+    "input_tokens": 4,
+    "cache_creation_input_tokens": 23667,
+    "cache_read_input_tokens": 118807,
+    "output_tokens": 4074,
+    "output_tokens_details": {
+      "thinking_tokens": 853
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 20597,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 1710,
+        "cache_read_input_tokens": 49105,
+        "cache_creation_input_tokens": 20597,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 20597
+        },
+        "type": "message"
+      },
+      {
+        "input_tokens": 72665,
+        "output_tokens": 16785,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "type": "advisor_message",
+        "model": "claude-fable-5-1"
+      },
+      {
+        "input_tokens": 2,
+        "output_tokens": 2364,
+        "cache_read_input_tokens": 69702,
+        "cache_creation_input_tokens": 3070,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 3070,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "ok": true,
+  "error": null,
+  "result": {
+    "contradictions": [
+      {
+        "a": "this must be verified by a test where a `FIELD` (not a `PARAM`) shares the same `ID` as the `PARAMref`'s `ref` (see S13)",
+        "b": "matching `Field` instead of `Param` in `ParamRef.get_ref` must fail S11 (not necessarily S1, since `Param` is itself a `Field`)",
+        "why": "Key Components points at S13 for the Field/Param check; that check is actually S11. S13 is version attrs."
+      },
+      {
+        "a": "**S2a \u2014 existing** (`test_table.py::test_table`, `data/regression.xml`...). Given a parsed VOTable with one non-empty `TABLE`",
+        "b": "`data/regression.xml` has three `TABLE`s in document order, none parser-skipped by a plain `parse()` call",
+        "why": "Same fixture described as having one non-empty TABLE in S2a and three non-skipped TABLEs in S4."
+      },
+      {
+        "a": "**existing** = a currently-present test already exercises this exact behavior and will fail today (before this change) and pass after it",
+        "b": "**S12 \u2014 existing, non-regression** ... match `VOTableFile._version_namespace_map[version]` exactly as before this change. Adding ... must not change this.",
+        "why": "S12 wears the 'existing' label but tests already-correct code, so it passes today, not fails."
+      }
+    ],
+    "terminology_drift": [],
+    "ordering_defects": []
+  },
+  "label": "ouroboros-a",
+  "instance_id": "astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1",
+  "metric": "coherence",
+  "repeat": 1
+}

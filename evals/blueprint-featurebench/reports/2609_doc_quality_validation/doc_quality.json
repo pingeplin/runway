@@ -1,0 +1,471 @@
+{
+  "dataset_jsonl": "/Users/eplin/workspace/runway/evals/blueprint-featurebench/results/dataset_arm_b/data/fast.jsonl",
+  "groups": {
+    "v4": [
+      {
+        "task_id": "astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1",
+        "spec_lines": 753,
+        "n_oracle_symbols": 9,
+        "symbol_recall": 0.778,
+        "effective_recall": 0.778,
+        "file_recall": 1.0,
+        "missed_symbols": [
+          "_convert_images_to_float",
+          "_convert_images_to_uint"
+        ],
+        "fenced_oracle_symbols": [],
+        "grounding_precision": 0.986,
+        "n_named": 145,
+        "ungrounded": [
+          "com/spacetelescope/stsci.numdisplay/blob/master/lib/stsci/numdisplay/zscale.py",
+          "xNxM"
+        ],
+        "label": "v4",
+        "pass_rate": 0.94
+      },
+      {
+        "task_id": "astropy__astropy.b0db0daa.test_containers.6079987d.lv1",
+        "spec_lines": 938,
+        "n_oracle_symbols": 16,
+        "symbol_recall": 0.75,
+        "effective_recall": 0.75,
+        "file_recall": 1.0,
+        "missed_symbols": [
+          "_get_distribution_cls",
+          "_result_as_distribution",
+          "get_n_samples",
+          "is_distribution"
+        ],
+        "fenced_oracle_symbols": [],
+        "grounding_precision": 0.969,
+        "n_named": 229,
+        "ungrounded": [
+          "_median",
+          "_subok_false",
+          "arr_t",
+          "as_strided",
+          "deg2",
+          "raw_samples",
+          "test_setitem_"
+        ],
+        "label": "v4",
+        "pass_rate": 1.0
+      },
+      {
+        "task_id": "astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1",
+        "spec_lines": 637,
+        "n_oracle_symbols": 18,
+        "symbol_recall": 0.5,
+        "effective_recall": 0.5,
+        "file_recall": 0.733,
+        "missed_symbols": [
+          "__str__",
+          "_check_required_columns",
+          "_init_from_ndarray",
+          "as_scalar_or_list_str",
+          "bitceil",
+          "extirpolate",
+          "format_string",
+          "str_kwargs",
+          "trig_sum"
+        ],
+        "fenced_oracle_symbols": [],
+        "grounding_precision": 0.974,
+        "n_named": 152,
+        "ungrounded": [
+          "Barrier",
+          "masked_b",
+          "plain_a",
+          "plain_c"
+        ],
+        "label": "v4",
+        "pass_rate": 0.96
+      },
+      {
+        "task_id": "astropy__astropy.b0db0daa.test_table.48eef659.lv1",
+        "spec_lines": 258,
+        "n_oracle_symbols": 37,
+        "symbol_recall": 0.649,
+        "effective_recall": 0.378,
+        "file_recall": 0.5,
+        "missed_symbols": [
+          "_add_fieldref",
+          "_add_paramref",
+          "_all_matching_dtype",
+          "_get_binary_data_stream",
+          "_invalid_unit_error_message",
+          "_is_null",
+          "_splitter_lax",
+          "careful_read",
+          "check_anyuri",
+          "entries",
+          "iter_values",
+          "numpy_to_votable_dtype",
+          "yes_no"
+        ],
+        "fenced_oracle_symbols": [
+          "_iterable_helper",
+          "_make_masked_array",
+          "_parse_binary",
+          "_resize_strategy",
+          "_write_binary",
+          "binparse",
+          "bitarray_to_bool",
+          "bool_to_bitarray",
+          "concatenate",
+          "data"
+        ],
+        "grounding_precision": 0.992,
+        "n_named": 263,
+        "ungrounded": [
+          "U0001F600b",
+          "test_converters"
+        ],
+        "label": "v4",
+        "pass_rate": 0.35
+      },
+      {
+        "task_id": "astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1",
+        "spec_lines": 587,
+        "n_oracle_symbols": 33,
+        "symbol_recall": 0.333,
+        "effective_recall": 0.333,
+        "file_recall": 0.182,
+        "missed_symbols": [
+          "__set__",
+          "_base_repr_",
+          "_convert_to_fd_or_read_function",
+          "_decompose_to_known_units",
+          "_did_you_mean_units",
+          "_format_message",
+          "_init_from_ndarray",
+          "_invalid_unit_error_message",
+          "_parse_minmax",
+          "_splitter_lax",
+          "_suppressed_warning",
+          "_validate_unit",
+          "check_anyuri",
+          "check_id",
+          "check_token",
+          "did_you_mean",
+          "fix_id",
+          "is_primary",
+          "is_secondary",
+          "normalize_capitalization",
+          "strip_accents",
+          "validate_schema"
+        ],
+        "fenced_oracle_symbols": [],
+        "grounding_precision": 0.99,
+        "n_named": 199,
+        "ungrounded": [
+          "GENERIC_GALACTIC",
+          "paramref_instance"
+        ],
+        "label": "v4",
+        "pass_rate": 0.95
+      }
+    ],
+    "ouroboros-a": [
+      {
+        "task_id": "astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1",
+        "spec_lines": 575,
+        "n_oracle_symbols": 9,
+        "symbol_recall": 0.778,
+        "effective_recall": 0.667,
+        "file_recall": 1.0,
+        "missed_symbols": [
+          "_convert_images_to_float",
+          "_convert_images_to_uint"
+        ],
+        "fenced_oracle_symbols": [
+          "_process_values"
+        ],
+        "grounding_precision": 0.978,
+        "n_named": 135,
+        "ungrounded": [
+          "S11",
+          "S21",
+          "minpix"
+        ],
+        "label": "ouroboros-a",
+        "pass_rate": 1.0
+      },
+      {
+        "task_id": "astropy__astropy.b0db0daa.test_containers.6079987d.lv1",
+        "spec_lines": 777,
+        "n_oracle_symbols": 16,
+        "symbol_recall": 0.75,
+        "effective_recall": 0.688,
+        "file_recall": 1.0,
+        "missed_symbols": [
+          "_get_distribution_cls",
+          "_result_as_distribution",
+          "get_n_samples",
+          "is_distribution"
+        ],
+        "fenced_oracle_symbols": [
+          "pdf_std"
+        ],
+        "grounding_precision": 0.979,
+        "n_named": 192,
+        "ungrounded": [
+          "SomeQuantitySubclass",
+          "arr_distribution",
+          "d1000",
+          "samples_cls"
+        ],
+        "label": "ouroboros-a",
+        "pass_rate": 0.52
+      },
+      {
+        "task_id": "astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1",
+        "spec_lines": 748,
+        "n_oracle_symbols": 18,
+        "symbol_recall": 0.667,
+        "effective_recall": 0.5,
+        "file_recall": 0.533,
+        "missed_symbols": [
+          "__str__",
+          "as_scalar_or_list_str",
+          "bitceil",
+          "extirpolate",
+          "ndim",
+          "trig_sum"
+        ],
+        "fenced_oracle_symbols": [
+          "get_err_str",
+          "get_unit",
+          "strip_units"
+        ],
+        "grounding_precision": 0.983,
+        "n_named": 181,
+        "ungrounded": [
+          "_validate_",
+          "getcontext",
+          "jyr"
+        ],
+        "label": "ouroboros-a",
+        "pass_rate": 0.03
+      },
+      {
+        "task_id": "astropy__astropy.b0db0daa.test_table.48eef659.lv1",
+        "spec_lines": 473,
+        "n_oracle_symbols": 37,
+        "symbol_recall": 0.676,
+        "effective_recall": 0.378,
+        "file_recall": 0.5,
+        "missed_symbols": [
+          "_add_fieldref",
+          "_add_paramref",
+          "_as_quantity",
+          "_get_binary_data_stream",
+          "_invalid_unit_error_message",
+          "_is_null",
+          "_splitter_lax",
+          "_write_binary",
+          "careful_read",
+          "check_anyuri",
+          "iter_values",
+          "yes_no"
+        ],
+        "fenced_oracle_symbols": [
+          "_all_matching_dtype",
+          "_binoutput_fixed",
+          "_binoutput_var",
+          "_binparse_fixed",
+          "_make_masked_array",
+          "_parse_binary",
+          "_resize_strategy",
+          "bitarray_to_bool",
+          "bool_to_bitarray",
+          "data",
+          "numpy_to_votable_dtype"
+        ],
+        "grounding_precision": 0.982,
+        "n_named": 224,
+        "ungrounded": [
+          "U0001D11E",
+          "_init_from_",
+          "number_of_columns",
+          "number_of_columns_before_adding"
+        ],
+        "label": "ouroboros-a",
+        "pass_rate": 0.3
+      },
+      {
+        "task_id": "astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1",
+        "spec_lines": 667,
+        "n_oracle_symbols": 33,
+        "symbol_recall": 0.242,
+        "effective_recall": 0.242,
+        "file_recall": 0.091,
+        "missed_symbols": [
+          "__set__",
+          "_base_repr_",
+          "_convert_to_fd_or_read_function",
+          "_decompose_to_known_units",
+          "_did_you_mean_units",
+          "_format_message",
+          "_init_from_ndarray",
+          "_invalid_unit_error_message",
+          "_parse_minmax",
+          "_splitter_lax",
+          "_suppressed_warning",
+          "_validate_unit",
+          "check_anyuri",
+          "check_astroyear",
+          "check_id",
+          "check_string",
+          "check_token",
+          "did_you_mean",
+          "fix_id",
+          "is_primary",
+          "is_secondary",
+          "normalize_capitalization",
+          "reference_frames",
+          "strip_accents",
+          "validate_schema"
+        ],
+        "fenced_oracle_symbols": [],
+        "grounding_precision": 0.987,
+        "n_named": 152,
+        "ungrounded": [
+          "flux3",
+          "n_tables"
+        ],
+        "label": "ouroboros-a",
+        "pass_rate": 0.0
+      }
+    ],
+    "ouroboros-b": [
+      {
+        "task_id": "astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1",
+        "spec_lines": 719,
+        "n_oracle_symbols": 9,
+        "symbol_recall": 0.778,
+        "effective_recall": 0.778,
+        "file_recall": 1.0,
+        "missed_symbols": [
+          "_convert_images_to_float",
+          "_convert_images_to_uint"
+        ],
+        "fenced_oracle_symbols": [],
+        "grounding_precision": 1.0,
+        "n_named": 155,
+        "ungrounded": [],
+        "label": "ouroboros-b",
+        "pass_rate": 0.94
+      },
+      {
+        "task_id": "astropy__astropy.b0db0daa.test_containers.6079987d.lv1",
+        "spec_lines": 767,
+        "n_oracle_symbols": 16,
+        "symbol_recall": 0.75,
+        "effective_recall": 0.75,
+        "file_recall": 1.0,
+        "missed_symbols": [
+          "_get_distribution_cls",
+          "_result_as_distribution",
+          "get_n_samples",
+          "is_distribution"
+        ],
+        "fenced_oracle_symbols": [],
+        "grounding_precision": 0.97,
+        "n_named": 203,
+        "ungrounded": [
+          "Ordinary",
+          "broadcast_",
+          "logical_shape",
+          "other_dtype",
+          "other_logical_shape",
+          "plain_ndarray"
+        ],
+        "label": "ouroboros-b",
+        "pass_rate": 0.67
+      },
+      {
+        "task_id": "astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1",
+        "spec_lines": 783,
+        "n_oracle_symbols": 18,
+        "symbol_recall": 0.611,
+        "effective_recall": 0.556,
+        "file_recall": 0.667,
+        "missed_symbols": [
+          "__str__",
+          "as_scalar_or_list_str",
+          "bitceil",
+          "extirpolate",
+          "format_string",
+          "ndim",
+          "trig_sum"
+        ],
+        "fenced_oracle_symbols": [
+          "get_err_str"
+        ],
+        "grounding_precision": 0.994,
+        "n_named": 154,
+        "ungrounded": [
+          "_to_twoval"
+        ],
+        "label": "ouroboros-b",
+        "pass_rate": 0.03
+      },
+      {
+        "task_id": "astropy__astropy.b0db0daa.test_table.48eef659.lv1",
+        "spec_lines": 848,
+        "n_oracle_symbols": 37,
+        "symbol_recall": 0.838,
+        "effective_recall": 0.784,
+        "file_recall": 0.5,
+        "missed_symbols": [
+          "_get_binary_data_stream",
+          "_invalid_unit_error_message",
+          "_is_null",
+          "careful_read",
+          "check_anyuri",
+          "yes_no"
+        ],
+        "fenced_oracle_symbols": [
+          "get_first_table",
+          "to_table"
+        ],
+        "grounding_precision": 0.977,
+        "n_named": 222,
+        "ungrounded": [
+          "U0001F600",
+          "caf\u00e9",
+          "foo_1",
+          "int_nulls",
+          "some_plain_ndarray"
+        ],
+        "label": "ouroboros-b",
+        "pass_rate": 0.88
+      },
+      {
+        "task_id": "astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1",
+        "spec_lines": 662,
+        "n_oracle_symbols": 33,
+        "symbol_recall": 0.848,
+        "effective_recall": 0.848,
+        "file_recall": 0.818,
+        "missed_symbols": [
+          "__set__",
+          "_decompose_to_known_units",
+          "_invalid_unit_error_message",
+          "_suppressed_warning",
+          "_validate_unit"
+        ],
+        "fenced_oracle_symbols": [],
+        "grounding_precision": 0.991,
+        "n_named": 225,
+        "ungrounded": [
+          "Flux2",
+          "Flux3"
+        ],
+        "label": "ouroboros-b",
+        "pass_rate": 1.0
+      }
+    ]
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "model": "claude-opus-5",
+  "claude_args": [
+    "--tools",
+    ""
+  ],
+  "spec_sha256": "143c781b8f7da724458a12d4e5b97d78fadaac1e31d864a1409614214372bdc7",
+  "prompt_sha256": "607a7f836caa988300e08a1ffb8e0bc6db47fdc27fbef90a18bd08ad4bb979ec",
+  "cost_usd": 2.08614,
+  "wall_seconds": 224.71,
+  "usage": {
+    "input_tokens": 4,
+    "cache_creation_input_tokens": 23388,
+    "cache_read_input_tokens": 166572,
+    "output_tokens": 3510,
+    "output_tokens_details": {
+      "thinking_tokens": 636
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 21032,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 766,
+        "cache_read_input_tokens": 72770,
+        "cache_creation_input_tokens": 21032,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 21032
+        },
+        "type": "message"
+      },
+      {
+        "input_tokens": 95821,
+        "output_tokens": 14356,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "type": "advisor_message",
+        "model": "claude-fable-5-1"
+      },
+      {
+        "input_tokens": 2,
+        "output_tokens": 2744,
+        "cache_read_input_tokens": 93802,
+        "cache_creation_input_tokens": 2356,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 2356,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "ok": true,
+  "error": null,
+  "result": {
+    "contradictions": [
+      {
+        "a": "| `TableElement.is_empty` `[INFERRED]` | `tree.py:2705-2713` | needed by `get_first_table` (this spec); no existing caller | ... That is ten prerequisite gaps.",
+        "b": "- [ ] All ten prerequisite gaps are restored and their pinning tests pass: `iterparser._convert_to_fd_or_read_function`, `xml_check.check_id`/`fix_id`/...",
+        "why": "is_empty is prerequisite #10 in one place, excluded from the DoD's nine-item list of the same 'ten' in the other"
+      },
+      {
+        "a": "but this spec does not attempt to specify their internals, and they are not part of this spec's Definition of Done. Do not skip or weaken S2, S3, S5c, S5d, or S6d",
+        "b": "- [ ] Test suite is green. - [ ] Every acceptance scenario maps to at least one test: S1, S2, S3, S4, S5a, S5b, S5c, S5d, S6, S6b, S6c, S6d,",
+        "why": "Blockers declared out of the DoD are preconditions for the DoD's green-suite and scenario-coverage items"
+      }
+    ],
+    "terminology_drift": [
+      {
+        "names": [
+          "is_empty() = skipped during parsing",
+          "empty = zero rows",
+          "empty file = zero tables"
+        ],
+        "why": "'empty' names three conditions; get_first_table's 'first non-empty table' is ambiguous between them"
+      }
+    ],
+    "ordering_defects": [
+      {
+        "used": "If these are undefined in the implementing agent's environment, `to_table()` cannot construct a populated `Table` and S6d cannot render one.",
+        "defined_later_in": "Acceptance Scenarios"
+      }
+    ]
+  },
+  "label": "ouroboros-b",
+  "instance_id": "astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1",
+  "metric": "coherence",
+  "repeat": 2
+}

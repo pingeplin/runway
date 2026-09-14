@@ -283,7 +283,8 @@ def run_claude(
 
     payload.update(parsed)
     if proc.returncode != 0:
-        return payload, f"claude exited {proc.returncode}"
+        tail = (proc.stderr or "").strip()[-300:]
+        return payload, f"claude exited {proc.returncode}" + (f": {tail}" if tail else "")
     return payload, None
 
 

@@ -1,0 +1,172 @@
+{
+  "model": "claude-opus-5",
+  "claude_args": [
+    "--tools",
+    ""
+  ],
+  "spec_sha256": "1a621302da357c02c6c3e5a9504fcb5d8726006354fb38a3ac87233c3fdf398e",
+  "prompt_sha256": "fc9fe9469e188da02747b90f53674c3078929f74c36ec208b3c7a673290ed327",
+  "cost_usd": 2.1132642500000003,
+  "wall_seconds": 180.24,
+  "usage": {
+    "input_tokens": 4,
+    "cache_creation_input_tokens": 37153,
+    "cache_read_input_tokens": 175240,
+    "output_tokens": 7736,
+    "output_tokens_details": {
+      "thinking_tokens": 6241
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 29700,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 6268,
+        "cache_read_input_tokens": 72770,
+        "cache_creation_input_tokens": 29700,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 29700
+        },
+        "type": "message"
+      },
+      {
+        "input_tokens": 109999,
+        "output_tokens": 7362,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "type": "advisor_message",
+        "model": "claude-fable-5-1"
+      },
+      {
+        "input_tokens": 2,
+        "output_tokens": 1468,
+        "cache_read_input_tokens": 102470,
+        "cache_creation_input_tokens": 7453,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 7453,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "ok": true,
+  "error": null,
+  "result": {
+    "fenced": [
+      {
+        "symbol": "_quantities2arrays",
+        "strength": "hard",
+        "quote": "are out of scope for this spec: `_quantities2arrays` (used by roughly fifteen *other*, already-decorated `@function_helper`s"
+      },
+      {
+        "symbol": "histogram",
+        "strength": "hard",
+        "quote": "none of which are in scope here \u2014 e.g. `histogram`, set-operation helpers, `interp`"
+      },
+      {
+        "symbol": "interp",
+        "strength": "hard",
+        "quote": "none of which are in scope here \u2014 e.g. `histogram`, set-operation helpers, `interp`"
+      },
+      {
+        "symbol": "Converter._parse_length",
+        "strength": "hard",
+        "quote": "This spec deliberately does not implement `_quantities2arrays` or `Converter._parse_length`/`_write_length`"
+      },
+      {
+        "symbol": "Converter._write_length",
+        "strength": "hard",
+        "quote": "This spec deliberately does not implement `_quantities2arrays` or `Converter._parse_length`/`_write_length`"
+      },
+      {
+        "symbol": "UnicodeChar._binparse_fixed",
+        "strength": "hard",
+        "quote": "`UnicodeChar._binparse_fixed`/`_binoutput_fixed` ... do not exist in this codebase and are out of scope for this spec"
+      },
+      {
+        "symbol": "UnicodeChar._binoutput_fixed",
+        "strength": "hard",
+        "quote": "`UnicodeChar._binparse_fixed`/`_binoutput_fixed` ... do not exist in this codebase and are out of scope for this spec"
+      },
+      {
+        "symbol": "numpy_to_votable_dtype",
+        "strength": "hard",
+        "quote": "are out of scope for this spec: ... `numpy_to_votable_dtype` and `_all_matching_dtype`"
+      },
+      {
+        "symbol": "_all_matching_dtype",
+        "strength": "hard",
+        "quote": "are out of scope for this spec: ... `numpy_to_votable_dtype` and `_all_matching_dtype`"
+      },
+      {
+        "symbol": "_make_masked_array",
+        "strength": "hard",
+        "quote": "out of scope for this spec: ... `_make_masked_array` ... variable-length numeric-array and `bit`-datatype fields cannot be parsed or written"
+      },
+      {
+        "symbol": "bitarray_to_bool",
+        "strength": "hard",
+        "quote": "out of scope for this spec: ... `bitarray_to_bool`/`bool_to_bitarray` (`converters.py` ~1146/1155)"
+      },
+      {
+        "symbol": "bool_to_bitarray",
+        "strength": "hard",
+        "quote": "out of scope for this spec: ... `bitarray_to_bool`/`bool_to_bitarray` (`converters.py` ~1146/1155)"
+      },
+      {
+        "symbol": "TableElement._parse_binary",
+        "strength": "hard",
+        "quote": "`_parse_binary` (undefined; BINARY/BINARY2 parsing out of scope)"
+      },
+      {
+        "symbol": "TableElement._resize_strategy",
+        "strength": "hard",
+        "quote": "out of scope for this spec: ... `TableElement._resize_strategy` (`tree.py`, called at line ~3074)"
+      },
+      {
+        "symbol": "TableElement.is_empty",
+        "strength": "hard",
+        "quote": "Do not assume ... or any `TableElement.is_empty()` helper exists \u2014 ... none of these are defined in this codebase snapshot"
+      },
+      {
+        "symbol": "TestTableInit.test_mask_false_if_input_mask_not_true",
+        "strength": "hard",
+        "quote": "`test_masked.py::TestTableInit::test_mask_false_if_input_mask_not_true`, which this spec must not weaken"
+      },
+      {
+        "symbol": "test_select_columns_by_name_edge_cases",
+        "strength": "hard",
+        "quote": "`test_select_columns_by_name_edge_cases` is a useful *read-only* reference ... do not expect that test to pass"
+      },
+      {
+        "symbol": "test_oversize_unicode",
+        "strength": "soft",
+        "quote": "e.g. `test_converter.py::test_oversize_unicode`/`test_unicode_mask` ... is out of this spec's scope and may remain failing"
+      },
+      {
+        "symbol": "test_unicode_mask",
+        "strength": "soft",
+        "quote": "e.g. `test_converter.py::test_oversize_unicode`/`test_unicode_mask` ... is out of this spec's scope and may remain failing"
+      }
+    ]
+  },
+  "label": "ouroboros-a",
+  "instance_id": "astropy__astropy.b0db0daa.test_table.48eef659.lv1",
+  "metric": "fence",
+  "repeat": 1
+}
