@@ -1,0 +1,93 @@
+{
+  "model": "claude-opus-5",
+  "claude_args": [
+    "--tools",
+    ""
+  ],
+  "spec_sha256": "b40b7ae97c79489617d8a12cfdbddd6abadfa92e2f7628585e634345ca706ab2",
+  "prompt_sha256": "607a7f836caa988300e08a1ffb8e0bc6db47fdc27fbef90a18bd08ad4bb979ec",
+  "cost_usd": 0.9454584999999999,
+  "wall_seconds": 312.46,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 20224,
+    "cache_read_input_tokens": 49105,
+    "output_tokens": 28172,
+    "output_tokens_details": {
+      "thinking_tokens": 27015
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 20224,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 28172,
+        "cache_read_input_tokens": 49105,
+        "cache_creation_input_tokens": 20224,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 20224
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "ok": true,
+  "error": null,
+  "result": {
+    "contradictions": [
+      {
+        "a": "no new public names beyond the eight listed here",
+        "b": "reintroduce `TableElement.is_empty()` as a thin public accessor for `_empty` and have `get_first_table` call it, that is permitted",
+        "why": "Cap of eight new public names conflicts with permission to add a public TableElement.is_empty() accessor"
+      },
+      {
+        "a": "Whether `bytes` is accepted is deliberately left unconstrained",
+        "b": "Report W08 unless `string` is None or a str.",
+        "why": "Contract docstring makes bytes report W08, while Key Components leaves bytes acceptance unconstrained"
+      },
+      {
+        "a": "Behavior for non-`None`, non-string arguments is unconstrained (no caller passes them).",
+        "b": "Report W07 unless `year` is None or a string matching",
+        "why": "Contract docstring requires W07 for non-string years; Key Components says non-string behavior is unconstrained"
+      }
+    ],
+    "terminology_drift": [
+      {
+        "names": [
+          "is_defaults()",
+          "are_defaults()"
+        ],
+        "why": "iter_values docstring cites are_defaults() for what is elsewhere the Values.is_defaults() check"
+      },
+      {
+        "names": [
+          "non-empty TableElement (_empty falsy)",
+          "empty table (zero rows, empty_table.xml)"
+        ],
+        "why": "'Empty' means the skipped-during-parse flag in get_first_table but a zero-row table in S9/test_empty_table"
+      },
+      {
+        "names": [
+          "field (attribute label argument of check_astroyear)",
+          "tree.Field instance passed as field in S16"
+        ],
+        "why": "check_astroyear's field is called an attribute label, yet S16 passes a tree.Field object as that argument"
+      }
+    ],
+    "ordering_defects": []
+  },
+  "label": "v4",
+  "instance_id": "astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1",
+  "metric": "coherence",
+  "repeat": 2
+}

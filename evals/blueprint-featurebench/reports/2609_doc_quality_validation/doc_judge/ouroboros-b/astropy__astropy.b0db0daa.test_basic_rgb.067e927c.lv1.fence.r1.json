@@ -1,0 +1,152 @@
+{
+  "model": "claude-opus-5",
+  "claude_args": [
+    "--tools",
+    ""
+  ],
+  "spec_sha256": "022a231cd9a7d8ee829c179442e8b6cf54880d72c2974ff4bec77c9e5fba7f65",
+  "prompt_sha256": "fc9fe9469e188da02747b90f53674c3078929f74c36ec208b3c7a673290ed327",
+  "cost_usd": 1.925163,
+  "wall_seconds": 73.57,
+  "usage": {
+    "input_tokens": 4,
+    "cache_creation_input_tokens": 23697,
+    "cache_read_input_tokens": 239281,
+    "output_tokens": 2415,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 21899,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 803,
+        "cache_read_input_tokens": 108691,
+        "cache_creation_input_tokens": 21899,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 21899
+        },
+        "type": "message"
+      },
+      {
+        "input_tokens": 132646,
+        "output_tokens": 3482,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "type": "advisor_message",
+        "model": "claude-fable-5-1"
+      },
+      {
+        "input_tokens": 2,
+        "output_tokens": 1612,
+        "cache_read_input_tokens": 130590,
+        "cache_creation_input_tokens": 1798,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 1798,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "ok": true,
+  "error": null,
+  "result": {
+    "fenced": [
+      {
+        "symbol": "RGBImageMappingLupton",
+        "strength": "hard",
+        "quote": "the rest of `lupton_rgb.py`'s algorithms are intact and must not be changed"
+      },
+      {
+        "symbol": "RGBImageMappingLupton.apply_mappings",
+        "strength": "hard",
+        "quote": "no algorithm, class, or public behavior in that file changes"
+      },
+      {
+        "symbol": "RGBImageMappingLupton.intensity",
+        "strength": "hard",
+        "quote": "no algorithm, class, or public behavior in that file changes"
+      },
+      {
+        "symbol": "make_lupton_rgb",
+        "strength": "hard",
+        "quote": "This is the only change in scope inside `lupton_rgb.py` \u2014 no algorithm, class, or public behavior in that file changes."
+      },
+      {
+        "symbol": "compute_intensity",
+        "strength": "hard",
+        "quote": "This is the only change in scope inside `lupton_rgb.py` \u2014 no algorithm, class, or public behavior in that file changes."
+      },
+      {
+        "symbol": "LuptonAsinhStretch",
+        "strength": "hard",
+        "quote": "the rest of `lupton_rgb.py`'s algorithms are intact and must not be changed"
+      },
+      {
+        "symbol": "LuptonAsinhStretch.__call__",
+        "strength": "hard",
+        "quote": "This is the only change in scope inside `lupton_rgb.py` \u2014 no algorithm, class, or public behavior in that file changes."
+      },
+      {
+        "symbol": "LuptonAsinhZscaleStretch",
+        "strength": "hard",
+        "quote": "the rest of `lupton_rgb.py`'s algorithms are intact and must not be changed"
+      },
+      {
+        "symbol": "CompositeStretch._supports_invalid_kw",
+        "strength": "hard",
+        "quote": "`CompositeStretch` does not accept or forward an `invalid` keyword and does not override `_supports_invalid_kw`"
+      },
+      {
+        "symbol": "test_basic_rgb",
+        "strength": "hard",
+        "quote": "that filename is reserved for the held-out oracle test ... creating a file at that path would collide with it"
+      },
+      {
+        "symbol": "test_interval",
+        "strength": "hard",
+        "quote": "Do not change their assertions to make them pass; make the implementation match them."
+      },
+      {
+        "symbol": "test_stretch",
+        "strength": "hard",
+        "quote": "Do not change their assertions to make them pass; make the implementation match them."
+      },
+      {
+        "symbol": "test_norm",
+        "strength": "hard",
+        "quote": "Do not change their assertions to make them pass; make the implementation match them."
+      },
+      {
+        "symbol": "test_fits2bitmap",
+        "strength": "hard",
+        "quote": "Do not change their assertions to make them pass; make the implementation match them."
+      },
+      {
+        "symbol": "test_lupton_rgb",
+        "strength": "hard",
+        "quote": "run as-is, passes in full ... Do not change their assertions to make them pass"
+      }
+    ]
+  },
+  "label": "ouroboros-b",
+  "instance_id": "astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1",
+  "metric": "fence",
+  "repeat": 1
+}

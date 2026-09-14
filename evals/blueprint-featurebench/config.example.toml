@@ -80,3 +80,10 @@ model = "claude-sonnet-5"
 timeout_seconds = 300
 # Passed through to the `claude` CLI verbatim, between -p and --model.
 claude_args = ["--permission-mode", "bypassPermissions"]
+
+[doc_judge]
+# Stage 13: report-only judge over specs (fence listing, testability).
+# Runs blind: all tools disabled, empty cwd. claude_args default to ["--tools", ""]
+# and deliberately do NOT inherit [spec] — the judge must see the spec text only.
+model = "claude-opus-5"
+timeout_seconds = 1800

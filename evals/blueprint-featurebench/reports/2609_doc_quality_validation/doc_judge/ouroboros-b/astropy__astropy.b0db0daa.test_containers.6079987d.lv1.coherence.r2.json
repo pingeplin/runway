@@ -1,0 +1,141 @@
+{
+  "model": "claude-opus-5",
+  "claude_args": [
+    "--tools",
+    ""
+  ],
+  "spec_sha256": "51ec5a6ddbb833efd03aa287ec79c868524a1f0f9b5bb78b6b8b982f6d8c7028",
+  "prompt_sha256": "607a7f836caa988300e08a1ffb8e0bc6db47fdc27fbef90a18bd08ad4bb979ec",
+  "cost_usd": 2.81718825,
+  "wall_seconds": 282.45,
+  "usage": {
+    "input_tokens": 4,
+    "cache_creation_input_tokens": 27030,
+    "cache_read_input_tokens": 241781,
+    "output_tokens": 5359,
+    "output_tokens_details": {
+      "thinking_tokens": 2068
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 24399,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 649,
+        "cache_read_input_tokens": 108691,
+        "cache_creation_input_tokens": 24399,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 24399
+        },
+        "type": "message"
+      },
+      {
+        "input_tokens": 134992,
+        "output_tokens": 18724,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "type": "advisor_message",
+        "model": "claude-fable-5-1"
+      },
+      {
+        "input_tokens": 2,
+        "output_tokens": 4710,
+        "cache_read_input_tokens": 133090,
+        "cache_creation_input_tokens": 2631,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 2631,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "ok": true,
+  "error": null,
+  "result": {
+    "contradictions": [
+      {
+        "a": "the *(new)* scenarios and *(new)* scenario parts \u2014 S1b, S15 (all three calls), S19 (class-name assertion only)",
+        "b": "this scenario adds the class-name assertion and the plain-array case",
+        "why": "DoD limits S19's new test to the class name; S19's body also requires the plain-array repr case."
+      },
+      {
+        "a": "as opposed to the function simply having no registration at all, which is S10's path",
+        "b": "Only when neither a registered helper/dispatcher nor this safe-function delegation applies does `__array_function__` fall back",
+        "why": "S10 needs safe-function delegation to work; 'no registration at all' would route it to NotImplemented/TypeError."
+      },
+      {
+        "a": "in some cases (noted inline, e.g. S7, S10, S22, S36) the existing test covers part of the scenario and a *(new)* addition in the same bullet covers the rest",
+        "b": "**S10** *(existing: `test_helper_poisson_samples`)*",
+        "why": "S7/S10 are tagged wholly existing and omitted from DoD's new list, yet named as having new parts."
+      }
+    ],
+    "terminology_drift": [
+      {
+        "names": [
+          "registration / registered helper",
+          "DISTRIBUTION_SAFE_FUNCTIONS entry / safe-function delegation"
+        ],
+        "why": "Safe-function membership is a registration in the Interface Contract but disjoint from one in Trade-offs and S30."
+      },
+      {
+        "names": [
+          "not yet covered by an existing test",
+          "(new)"
+        ],
+        "why": "Overview cites a label appearing nowhere; scenarios are tagged (new), so the mapping must be guessed."
+      },
+      {
+        "names": [
+          "scalar Distribution",
+          "ScalarDistribution"
+        ],
+        "why": "S10/S24 mean a 0-d ArrayDistribution; S36/IC mean the np.void element class. One name, two things."
+      }
+    ],
+    "ordering_defects": [
+      {
+        "used": "same `subok`-stays-a-`Distribution` rule as `broadcast_to`/`broadcast_arrays` above",
+        "defined_later_in": "Key Components (`numpy.broadcast_to` bullet, the next bullet)"
+      },
+      {
+        "used": "see the `may_share_memory` bullet under Key Components and S7",
+        "defined_later_in": "Acceptance Scenarios"
+      },
+      {
+        "used": "a separate generated class for `Angle` samples (`test_distr_angle`/S7/S16 require it to still be an `Angle`",
+        "defined_later_in": "Acceptance Scenarios"
+      },
+      {
+        "used": "a plain-array input position yields a plain-array output element, per S13",
+        "defined_later_in": "Acceptance Scenarios"
+      },
+      {
+        "used": "yields a 0-d `Distribution`, not a bare scalar (S10)",
+        "defined_later_in": "Acceptance Scenarios"
+      },
+      {
+        "used": "NumPy's own dispatcher then raises the `TypeError` (the same \"no implementation found\" mechanism already verified for `may_share_memory` above) \u2014 see S34.",
+        "defined_later_in": "Acceptance Scenarios"
+      }
+    ]
+  },
+  "label": "ouroboros-b",
+  "instance_id": "astropy__astropy.b0db0daa.test_containers.6079987d.lv1",
+  "metric": "coherence",
+  "repeat": 2
+}

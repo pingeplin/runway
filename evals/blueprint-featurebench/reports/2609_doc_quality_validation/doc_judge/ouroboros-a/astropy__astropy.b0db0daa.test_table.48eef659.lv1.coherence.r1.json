@@ -1,0 +1,102 @@
+{
+  "model": "claude-opus-5",
+  "claude_args": [
+    "--tools",
+    ""
+  ],
+  "spec_sha256": "1a621302da357c02c6c3e5a9504fcb5d8726006354fb38a3ac87233c3fdf398e",
+  "prompt_sha256": "607a7f836caa988300e08a1ffb8e0bc6db47fdc27fbef90a18bd08ad4bb979ec",
+  "cost_usd": 2.0970762499999998,
+  "wall_seconds": 265.69,
+  "usage": {
+    "input_tokens": 4,
+    "cache_creation_input_tokens": 31489,
+    "cache_read_input_tokens": 127926,
+    "output_tokens": 7546,
+    "output_tokens_details": {
+      "thinking_tokens": 5378
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 29716,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 68,
+        "cache_read_input_tokens": 49105,
+        "cache_creation_input_tokens": 29716,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 29716
+        },
+        "type": "message"
+      },
+      {
+        "input_tokens": 80142,
+        "output_tokens": 14284,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "type": "advisor_message",
+        "model": "claude-fable-5-1"
+      },
+      {
+        "input_tokens": 2,
+        "output_tokens": 7478,
+        "cache_read_input_tokens": 78821,
+        "cache_creation_input_tokens": 1773,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 1773,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "ok": true,
+  "error": null,
+  "result": {
+    "contradictions": [
+      {
+        "a": "`add_column` must match those tests exactly (see S35).",
+        "b": "**S35:** Given `Quantity(np.zeros(3), u.dimensionless_unscaled)` (an *explicitly* dimensionless `Quantity`, not a plain ndarray)",
+        "why": "S35 is assigned two different contents; the add_column duplicate-name scenario is actually S38."
+      },
+      {
+        "a": "Eight symbols across four files are currently absent from the codebase (no `def` exists for them at all)",
+        "b": "The `NUMPY_LT_2_4` branch has a body, but that body calls the undefined `_iterable_helper`",
+        "why": "concatenate is one of the eight: stated as having no def at all, and as already having a body."
+      },
+      {
+        "a": "Because three names referenced by neighboring, out-of-scope code (`_quantities2arrays`, `Converter._parse_length`/`_write_length`,",
+        "b": "`TableElement._parse_binary` (`tree.py`, called at lines ~2931/2937, no definition anywhere)",
+        "why": "DoD excuses failures only for three undefined names; Context lists more undefined out-of-scope names."
+      }
+    ],
+    "terminology_drift": [
+      {
+        "names": [
+          "Interface Contract",
+          "Interface Description"
+        ],
+        "why": "Both called the authoritative docstring source; reader must guess whether they are the same artifact."
+      }
+    ],
+    "ordering_defects": []
+  },
+  "label": "ouroboros-a",
+  "instance_id": "astropy__astropy.b0db0daa.test_table.48eef659.lv1",
+  "metric": "coherence",
+  "repeat": 1
+}

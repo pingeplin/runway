@@ -37,6 +37,23 @@ fail until the feature is built correctly; the agent never sees them.
   mutation score is invisible to `resolved`/pass rate. Shipping no tests at
   all is scored 0.0, not skipped.
 
+- **Doc quality** (stages 12–13) — grades the *spec itself*, not the agent.
+  Deterministic against the oracle: **oracle recall** (share of the
+  mask-removed `def`/`class` symbols the spec names — breadth), **fenced ∩
+  oracle** (oracle symbols the spec forbids the agent to touch — the
+  lombscargle failure as a count), **grounding precision** (share of named
+  files/identifiers that exist in the masked workspace — it cannot tell a
+  hallucinated name from a new helper the spec chose to design, so read it
+  as diagnostic). Judged, report-only, blind opus: the **fence listing**
+  (reference for the heuristic) and **scenario testability** (behavioral
+  share). Coherence (contradiction counts) was judged once on the 15-spec
+  corpus, showed no relation to pass_rate and ±1–4 judge self-disagreement,
+  and was dropped (`reports/2609_doc_quality_validation/`). Both stages report each
+  metric's direction against B pass_rate (pooled ρ and within-task
+  concordance) so it can be checked before anything is optimised against it;
+  a metric that points the wrong way is diagnostic only. Design docs have a
+  rubric (`DESIGN_RUBRIC.md`) but no corpus yet.
+
 Shorthand: resolved asks "is it done?", pass rate "how close?", kill rate
 "is the agent's own QA real?".
 
@@ -166,6 +183,48 @@ Classifies every unresolved (task, arm) cell as `spec_wrong` / `impl_wrong` /
 call for non-A arms) from the problem, spec, patch, and failing test log.
 Output: `results/taxonomy_report.md`. Single-LLM-rater; directional.
 
+**12. Doc quality — deterministic (optional, no docker, no LLM)**
+
+```bash
+python3 scripts/12_doc_quality.py --pristine-testbed /path/to/extracted/testbed
+```
+
+Scores every spec in `results/specs/` against the dataset mask: oracle
+recall (code-context mentions only) and effective recall (minus fenced
+symbols), fenced ∩ oracle (phrase heuristic), grounding precision. The
+pristine testbed (one `docker cp <cid>:/testbed` of the task image) is
+re-masked per task so grounding is checked against exactly what the spec
+writer saw; omit the flag to skip grounding. Output:
+`results/doc_quality_report.md`.
+
+To validate metrics on several spec sets with known outcomes:
+
+```bash
+python3 scripts/12_doc_quality.py --pristine-testbed … \
+  --corpus "v4=reports/<run>/v4/specs:reports/<run>/v4/report.md" \
+  --corpus "other=reports/<run>/other/specs:reports/<run>/other/report.md"
+```
+
+The report then carries a per-label mean table, pooled Spearman ρ of each
+metric against B pass_rate, and within-task concordance (do labels order the
+same way on the metric as on pass_rate, inside each task?). Cells share
+tasks, so pooled n is tasks × labels, not independent samples.
+
+**13. Doc quality — LLM judge (optional)**
+
+```bash
+python3 scripts/13_doc_judge.py --dry-run --repeats 2
+python3 scripts/13_doc_judge.py --repeats 2
+```
+
+Report-only opus prompts (`prompts/judge_{fence,testability}.md`),
+`[doc_judge]` in config. The judge runs blind — `--tools ""`, empty cwd — so
+its verdict is a function of the spec text alone. `--repeats N` reruns each
+cell so the report shows judge self-agreement (max−min across repeats) next
+to every mean. Accepts the same `--corpus` flags as stage 12. Cells cache
+under `results/doc_judge/`, fingerprinted by spec and prompt sha256 (a
+rewritten spec is re-judged). Output: `results/doc_judge_report.md`.
+
 ## Expected outputs
 
 ```
@@ -182,6 +241,9 @@ results/
   infer_arm_{a,b}/<timestamp>/eval_outputs/<id>/attempt-1/report.json  # per-instance
   runs.json                      # the paths above, per arm
   report.md                      # the deliverable
+  doc_quality_report.md          # stage 12: oracle recall / fence / grounding per spec
+  doc_judge/<label>/<id>.<metric>.r<k>.json  # stage 13 judge cells
+  doc_judge_report.md            # stage 13: fence listing / testability
 ```
 
 `results/` is gitignored in full.

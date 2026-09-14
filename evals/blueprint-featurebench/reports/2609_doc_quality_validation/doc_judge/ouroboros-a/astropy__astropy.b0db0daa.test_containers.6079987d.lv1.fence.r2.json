@@ -1,0 +1,197 @@
+{
+  "model": "claude-opus-5",
+  "claude_args": [
+    "--tools",
+    ""
+  ],
+  "spec_sha256": "d934ad5b49f21219ba6baa4233b949e2948bc31d06eb1d8ac979cb47ab0f3f6b",
+  "prompt_sha256": "fc9fe9469e188da02747b90f53674c3078929f74c36ec208b3c7a673290ed327",
+  "cost_usd": 3.2789225,
+  "wall_seconds": 142.08,
+  "usage": {
+    "input_tokens": 4,
+    "cache_creation_input_tokens": 134344,
+    "cache_read_input_tokens": 132158,
+    "output_tokens": 3639,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 132158,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 1176,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 132158,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 132158
+        },
+        "type": "message"
+      },
+      {
+        "input_tokens": 134587,
+        "output_tokens": 8515,
+        "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 0,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "type": "advisor_message",
+        "model": "claude-fable-5-1"
+      },
+      {
+        "input_tokens": 2,
+        "output_tokens": 2463,
+        "cache_read_input_tokens": 132158,
+        "cache_creation_input_tokens": 2186,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 2186,
+          "ephemeral_1h_input_tokens": 0
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "ok": true,
+  "error": null,
+  "result": {
+    "fenced": [
+      {
+        "symbol": "normal",
+        "strength": "hard",
+        "quote": "convenience constructors (`normal`, `poisson`, `uniform`) that call `Distribution(...)`, `.pdf_mean()`, `.pdf_std()`; out of scope to modify"
+      },
+      {
+        "symbol": "poisson",
+        "strength": "hard",
+        "quote": "convenience constructors (`normal`, `poisson`, `uniform`) ... out of scope to modify"
+      },
+      {
+        "symbol": "uniform",
+        "strength": "hard",
+        "quote": "convenience constructors (`normal`, `poisson`, `uniform`) ... out of scope to modify"
+      },
+      {
+        "symbol": "ArrayDistribution.__getitem__",
+        "strength": "hard",
+        "quote": "`ArrayDistribution.__getitem__`, `__setitem__`, ... are present, must not be modified"
+      },
+      {
+        "symbol": "ArrayDistribution.__setitem__",
+        "strength": "hard",
+        "quote": "`ArrayDistribution.__getitem__`, `__setitem__`, ... are present, must not be modified"
+      },
+      {
+        "symbol": "Distribution.__eq__",
+        "strength": "hard",
+        "quote": "`Distribution.__eq__`, `__ne__`, `astype`, the `dtype` property, ... must not be modified"
+      },
+      {
+        "symbol": "Distribution.__ne__",
+        "strength": "hard",
+        "quote": "`Distribution.__eq__`, `__ne__`, `astype`, the `dtype` property, ... must not be modified"
+      },
+      {
+        "symbol": "Distribution.astype",
+        "strength": "hard",
+        "quote": "`Distribution.__eq__`, `__ne__`, `astype`, the `dtype` property, ... must not be modified"
+      },
+      {
+        "symbol": "Distribution.dtype",
+        "strength": "hard",
+        "quote": "`__ne__`, `astype`, the `dtype` property, `_not_implemented_or_raise`, ... must not be modified"
+      },
+      {
+        "symbol": "Distribution._not_implemented_or_raise",
+        "strength": "hard",
+        "quote": "the `dtype` property, `_not_implemented_or_raise`, and the five already-implemented `pdf_*` methods ... must not be modified"
+      },
+      {
+        "symbol": "Distribution.pdf_mean",
+        "strength": "hard",
+        "quote": "the five already-implemented `pdf_*` methods are present, must not be modified"
+      },
+      {
+        "symbol": "Distribution.pdf_var",
+        "strength": "hard",
+        "quote": "the five already-implemented `pdf_*` methods are present, must not be modified"
+      },
+      {
+        "symbol": "Distribution.pdf_mad",
+        "strength": "hard",
+        "quote": "the five already-implemented `pdf_*` methods are present, must not be modified"
+      },
+      {
+        "symbol": "Distribution.pdf_smad",
+        "strength": "hard",
+        "quote": "the five already-implemented `pdf_*` methods are present, must not be modified"
+      },
+      {
+        "symbol": "Distribution.pdf_percentiles",
+        "strength": "hard",
+        "quote": "the five already-implemented `pdf_*` methods are present, must not be modified"
+      },
+      {
+        "symbol": "Distribution.pdf_histogram",
+        "strength": "hard",
+        "quote": "the five already-implemented `pdf_*` methods are present, must not be modified"
+      },
+      {
+        "symbol": "ScalarDistribution",
+        "strength": "hard",
+        "quote": "`ScalarDistribution` (mixing in `np.void`) is reached only by indexing ... and is out of scope for ufunc/comparison dispatch"
+      },
+      {
+        "symbol": "ufunc.accumulate",
+        "strength": "hard",
+        "quote": "`numpy.ufunc.accumulate` (as opposed to `.reduce`) on a `Distribution` is out of scope"
+      },
+      {
+        "symbol": "test_helper_normal_exact",
+        "strength": "hard",
+        "quote": "stretch-goal exact-distribution tests (`test_helper_normal_exact`, `test_helper_poisson_exact`) are already `pytest.skip`-marked ... and are explicitly out of scope"
+      },
+      {
+        "symbol": "test_helper_poisson_exact",
+        "strength": "hard",
+        "quote": "(`test_helper_normal_exact`, `test_helper_poisson_exact`) are already `pytest.skip`-marked ... explicitly out of scope"
+      },
+      {
+        "symbol": "TestInit.test_numpy_init",
+        "strength": "hard",
+        "quote": "never by editing `test_numpy_init`, `test_numpy_init_T`, or any other existing test body"
+      },
+      {
+        "symbol": "TestInit.test_numpy_init_T",
+        "strength": "hard",
+        "quote": "exercise the same construction but assert nothing; add a new test (not an edit to these)"
+      },
+      {
+        "symbol": "TestInit.test_quantity_init_T",
+        "strength": "hard",
+        "quote": "`TestInit.test_numpy_init_T`/`.test_quantity_init_T` exercise the same construction ... add a new test (not an edit to these)"
+      },
+      {
+        "symbol": "__all__",
+        "strength": "hard",
+        "quote": "Any helper/dispatched function given a docstring is auto-added to `__all__` at the bottom of the file \u2014 keep that mechanism intact."
+      }
+    ]
+  },
+  "label": "ouroboros-a",
+  "instance_id": "astropy__astropy.b0db0daa.test_containers.6079987d.lv1",
+  "metric": "fence",
+  "repeat": 2
+}
