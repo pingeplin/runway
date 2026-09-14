@@ -4,7 +4,36 @@ All notable changes to the `blueprint` TDD plugin are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/);
 versions follow SemVer.
 
-## [Unreleased]
+## [4.1.0] — 2026-09-14
+
+**Slimmed to the path actually used.** Three agents and two skills that
+went unused through three months of 4.0 are removed. The core pipeline
+`/design → /spec → ⟦any coding agent⟧ → /verify → /commit` is unchanged.
+
+### Removed
+
+- **`commit-writer` agent.** `/commit` writes the message inline — from
+  the diff, never from the implementation conversation.
+- **`/refactor` skill + `test-runner` agent.** Never invoked. Any coding
+  agent refactors on its own; `/verify` gates the result.
+- **`/test-conventions` skill + `conventions-evaluator` agent.** Never
+  invoked. `/verify` still scores against a hand-written
+  `docs/testing/test-conventions.md` when one exists.
+
+**Breaking** for anything that dispatches `subagent_type: commit-writer`,
+`test-runner` or `conventions-evaluator`, or invokes `/refactor` or
+`/test-conventions`. Rationale: the Ouroboros post-mortem
+(`docs/designs/2609.0003_blueprint_5_post_mortem.md`) found the same
+deletions harmless; the benefit is maintenance, not quality.
+
+### Benchmark surface
+
+`agents/referee.md`, `agents/spec-evaluator.md` and `references/` are
+byte-identical to 4.0.0 (the referee's `/test-conventions` mention is left
+as-is). `skills/spec` and `skills/verify` each lose one cross-reference
+line. Not re-measured on FeatureBench.
+
+### Also in this release
 
 - **Ouroboros (the 5.0 / 5.1 / 5.1.1 builds) abandoned (2026-09-10).** The name frees the version number for a future release; A slimmed plugin with a
   bounded produce → judge → revise loop at every stage was built,

@@ -7,48 +7,41 @@ argument-hint: [optional description of changes]
 # Git Commit Message
 
 Write a concise, descriptive Git commit message for the code changes.
+Do it inline, in this session — nothing is dispatched for this.
 
-Follow these guidelines:
+**Write from the diff, not from the implementation conversation.** The
+conversation that built the change is full of micro-decisions, dead
+ends, and narration that do not belong in the commit log. Read what
+`git` shows you and describe that.
 
-1. Use Conventional Commits format: `<type>: <short summary>`
-   - Types: `feat`, `fix`, `refactor`, `docs`, `style`, `test`, `chore`, `perf`
-2. Keep the subject line under 50 characters and in imperative mood.
-3. If needed, add a body (separated by a blank line) to explain the what and why (not how).
+## Procedure
 
-Generate only the commit message (no extra commentary).
+1. **Read the actual changes** — `git status`, then `git diff --staged`
+   (and `git diff` if nothing is staged yet). Do not consult `git log`
+   to match a house style; the format below is the style.
+2. **Pick the type** — `feat`, `fix`, `refactor`, `docs`, `style`,
+   `test`, `chore`, or `perf`. If the change spans several, pick the
+   dominant one.
+3. **Write the subject** — `<type>: <summary>`, imperative mood ("Add
+   X", not "Added X"), under 50 characters, no trailing period. It
+   should complete *"If applied, this commit will ___"*.
+4. **Decide whether a body is needed** — skip it for trivial changes
+   (one-line fixes, dependency bumps). Add one when the *why* is
+   non-obvious: a root cause, a trade-off, a user-facing consequence, a
+   pointer to a follow-up. Separate it with a blank line, wrap at 72
+   characters, and do not re-list files — `git show` does that.
+5. **One concern per commit** — if the diff mixes unrelated changes,
+   say so and suggest a split. Still provide a draft assuming they stay
+   combined; the decision is the human's.
 
-## How to Use This Skill
+Output the message alone, in a fenced code block, with no commentary
+unless you have a concrete concern to flag.
 
-**Dispatch the `commit-writer` subagent** via the `Agent` tool with
-`subagent_type: commit-writer`. The subagent runs in a fresh context — it
-has not seen the implementation conversation, which is the point: the
-builder context is full of micro-decisions that don't belong in the commit
-log. The subagent reads `git diff` and `git status` directly and drafts
-the message from the diff alone.
+## Then
 
-Pass any relevant context in the prompt:
-- A short hint about the feature or task (optional)
-- Ticket/issue numbers or required trailers
-- Whether the changes are already staged or need staging
-
-When the subagent returns the draft:
-1. Review the drafted message with the user (or proceed directly if the
-   user has asked for autonomous commit).
+1. Review the drafted message with the user, or proceed directly if the
+   user asked for an autonomous commit.
 2. Stage files if needed (`git add <paths>`).
-3. Run `git commit` with the drafted message via a HEREDOC to preserve
+3. Run `git commit` with the message via a HEREDOC to preserve
    formatting.
 4. Confirm with `git status`.
-
-### Fallback (if the subagent is unavailable)
-
-If the `commit-writer` subagent cannot be dispatched, fall back to writing
-the message inline using the rules above:
-
-1. **Read the actual changes** — `git diff --staged` (or `git diff`).
-2. **Pick the right type** — `feat`, `fix`, `refactor`, `docs`, `style`,
-   `test`, `chore`, or `perf`.
-3. **Write the subject** — imperative mood, under 50 characters, no
-   trailing period.
-4. **Decide if a body is needed** — skip for trivial changes; add when
-   context helps future readers.
-5. **Write the body** — explain *what* and *why*, not *how*.

@@ -6,12 +6,9 @@ description: Full workflow orchestrator. Chains [/design] → /spec → ⟦any c
 If invoked **without arguments**, display this workflow map and ask what the user wants to build:
 
 ```
-Blueprint Workflow (v4.0 — producer → referee)
+Blueprint Workflow (v4.1 — producer → referee)
 
 [/design] ──→ /spec ──→ ⟦ any coding agent implements ⟧ ──→ /verify ──→ /commit
-    │           │                                              │            │
-    │           │                                              │            └── commit-writer subagent
-    │           │                                              │                  (fresh-context draft)
     │           │                                              │
     │           │                                              └── referee subagent (GATE, fresh context):
     │           │                                                    test suite · scenario coverage ·
@@ -21,7 +18,7 @@ Blueprint Workflow (v4.0 — producer → referee)
     │           └── spec-evaluator subagent (GATE)
     └── design-evaluator subagent (GATE — only when /design runs)
 
-Standalone utilities, any time:  /refactor · /review
+Standalone utility, any time:  /review
 ```
 
 If invoked **with a description** (e.g., `/blueprint "add coupon validation to orders"`), begin immediately at Step 1.
@@ -40,7 +37,6 @@ Before starting, assess scope and recommend the right entry point:
 - **Small bug fix** — A lightweight `/spec` (a handful of scenarios + Definition of Done) is still worth it so `/verify` has something to check. For a one-line fix, skip the ceremony and just `/verify` against the existing tests.
 - **Large feature** — Break into sub-features, each with its own spec. Run `/blueprint` for each. Use `/design` if any have non-obvious approaches.
 - **Prototype / spike** — Don't use blueprint. Just explore directly with your coding agent — no spec, no gate. If a decision falls out of the spike, formalize it with `/design` or `/spec` and build it for real.
-- **Refactoring only** — Jump to `/refactor` directly (verify tests pass first).
 - **Review only** — Jump to `/review` (single-lens audit) or `/verify` (full post-implementation gate).
 
 **Heuristic for whether `/design` is worth running:** if the user can't yet answer "why this approach over the alternatives" with a one-sentence trade-off, `/design` is worth running. If they can, skip it and go to `/spec`.
@@ -80,10 +76,7 @@ When the implementation comes back, invoke `/verify` with the approved spec path
 **GATE — Present the referee's verdict.** If it meets the spec's Definition of Done, proceed to Step 4. If not, surface the punch list (uncovered scenarios, covered-but-vacuous scenarios with the surviving mutation, quality blockers) and send it back to the implementing agent for another pass, then re-`/verify`.
 
 ### Step 4: /commit
-Invoke `/commit`, which dispatches the `commit-writer` subagent — a fresh-context agent that drafts the message from `git diff` alone, independent of the implementation conversation.
-
-### Optional: /refactor
-If `/verify` surfaced structural cleanup worth doing (or you simply want to improve structure before committing), run `/refactor` while the suite is green. It's a standalone utility, not a pipeline stage — the human gives the direction.
+Invoke `/commit`, which drafts the message inline from `git diff` — written from the diff, not from the implementation conversation.
 
 ## Jumping to a step
 
@@ -97,6 +90,5 @@ If the user says "start from step N" or provides an existing artifact path, skip
 | 1 | `/spec` | AI drafts, human approves |
 | 2 | (any coding agent) | Human or external agent builds |
 | 3 | `/verify` | referee judges, human acts on the verdict |
-| 4 | `/commit` | commit-writer drafts, human reviews/edits |
-| Optional | `/refactor` | Human gives direction, AI applies |
+| 4 | `/commit` | AI drafts from the diff, human reviews/edits |
 | Any time | `/review` | AI reports, human acts |
