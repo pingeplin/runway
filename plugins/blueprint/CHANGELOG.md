@@ -41,7 +41,7 @@ line. Not re-measured on FeatureBench.
   document loop narrowed spec scope and cut hidden-test pass rate from
   0.84 (4.0) to 0.37, and its intended benefit — spec coherence — was
   never measured. Post-mortem: `docs/designs/2609.0003_blueprint_5_post_mortem.md`.
-  Implementation preserved on branch `worktree-blueprint-slim`.
+  Implementation preserved on branch `ouroboros`.
 - **Benchmark numbers retracted and re-measured.** The 2608 run's spec
   writer could read the oracle through git history. README's Benchmark
   section now reports the clean paired run.
