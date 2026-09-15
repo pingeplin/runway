@@ -95,31 +95,36 @@ If you want a spec-as-source-of-truth model (BDD with maintained acceptance docs
 
 Does handing a coding agent a blueprint spec actually change what it builds? Measured on [FeatureBench](https://github.com/LiberCoders/FeatureBench), which grades a patch against hidden fail-to-pass tests the agent never sees.
 
-> **Retraction.** An earlier version of this section reported 0/5 → 3/5 resolved. That run's spec writer could read the reference solution and the hidden tests through the testbed's git history (`git show HEAD:`), and the specs demonstrably did. The harness now masks history; the numbers below are from the fixed harness. The retracted run is kept at `reports/2608_scale_astropy_n5/` with its caveat.
+> **Retraction (2026-09-10).** An earlier version of this section reported 0/5 → 3/5 resolved. That run's spec writer could read the reference solution and the hidden tests through the testbed's git history (`git show HEAD:`), and the specs demonstrably did. The harness now masks history. The retracted run is kept at `reports/2608_scale_astropy_n5/` with its caveat.
+>
+> **Correction (2026-09-16).** This section then said "pass rate doubles", from one run of each arm. A same-day re-run with the in-container agent version pinned, plus two control arms, does not support that headline: the spec's advantage is one task of five, and it is not visible in resolved count. Both runs are in the table.
 
-**Panel:** 5 astropy tasks, FeatureBench `fast` split, paired, single seed. The implementing agent is `claude_code` / `claude-sonnet-5` in **every** arm — the only thing that differs is the problem statement it receives. Both arms are scored by the unmodified `fb eval` against the official dataset. The spec writer sees a masked tree and a masked history.
+**Panel:** 5 astropy tasks, FeatureBench `fast` split, paired, one run per arm. The implementing agent is `claude_code` / `claude-sonnet-5` in **every** arm — the only thing that differs is the problem statement it receives. Every arm is scored by the unmodified `fb eval` against the official dataset. The spec writer sees a masked tree and a masked history.
 
-| | **A** — problem statement | **B** — problem statement + `/spec` |
-|---|---|---|
-| Resolved (every hidden test passes) | 0 / 5 | 1 / 5 |
-| Mean pass rate (fraction of hidden tests) | 0.42 | **0.84** |
-| Tasks where the agent wrote any tests | **0 / 5** | 3 / 5 |
-| Mutation kill rate of the agent's own tests (no tests = 0) | 0.00 | 0.22 |
-| Spec cost per task | — | $15.88 |
-| In-container inference per task | $5.28 | $3.84 |
+| | **A** — problem statement | **A_hint** — + one breadth sentence | **A_plan** — + a generic brief | **B** — + `/spec` |
+|---|---|---|---|---|
+| Mean pass rate — 2026-09-16, agent pinned to one version | 0.48 | 0.46 | 0.40 | **0.71** |
+| Resolved (every hidden test passes) | **2 / 5** | 1 / 5 | 0 / 5 | 0 / 5 |
+| Mean pass rate — 2026-09-10, same B specs | 0.42 | — | — | 0.84 |
+| Document cost per task | — | — | $1.70 | $15.88 |
+| All-in cost per task (document + inference) | $2.55 | $5.07 | $3.82 | $20.98 |
 
-**The spec makes the agent build most of the feature instead of a fraction of it.** Pass rate doubles; three tasks go from near-zero to near-complete (`lombscargle` 0.03 → 0.96, `vo` 0.00 → 0.95, `containers` 0.67 → 1.00). Only one fully resolves — the hidden suites are strict — but the agent is no longer building the wrong thing. On this benchmark the spec's value is breadth: the 4.0 writer lists every definition the mask stripped from the touched files as an in-scope prerequisite.
+**What the spec demonstrably did: it found a second stripped module.** On `lombscargle_multiband` the problem statement names only `lombscargle/core.py`. The spec also names `lombscargle_multiband/core.py`, where the mask stripped `get_unit` / `strip_units` as well. The spec arm patches that file and scores 0.96 on both runs; no other arm ever touches it, and every other cell on that task scores 0.03. That single task carries the mean: without it, B − A is +0.06.
 
-**The spec is what makes the agent write tests at all.** Without one it wrote zero tests on all five tasks, in every run to date. With one it wrote tests on three of five; those tests kill 22% of planted bugs, so a spec gets tests *written*, not yet *good*.
+**Neither cheaper explanation reproduces it.** A generic brief written by the same model in the same masked repo, with blueprint disabled, scored 0.40 — *below* handing over no document at all, because it fences scope by default ("do not touch anything else"). One sentence naming the breadth mechanism scored 0.46 against A's 0.48; the agent applies it to files it already touches, which is not where the missing module was.
+
+**The spec is what makes the agent write tests at all** (measured 2026-09-10, not re-measured since). Without one it wrote zero tests on all five tasks, in every run to date. With one it wrote tests on three of five; those tests kill 22% of planted bugs, so a spec gets tests *written*, not yet *good*.
 
 ### What this does not show
 
-- **N=5, one repository, one seed.** Directional, not significant.
+- **N=5, one repository, one run per arm.** Directional, not significant.
+- **Run-to-run noise is large.** Re-inferring the *same* specs moved `vo` from 0.95 to 0.40, so any single-task difference below ~0.55 is inside noise. Only `lombscargle` clears that bar.
+- **Resolved count runs the other way.** On 2026-09-16 the no-document arm resolved two tasks outright and the spec arm none; the spec scored 0.94 / 0.92 on those two.
 - **Nothing here measures spec coherence** — contradictions, terminology drift, ordering inside the document. That was the target of the abandoned Ouroboros line (the 5.x builds, renamed so the version number stays free); see `docs/designs/2609.0003_blueprint_5_post_mortem.md`.
 - **The benchmark rewards broad scope.** "Restore a stripped feature" penalises fencing; a task shape where over-reaching costs points would grade differently.
 - **This is a self-run evaluation of our own plugin.** It is not independent.
 
-Harness, full reports and the exact task list: [`evals/blueprint-featurebench/`](../../evals/blueprint-featurebench/README.md). Every number above is regenerable from [`reports/2609_clean_paired_astropy_n5/`](../../evals/blueprint-featurebench/reports/2609_clean_paired_astropy_n5/README.md), which also carries the abandoned Ouroboros A / B arms for comparison.
+Harness, full reports and the exact task list: [`evals/blueprint-featurebench/`](../../evals/blueprint-featurebench/README.md). The 2026-09-16 numbers and the pre-registered reading rules they were read against are in [`reports/2609_control_arms_astropy_n5/`](../../evals/blueprint-featurebench/reports/2609_control_arms_astropy_n5/README.md); the 2026-09-10 run, with the abandoned Ouroboros A / B arms, is in [`reports/2609_clean_paired_astropy_n5/`](../../evals/blueprint-featurebench/reports/2609_clean_paired_astropy_n5/README.md).
 
 ## Comparison
 

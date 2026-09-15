@@ -52,10 +52,13 @@ def newest_output_jsonl(out_dir: Path) -> Path | None:
     return candidates[-1] if candidates else None
 
 
-def run_arm(arm: str, cfg: dict, task_ids: list[str], dry_run: bool) -> int:
+def run_arm(arm: str, cfg: dict, task_ids: list[str], dry_run: bool, dataset: str | None = None) -> int:
+    """Infer one arm. `dataset` overrides the A/B default for arms built elsewhere (stage 14)."""
     eval_cfg = cfg.get("eval", {})
     split = eval_cfg.get("split", "lite")
-    if arm == "A":
+    if dataset is not None:
+        pass
+    elif arm == "A":
         dataset = eval_cfg.get("dataset", "")
     else:
         if not (ARM_B_DATASET / "README.md").exists():

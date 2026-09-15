@@ -27,6 +27,16 @@ timeout_seconds = 900
 # Passed through to the `claude` CLI verbatim, between -p and --model.
 claude_args = ["--permission-mode", "bypassPermissions"]
 
+[brief]
+# Stage 14 (control arm A_plan): headless generic brief writer. Keys omitted
+# here fall back to [spec], so it runs exactly like the spec writer; the stage
+# itself disables blueprint and proves it per task, not this section.
+model = "claude-sonnet-5"
+# The costliest 4.0 spec took ~2600s; do not cut the control shorter.
+timeout_seconds = 3600
+# Runaway ceiling only, above the costliest 4.0 spec ($24.57) — not a cost match.
+max_budget_usd = 30
+
 [infer]
 # Stage 03: the implementing agent. Identical in both arms — only the
 # problem_statement text differs. Stage 06's round-2 arms (C, C0) reuse

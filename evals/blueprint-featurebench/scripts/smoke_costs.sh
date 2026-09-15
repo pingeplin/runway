@@ -49,6 +49,10 @@ mk_stream "$RUN_A/run_outputs/task2.lv1/attempt-1/claude_code_stream_output.json
 mk_stream "$RUN_B/run_outputs/task1.lv1/attempt-1/claude_code_stream_output.jsonl" 1.00 "$USAGE_B1"
 mk_stream "$RUN_B/run_outputs/task1.lv1/attempt-2/claude_code_stream_output.jsonl" 0.50 "$USAGE_B2"
 
+# Control arm A_plan: task1 only, its brief billed from results/briefs/.
+RUN_P="$TMP/infer_arm_a_plan/2026-09-10__00-00-00"
+mk_stream "$RUN_P/run_outputs/task1.lv1/attempt-1/claude_code_stream_output.jsonl" 0.75 "$USAGE_A1"
+
 cat > "$EV/results/runs.json" <<JSON
 {
   "A": {"arm": "A", "task_ids": ["task1.lv1", "task2.lv1"],
@@ -56,8 +60,20 @@ cat > "$EV/results/runs.json" <<JSON
         "report_json": "$EV/results/report_a.json"},
   "B": {"arm": "B", "task_ids": ["task1.lv1"],
         "source_run_dirs": ["$RUN_B"],
-        "report_json": "$EV/results/report_b.json"}
+        "report_json": "$EV/results/report_b.json"},
+  "A_plan": {"arm": "A_plan", "task_ids": ["task1.lv1"],
+        "source_run_dirs": ["$RUN_P"],
+        "report_json": "$EV/results/report_p.json"}
 }
+JSON
+cat > "$EV/results/report_p.json" <<'JSON'
+{"task1.lv1": {"resolved": false}}
+JSON
+mkdir -p "$EV/results/briefs"
+cat > "$EV/results/briefs/task1.lv1.meta.json" <<'JSON'
+{"cost_usd": 0.40, "wall_seconds": 20,
+ "usage": {"input_tokens": 7, "cache_creation_input_tokens": 0,
+           "cache_read_input_tokens": 0, "output_tokens": 3}}
 JSON
 
 # report.json in the top-level {iid: {"resolved": bool}} shape.
@@ -133,8 +149,19 @@ assert "Host-side stages" in md
 assert "40" in md and "10" in md, "host stage token columns missing"
 
 assert "`usage`" in md, "intro should mention usage payload"
+
+# Briefs are a host stage of their own, billed to A_plan only.
+assert any(l.startswith("| 14 briefs (Arm A_plan input) | 1 | $0.40 |") for l in lines), md
+# All-in = inference + the arm's own host stage; A has none.
+for row in ("| A | 2 | $3.00 | $0.00 | $3.00 | $1.50 | 1 |",
+            "| B | 1 | $1.50 | $0.25 | $1.75 | $1.75 | 1 |",
+            "| A_plan | 1 | $0.75 | $0.40 | $1.15 | $1.15 | 0 |"):
+    assert row in lines, f"expected all-in row {row!r} not found:\n{md}"
+# 3.00 + 1.50 + 0.75 infer + 0.25 spec + 0.40 brief
+assert "**Panel total (measured): $5.90**" in md, md
 PY
 pass "USD totals correct; task2 missing usage renders arm A tokens as — (never 0)"
 pass "arm B token row exactly matches summed attempts"
+pass "briefs billed as their own host stage; all-in per arm adds only the arm's own host stage"
 
 printf '\nsmoke costs PASSED\n'

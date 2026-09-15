@@ -50,7 +50,9 @@ dataset and only consumes `instance_id` / `model_patch` from predictions.
 """
 
 
-def write_dataset(rows: list[dict[str, Any]], split: str, dataset: str, out_dir: Path) -> Path:
+def write_dataset(
+    rows: list[dict[str, Any]], split: str, dataset: str, out_dir: Path, readme: str | None = None,
+) -> Path:
     data_dir = out_dir / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
     jsonl_path = data_dir / f"{split}.jsonl"
@@ -58,7 +60,7 @@ def write_dataset(rows: list[dict[str, Any]], split: str, dataset: str, out_dir:
         for row in rows:
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
     (out_dir / "README.md").write_text(
-        README_TEMPLATE.format(split=split, dataset=dataset), encoding="utf-8"
+        readme or README_TEMPLATE.format(split=split, dataset=dataset), encoding="utf-8"
     )
     return jsonl_path
 
