@@ -39,6 +39,7 @@ from typing import Any
 
 from _common import (
     EVAL_ROOT,
+    MAX_STATEMENT_CHARS,
     RESULTS_DIR,
     SPECS_DIR,
     SPEC_SEPARATOR,
@@ -493,12 +494,6 @@ def truncate(text: str, limit: int) -> str:
     if limit <= 0 or len(text) <= limit:
         return text
     return text[:limit] + f"\n… [truncated, {len(text) - limit} more characters]"
-
-
-# fb's claude_code adapter passes the whole problem_statement as ONE argv
-# element of `claude -p`; Linux caps a single arg at ~128KiB, and blowing it
-# kills the cell with "exec: Argument list too long". Budget with margin.
-MAX_STATEMENT_CHARS = 110_000
 
 
 def build_statement(

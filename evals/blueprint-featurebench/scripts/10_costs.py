@@ -30,6 +30,7 @@ from pathlib import Path
 from typing import Any
 
 from _common import (
+    BRIEFS_DIR,
     RESULTS_DIR,
     SPECS_DIR,
     die,
@@ -39,6 +40,10 @@ from _common import (
 
 VERDICTS_DIR = RESULTS_DIR / "verdicts"
 REPORT_PATH = RESULTS_DIR / "cost_report.md"
+
+# Arms of the stage-14 control panel; the all-in table covers these only,
+# because C/C0 also consume Arm B's round-1 inference.
+CONTROL_PANEL_ARMS = ("A", "A_hint", "A_plan", "B")
 
 TOKEN_KEYS = ("input", "cache_write", "cache_read", "output")
 
@@ -229,6 +234,7 @@ def main() -> int:
         panel = {l.strip() for l in Path(args.task_ids_file).read_text().splitlines() if l.strip()}
     spec = host_stage_costs(SPECS_DIR, panel or None)
     verdict = host_stage_costs(VERDICTS_DIR, panel or None)
+    brief = host_stage_costs(BRIEFS_DIR, panel or None)
 
     per_arm: dict[str, dict[str, Any]] = {}
     for arm in sorted(runs):
@@ -253,6 +259,8 @@ def main() -> int:
     verdict_total = sum(v["cost_usd"] for v in verdict.values())
     spec_tokens = sum_tokens([v["tokens"] for v in spec.values()])
     verdict_tokens = sum_tokens([v["tokens"] for v in verdict.values()])
+    brief_total = sum(v["cost_usd"] for v in brief.values())
+    brief_tokens = sum_tokens([v["tokens"] for v in brief.values()])
 
     lines: list[str] = ["# Cost ledger\n"]
     lines.append(
@@ -303,6 +311,7 @@ def main() -> int:
     for label, data, total, tok in [
         ("01 specs (Arm B/C input)", spec, spec_total, spec_tokens),
         ("06 verdicts (Arm C input)", verdict, verdict_total, verdict_tokens),
+        ("14 briefs (Arm A_plan input)", brief, brief_total, brief_tokens),
     ]:
         n = len(data)
         tok_cells = tuple(fmt_tokens(tok[k]) for k in TOKEN_KEYS) if tok is not None else ("—",) * 4
@@ -350,7 +359,23 @@ def main() -> int:
                          "not in resolved count.")
         lines.append("")
 
-    total_all = sum(d["infer_total"] for d in per_arm.values()) + spec_total + verdict_total
+    control_arms = [arm for arm in CONTROL_PANEL_ARMS if arm in per_arm]
+    if {"A_hint", "A_plan"} & set(control_arms):
+        host_inputs = {"B": spec, "A_plan": brief}
+        lines.append("## All-in per arm (control panel)\n")
+        lines.append("| arm | tasks | infer | host stage | all-in | all-in/task | resolved |")
+        lines.append("|---|---|---|---|---|---|---|")
+        for arm in control_arms:
+            d = per_arm[arm]
+            ids = set(runs[arm].get("task_ids") or [])
+            host_cost = sum(v["cost_usd"] for tid, v in host_inputs.get(arm, {}).items() if not ids or tid in ids)
+            all_in = d["infer_total"] + host_cost
+            lines.append(f"| {arm} | {d['n_tasks']} | {fmt_usd(d['infer_total'])} | {fmt_usd(host_cost)} | "
+                         f"{fmt_usd(all_in)} | {fmt_usd(all_in / d['n_tasks'] if d['n_tasks'] else None)} | "
+                         f"{d['resolved']} |")
+        lines.append("")
+
+    total_all = sum(d["infer_total"] for d in per_arm.values()) + spec_total + verdict_total + brief_total
     lines.append(f"**Panel total (measured): {fmt_usd(total_all)}**\n")
 
     out_path = Path(args.out).expanduser() if args.out else REPORT_PATH
@@ -364,7 +389,7 @@ def main() -> int:
             + (f", mean {fmt_usd(d['infer_total']/n)}" if n else "")
             + f", {fmt_tokens(tok_total)} tokens")
     log(f"  specs {fmt_usd(spec_total)} · verdicts {fmt_usd(verdict_total)} "
-        f"· panel {fmt_usd(total_all)}")
+        f"· briefs {fmt_usd(brief_total)} · panel {fmt_usd(total_all)}")
     return 0
 
 

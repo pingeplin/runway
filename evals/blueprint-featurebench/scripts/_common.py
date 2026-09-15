@@ -13,10 +13,16 @@ RESULTS_DIR = EVAL_ROOT / "results"
 TASKS_PATH = RESULTS_DIR / "tasks.json"
 RUNS_PATH = RESULTS_DIR / "runs.json"
 SPECS_DIR = RESULTS_DIR / "specs"
+BRIEFS_DIR = RESULTS_DIR / "briefs"
 
 # Arm B treatment: the spec is appended to the original statement, never
 # substituted for it, and carries no precedence clause.
 SPEC_SEPARATOR = "\n\n---\n\n## Implementation Spec\n\n"
+
+# fb's claude_code adapter passes the whole problem_statement as ONE argv
+# element of `claude -p`; Linux caps a single arg at ~128KiB, and blowing it
+# kills the cell with "exec: Argument list too long". Budget with margin.
+MAX_STATEMENT_CHARS = 110_000
 
 STATUS_OK = "spec_ok"
 STATUS_FAILED = "spec_failed"

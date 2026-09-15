@@ -225,6 +225,39 @@ to every mean. Accepts the same `--corpus` flags as stage 12. Cells cache
 under `results/doc_judge/`, fingerprinted by spec and prompt sha256 (a
 rewritten spec is re-judged). Output: `results/doc_judge_report.md`.
 
+**14. Control arms — is Arm B's lift blueprint's? (optional)**
+
+```bash
+python3 scripts/14_control_arms.py --stage brief --parallel 3
+python3 scripts/14_control_arms.py --stage dataset
+python3 scripts/14_control_arms.py --stage infer --dry-run
+python3 scripts/14_control_arms.py --stage all
+python3 scripts/05c_report_controls.py
+```
+
+Two arms on the stage-01 panel, each testing a cheaper explanation for Arm
+B's lift. **A_plan** appends a generic implementation brief
+(`prompts/brief_headless.md`) written by the same model in the same masked
+workspace with blueprint disabled. The stage parses the session's init event
+and fails the task if any blueprint plugin, skill or agent loaded, so every
+`results/briefs/<id>.meta.json` carries `plugins_loaded` as proof. **A_hint**
+appends one fixed sentence (`prompts/breadth_hint.md`) naming the breadth
+mechanism the 4.0 specs carried. Both use Arm B's separator, so only the
+document differs. `[brief]` falls back to `[spec]`; its `max_budget_usd` is a
+runaway ceiling, not a cost match — A_plan's cost is reported next to B's,
+never forced.
+
+`05c` reads A, A_hint, A_plan and B from `runs.json` (or `--report ARM=PATH`)
+and reports B − A_plan as the attribution test, plus per-task up/down/tied
+counts and exact McNemar for each pair. Output: `results/report_controls.md`.
+
+`bash scripts/run_controls.sh <spec-archive> <report-dir>` runs the whole
+panel on one resident image — A and B again (B reusing an archived spec set)
+plus both controls — and refuses to start unless `CLAUDE_CODE_VERSION` is
+pinned in `fb_config.toml`: `fb` installs `@latest` otherwise, so arms run on
+different days run different agents. Resume past finished inference with
+`START_AT` (see the script header).
+
 ## Expected outputs
 
 ```
@@ -244,6 +277,10 @@ results/
   doc_quality_report.md          # stage 12: oracle recall / fence / grounding per spec
   doc_judge/<label>/<id>.<metric>.r<k>.json  # stage 13 judge cells
   doc_judge_report.md            # stage 13: fence listing / testability
+  briefs/<id>.md                 # stage 14: A_plan's brief
+  briefs/<id>.meta.json          # cost, plugins_loaded, blueprint_leaks (must be empty)
+  dataset_arm_{a_plan,a_hint}/   # stage 14 datasets
+  report_controls.md             # stage 05c: A / A_hint / A_plan / B
 ```
 
 `results/` is gitignored in full.

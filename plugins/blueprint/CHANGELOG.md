@@ -4,6 +4,29 @@ All notable changes to the `blueprint` TDD plugin are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/);
 versions follow SemVer.
 
+## [Unreleased]
+
+### Measurement — no plugin file changed
+
+- **Benchmark claim corrected (2026-09-16).** README's Benchmark section
+  reported "pass rate doubles" (A 0.42 → B 0.84) from one run per arm. A
+  same-day re-run with the in-container agent pinned to a single Claude
+  Code version, plus two control arms, gives mean pass rate A 0.48 /
+  A_hint 0.46 / A_plan 0.40 / B 0.71 with resolved 2 / 1 / 0 / 0. The
+  spec's advantage is one task of five — `lombscargle`, where the spec
+  names a second stripped module the problem statement never mentions,
+  patches it, and scores 0.96 on both runs while every other cell scores
+  0.03. Without that task B − A is +0.06, inside the 0.55 swing the same
+  spec produced on `vo` between runs. This supersedes the 0.84 figure
+  quoted in the 4.1.0 notes below.
+- **Neither cheaper explanation survives.** A generic implementation brief
+  written by the same model in the same masked repo with blueprint
+  disabled scored 0.40 — below handing over no document — because it
+  fences scope by default. One sentence naming the breadth mechanism
+  scored 0.46 against 0.48 for no document. Reading rules were registered
+  before the run:
+  `evals/blueprint-featurebench/reports/2609_control_arms_astropy_n5/`.
+
 ## [4.1.0] — 2026-09-14
 
 **Slimmed to the path actually used.** Three agents and two skills that
