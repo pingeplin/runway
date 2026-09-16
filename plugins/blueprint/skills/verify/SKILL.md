@@ -84,6 +84,15 @@ background work; `claude -p` waits a bounded time for background work and then
 terminates it, so the turn ends with no report, after the tokens are spent. The
 tell is a run that finishes in ~5 turns instead of ~50.
 
+**How to tell.** You cannot see how you were launched, so decide from what is
+in front of you. Treat the run as headless when the caller's instructions say
+nobody will read a question, approve a gate or receive a notification; when
+you are told to write your result to a named file rather than reply; or when
+no interactive tool is available to you. **If you genuinely cannot tell, ask
+whether a notification could reach anyone — and if the answer is "probably
+not", go inline.** A verdict produced inline is worth more than a dispatch
+that gets killed.
+
 So, when there is no human in the loop — `claude -p`, a CI step, a benchmark
 harness, any run where nothing will deliver a notification:
 
