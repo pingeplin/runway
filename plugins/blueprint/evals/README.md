@@ -9,6 +9,9 @@ containers, and no LLM judge.
 claude plugin eval . --ablation none --no-publish
 ```
 
+Last full run at the committed configuration (3 cases × 3 runs, `-j 3`):
+**9/9, $2.75, 289s.**
+
 ## Why this exists
 
 Blueprint's quality evidence lives in `evals/blueprint-featurebench/`, which
@@ -68,6 +71,19 @@ red?*
 Both negative graders here were checked that way — replayed against a trace
 in which `/spec` *did* fire, `no-blueprint-skill-fires` and
 `spec-skill-does-not-fire` both fail, as they must.
+
+## The max-turns exit is expected
+
+Cases cap at `max_turns: 4`, so the positive cases usually end with
+`Reached maximum number of turns (4)` in the NOTES column. **That is not a
+failure.** The skill fires on the first turn; the remaining turns are the
+skill body doing work this tier does not grade. The cap is a cost bound, not
+an assertion, and the case still scores on whether the right skill fired.
+
+Raising the cap would only buy a tidier NOTES column at a higher price per
+run. Lowering it to 2 would risk a case where the agent orients before
+invoking, turning a slow trigger into a false red — worse than a confusing
+note.
 
 ## Ablation
 
