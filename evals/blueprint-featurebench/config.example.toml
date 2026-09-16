@@ -73,9 +73,12 @@ timeout_seconds = 3600
 model = "claude-sonnet-5"
 timeout_seconds = 600
 claude_args = ["--permission-mode", "bypassPermissions"]
-# Mutations requested per cell. Small on purpose — eval-methodology.md's
-# strategic-mutation method values 6-10 hand-aimed sites over hundreds of
-# random ones. Non-applicable proposals are dropped, so applicable < this.
+# Mutations requested per cell. Small on purpose: the strategic-mutation
+# method values 6-10 hand-aimed sites over hundreds of random ones. (It came
+# from the v3.x study recorded in references/eval-methodology.md, removed in
+# 2026-09; see that file in git history and prompts/mutations.md for the
+# criteria actually used.) Non-applicable proposals are dropped, so
+# applicable < this.
 n_mutations = 6
 # Host-side timeout on each in-container `docker exec` that runs the tests.
 # Note: we do NOT append FeatureBench's `--timeout=<timeout_one>` pytest flag,
