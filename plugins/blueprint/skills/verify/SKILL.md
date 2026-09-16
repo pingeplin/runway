@@ -64,6 +64,8 @@ read from two ends.
 2. **Dispatch the `referee` subagent** via the `Agent` tool with
    `subagent_type: referee`. Pass the spec path and the base ref (if any) in
    the prompt. The referee runs the five checks in a fresh context.
+   **Do not end the turn while that dispatch is outstanding** — see
+   *Running headless* below before you dispatch.
 3. **Surface the referee's report** — coverage matrix, the thought-mutation
    table, desiderata scores, implementation-quality flags, and the verdict.
 4. **Recommend the next step** based on the verdict:
@@ -73,6 +75,38 @@ read from two ends.
      scenarios, covered-but-vacuous scenarios (with the surviving mutation),
      or quality blockers — as a punch list for the implementing agent's next
      pass. Do **not** fix it here; `/verify` referees, it does not build.
+
+## Running headless
+
+Dispatching the referee costs nothing interactively — the subagent finishes and
+notifies you. **Non-interactively it loses the whole run.** A subagent is
+background work; `claude -p` waits a bounded time for background work and then
+terminates it, so the turn ends with no report, after the tokens are spent. The
+tell is a run that finishes in ~5 turns instead of ~50.
+
+**How to tell.** You cannot see how you were launched, so decide from what is
+in front of you. Treat the run as headless when the caller's instructions say
+nobody will read a question, approve a gate or receive a notification; when
+you are told to write your result to a named file rather than reply; or when
+no interactive tool is available to you. **If you genuinely cannot tell, ask
+whether a notification could reach anyone — and if the answer is "probably
+not", go inline.** A verdict produced inline is worth more than a dispatch
+that gets killed.
+
+So, when there is no human in the loop — `claude -p`, a CI step, a benchmark
+harness, any run where nothing will deliver a notification:
+
+- **Run the five checks inline, in this session.** Do not dispatch, and do not
+  wait on a notification that is not coming.
+- **Do not end the reply until the report exists** — on disk if the caller
+  named an output path, otherwise in the reply itself.
+- **Say what was traded.** Inline execution gives up the fresh-context
+  independence that step 2 buys; the verdict is still honest, but it was
+  produced by the agent that has been reading this conversation. Note it in the
+  report rather than letting the reader assume separation that did not happen.
+
+Interactive sessions keep the dispatch — the independence is worth more there,
+and it costs nothing.
 
 ## Principles
 

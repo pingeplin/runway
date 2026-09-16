@@ -6,6 +6,22 @@ versions follow SemVer.
 
 ## [Unreleased]
 
+### Fixed
+
+- **`/verify` produced nothing when run headless.** The skill dispatched the
+  `referee` subagent and ended the turn. A subagent is background work, and
+  `claude -p` terminates background work after a bounded wait — so every
+  non-interactive `/verify` ended with no report, after paying for the run.
+  The tell was ~5 turns instead of ~50. `skills/verify/SKILL.md` now has a
+  *Running headless* section: with no human in the loop, run the five checks
+  inline, don't end the reply until the report exists, and state that
+  fresh-context independence was traded for completion. Interactive sessions
+  are unchanged and still dispatch.
+
+  Found by `evals/blueprint-featurebench`, which had worked around it in its
+  own harness prompt (`prompts/verify_headless.md` rule 0) rather than in the
+  plugin; the bug affects any headless caller, not just that harness.
+
 ### Measurement — no plugin file changed
 
 - **Benchmark claim corrected (2026-09-16).** README's Benchmark section
