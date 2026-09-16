@@ -9,8 +9,10 @@ containers, and no LLM judge.
 claude plugin eval . --ablation none --no-publish
 ```
 
-Last full run at the committed configuration (3 cases × 3 runs, `-j 3`):
-**9/9, $2.75, 289s.**
+Last runs at the committed configuration (3 runs per case, `-j 3`): the
+first three cases together **9/9, $2.75, 289s**; `review-*` added
+afterwards, **3/3, $0.78, 52s**. Those were two separate invocations, not one
+12-run sweep.
 
 ## Why this exists
 
@@ -30,6 +32,7 @@ descriptions are edited far more often than they are measured.
 |---|---|---|
 | `spec-triggers-on-feature-request` | `/spec` fires | The user never says "spec". The description claims this works; nothing checked it. |
 | `unsettled-approach-routes-to-design` | `/design` fires, `/spec` does not | The `/design` ↔ `/spec` boundary is the plugin's subtlest routing call — approach in question vs approach settled. |
+| `review-triggers-on-code-quality-ask` | `/review` fires, `/verify` does not | Both descriptions claim test- and code-quality territory; `/verify` needs a spec to referee against and there is none here. |
 | `debugging-does-not-trigger-spec` | no blueprint skill fires | The negative control. Over-triggering is a real failure mode: on FeatureBench, a generic brief scored **below** handing over no document at all, because it fenced scope by default. |
 
 The negative case matters as much as the positive ones. Measuring only that a
@@ -71,6 +74,15 @@ red?*
 Both negative graders here were checked that way — replayed against a trace
 in which `/spec` *did* fire, `no-blueprint-skill-fires` and
 `spec-skill-does-not-fire` both fail, as they must.
+
+## What is not covered, and why
+
+`/verify` and `/commit` have no case here, and not by oversight: neither can
+be triggered by a bare prompt. `/verify` needs a spec plus an implementation
+in the sandbox, and `/commit` needs a git repo with a diff — both mean
+`scaffold_script`, `--scaffold` and Bash, which is the expensive tier wearing
+a `case.yaml`. `/review` was the last skill whose trigger is testable for
+free, which is why it is here and they are not.
 
 ## The max-turns exit is expected
 

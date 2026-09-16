@@ -6,6 +6,19 @@ versions follow SemVer.
 
 ## [Unreleased]
 
+### Removed
+
+- **`references/eval-methodology.md`.** 13.5KB shipped to every user,
+  describing the *manual* v3.3.1 → v3.4.0 comparison from May 2026: two
+  config dirs, two tmux windows, a hand-written hidden oracle per task.
+  It predates the FeatureBench harness, does not mention it, and no skill,
+  agent or command has ever read it — `docs/designs/2609.0001` recorded it
+  as "read by nothing", and the abandoned Ouroboros line had already
+  scheduled its deletion for reasons unrelated to why that line was
+  dropped. Methodology now lives where it is actually executable:
+  `evals/blueprint-featurebench/README.md` for the benchmark tier and
+  `plugins/blueprint/evals/README.md` for the triggering tier.
+
 ### Fixed
 
 - **`/verify` produced nothing when run headless.** The skill dispatched the
@@ -529,9 +542,9 @@ For users with in-flight work:
   (1 task each direction, both at spec-stage edges the kata didn't
   pin). v3.4's per-slice impl-commit pattern degrades on structurally
   complex features (markdown task: tests committed per slice, impl
-  batched at end). Methodology preserved at
-  `plugins/blueprint/references/eval-methodology.md`; per-task evidence
-  archived locally outside the repo.
+  batched at end). The methodology document this entry pointed at was
+  removed in [Unreleased]; it survives in `git log`. Per-task evidence
+  was archived locally outside the repo.
 
 ## Earlier versions
 
