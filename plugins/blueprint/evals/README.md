@@ -6,13 +6,13 @@ containers, and no LLM judge.
 
 ```bash
 # from plugins/blueprint/
-claude plugin eval . --ablation none --no-publish
+claude plugin eval . --ablation none --no-publish -j 3
 ```
 
-Last runs at the committed configuration (3 runs per case, `-j 3`): the
-first three cases together **9/9, $2.75, 289s**; `review-*` added
-afterwards, **3/3, $0.78, 52s**. Those were two separate invocations, not one
-12-run sweep.
+Last run (2026-09-18, Claude Code 2.1.276, 3 runs per case): all four cases
+**12/12, $3.58**, but at the default `-j 1`, so **960s**. At `-j 3` the
+earlier split runs took 289s (first three cases, 9/9, $2.75) and 52s
+(`review-*`, 3/3, $0.78).
 
 ## Why this exists
 

@@ -59,9 +59,6 @@ CAVEATS = """## Caveats
   single-digit; the McNemar p-values are directional evidence only.
 - **Cost is one-sided.** Arm C additionally pays the verify-round cost shown
   below, on top of Arm B's spec cost and both arms' inference cost.
-- **Residual prompt confound.** C and C0 statements differ only in the feedback
-  section, but C0's closing instruction still says "addressing the verdict",
-  which for C0 refers to its own self-review.
 """
 
 

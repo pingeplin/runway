@@ -6,7 +6,7 @@ cheapest first; each has its own README with the method and the traps.
 | tier | question | cost | where |
 |---|---|---|---|
 | Transcript analysis | What do agents actually do in real sessions? | $0 — reads existing `~/.claude/projects/` transcripts | [`transcript-analysis/`](transcript-analysis/README.md) |
-| Triggering | Does the right skill fire on a real prompt? | ~$3.50, ~6 min | [`../plugins/blueprint/evals/`](../plugins/blueprint/evals/README.md) |
+| Triggering | Does the right skill fire on a real prompt? | ~$3.60, ~6 min at `-j 3` | [`../plugins/blueprint/evals/`](../plugins/blueprint/evals/README.md) |
 | Benchmark | Does a spec, or the referee, change what an agent builds? | ~$21 per task per arm all-in, podman, 20GB images | [`blueprint-featurebench/`](blueprint-featurebench/README.md) |
 
 Only the triggering tier is a pre-PR check (see the root `CLAUDE.md`).

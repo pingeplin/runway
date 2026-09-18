@@ -118,7 +118,7 @@ Correction (2026-09-16). This section said the spec makes the agent write tests 
 
 **Neither cheaper explanation reproduces it.** A generic brief written by the same model in the same masked repo, with blueprint disabled, scored 0.40 — *below* handing over no document at all, because it fences scope by default ("do not touch anything else"). One sentence naming the breadth mechanism scored 0.46 against A's 0.48; the agent applies it to files it already touches, which is not where the missing module was.
 
-**A spec does not reliably get tests written.** Without one, the agent wrote no tests in any run that measured it. With one, on the latest run, it wrote tests on one task of five.
+**A spec does not reliably get tests written.** Without one, the agent wrote no tests in any run that measured it. With one, on the latest run, it wrote tests on one task of five ([`reports/2609_armc_clean_astropy_n5/`](../../evals/blueprint-featurebench/reports/2609_armc_clean_astropy_n5/README.md)).
 
 ### The referee
 

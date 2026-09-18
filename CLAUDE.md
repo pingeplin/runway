@@ -26,8 +26,8 @@ PR that touches the plugin.
 # manifest (free, instant)
 claude plugin validate --strict plugins/blueprint
 
-# triggering tier — does the right skill fire? (~$2.75, ~5 min)
-cd plugins/blueprint && claude plugin eval . --ablation none --no-publish
+# triggering tier — does the right skill fire? (~$3.60, ~6 min at -j 3)
+cd plugins/blueprint && claude plugin eval . --ablation none --no-publish -j 3
 ```
 
 An eval run spawns real agents and outlives a 120s command timeout — run it
