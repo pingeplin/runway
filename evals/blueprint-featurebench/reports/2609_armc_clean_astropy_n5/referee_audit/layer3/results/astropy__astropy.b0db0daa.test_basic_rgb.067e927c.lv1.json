@@ -1,0 +1,947 @@
+{
+ "task": "astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1",
+ "cap": 200,
+ "oracle_files": [
+  "astropy/visualization/tests/test_basic_rgb.py"
+ ],
+ "arms_without_tests": [],
+ "sites": {
+  "n_masked_files": 4,
+  "n_candidates": 59,
+  "n_invalid": 0
+ },
+ "oracle_baseline": {
+  "rc": 0,
+  "passed": 17,
+  "failed": 0
+ },
+ "identity_failed_files": [],
+ "mutants": [
+  {
+   "file": "astropy/visualization/basic_rgb.py",
+   "node": 286,
+   "op": "const:0->1",
+   "line": 37,
+   "col": 43,
+   "id": 0,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/basic_rgb.py",
+   "node": 293,
+   "op": "bin:Mult->Div",
+   "line": 42,
+   "col": 23,
+   "id": 1,
+   "oracle_rc": 1,
+   "oracle_killed_by": [
+    "astropy/visualization/tests/test_basic_rgb.py::test_different_shapes_asserts",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_scalar_interval"
+   ],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/basic_rgb.py",
+   "node": 408,
+   "op": "const:3->4",
+   "line": 42,
+   "col": 23,
+   "id": 2,
+   "oracle_rc": 1,
+   "oracle_killed_by": [
+    "astropy/visualization/tests/test_basic_rgb.py::test_different_shapes_asserts",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_scalar_interval"
+   ],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/basic_rgb.py",
+   "node": 98,
+   "op": "cmp0:NotEq->Eq",
+   "line": 43,
+   "col": 11,
+   "id": 3,
+   "oracle_rc": 1,
+   "oracle_killed_by": [
+    "astropy/visualization/tests/test_basic_rgb.py::test_different_shapes_asserts",
+    "astropy/visualization/tests/test_basic_rgb.py::test_float64",
+    "astropy/visualization/tests/test_basic_rgb.py::test_image_mapping",
+    "astropy/visualization/tests/test_basic_rgb.py::test_incorrect_interval_length",
+    "astropy/visualization/tests/test_basic_rgb.py::test_int8",
+    "astropy/visualization/tests/test_basic_rgb.py::test_invalid_output_dtype[bool]",
+    "astropy/visualization/tests/test_basic_rgb.py::test_invalid_output_dtype[complex128]",
+    "astropy/visualization/tests/test_basic_rgb.py::test_invalid_output_dtype[int64]",
+    "astropy/visualization/tests/test_basic_rgb.py::test_invalid_output_dtype[str0]",
+    "astropy/visualization/tests/test_basic_rgb.py::test_invalid_output_dtype[str1]",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_scalar_interval"
+   ],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/basic_rgb.py",
+   "node": 191,
+   "op": "const:3->4",
+   "line": 43,
+   "col": 28,
+   "id": 4,
+   "oracle_rc": 1,
+   "oracle_killed_by": [
+    "astropy/visualization/tests/test_basic_rgb.py::test_different_shapes_asserts",
+    "astropy/visualization/tests/test_basic_rgb.py::test_float64",
+    "astropy/visualization/tests/test_basic_rgb.py::test_image_mapping",
+    "astropy/visualization/tests/test_basic_rgb.py::test_int8",
+    "astropy/visualization/tests/test_basic_rgb.py::test_invalid_output_dtype[bool]",
+    "astropy/visualization/tests/test_basic_rgb.py::test_invalid_output_dtype[complex128]",
+    "astropy/visualization/tests/test_basic_rgb.py::test_invalid_output_dtype[int64]",
+    "astropy/visualization/tests/test_basic_rgb.py::test_invalid_output_dtype[str0]",
+    "astropy/visualization/tests/test_basic_rgb.py::test_invalid_output_dtype[str1]",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_scalar_interval"
+   ],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/basic_rgb.py",
+   "node": 111,
+   "op": "cmp0:NotIn->In",
+   "line": 74,
+   "col": 11,
+   "id": 5,
+   "oracle_rc": 1,
+   "oracle_killed_by": [
+    "astropy/visualization/tests/test_basic_rgb.py::test_different_shapes_asserts",
+    "astropy/visualization/tests/test_basic_rgb.py::test_float64",
+    "astropy/visualization/tests/test_basic_rgb.py::test_image_mapping",
+    "astropy/visualization/tests/test_basic_rgb.py::test_int8",
+    "astropy/visualization/tests/test_basic_rgb.py::test_invalid_output_dtype[bool]",
+    "astropy/visualization/tests/test_basic_rgb.py::test_invalid_output_dtype[complex128]",
+    "astropy/visualization/tests/test_basic_rgb.py::test_invalid_output_dtype[int64]",
+    "astropy/visualization/tests/test_basic_rgb.py::test_invalid_output_dtype[str0]",
+    "astropy/visualization/tests/test_basic_rgb.py::test_invalid_output_dtype[str1]",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_scalar_interval"
+   ],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/basic_rgb.py",
+   "node": 119,
+   "op": "bool:Or",
+   "line": 81,
+   "col": 11,
+   "id": 6,
+   "oracle_rc": 1,
+   "oracle_killed_by": [
+    "astropy/visualization/tests/test_basic_rgb.py::test_different_shapes_asserts"
+   ],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/basic_rgb.py",
+   "node": 215,
+   "op": "cmp0:NotEq->Eq",
+   "line": 81,
+   "col": 12,
+   "id": 7,
+   "oracle_rc": 1,
+   "oracle_killed_by": [
+    "astropy/visualization/tests/test_basic_rgb.py::test_different_shapes_asserts",
+    "astropy/visualization/tests/test_basic_rgb.py::test_float64",
+    "astropy/visualization/tests/test_basic_rgb.py::test_image_mapping",
+    "astropy/visualization/tests/test_basic_rgb.py::test_int8",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_scalar_interval"
+   ],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/basic_rgb.py",
+   "node": 216,
+   "op": "cmp0:NotEq->Eq",
+   "line": 81,
+   "col": 48,
+   "id": 8,
+   "oracle_rc": 1,
+   "oracle_killed_by": [
+    "astropy/visualization/tests/test_basic_rgb.py::test_float64",
+    "astropy/visualization/tests/test_basic_rgb.py::test_image_mapping",
+    "astropy/visualization/tests/test_basic_rgb.py::test_int8",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_scalar_interval"
+   ],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/basic_rgb.py",
+   "node": 52,
+   "op": "return:None",
+   "line": 91,
+   "col": 8,
+   "id": 9,
+   "oracle_rc": 1,
+   "oracle_killed_by": [
+    "astropy/visualization/tests/test_basic_rgb.py::test_float64",
+    "astropy/visualization/tests/test_basic_rgb.py::test_image_mapping",
+    "astropy/visualization/tests/test_basic_rgb.py::test_int8",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_scalar_interval"
+   ],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/basic_rgb.py",
+   "node": 458,
+   "op": "const:True->False",
+   "line": 123,
+   "col": 37,
+   "id": 10,
+   "oracle_rc": 1,
+   "oracle_killed_by": [
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_scalar_interval"
+   ],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/basic_rgb.py",
+   "node": 367,
+   "op": "bin:Sub->Add",
+   "line": 127,
+   "col": 32,
+   "id": 11,
+   "oracle_rc": 1,
+   "oracle_killed_by": [
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_min_max"
+   ],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/basic_rgb.py",
+   "node": 480,
+   "op": "const:False->True",
+   "line": 133,
+   "col": 50,
+   "id": 12,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/basic_rgb.py",
+   "node": 57,
+   "op": "return:None",
+   "line": 137,
+   "col": 8,
+   "id": 13,
+   "oracle_rc": 1,
+   "oracle_killed_by": [
+    "astropy/visualization/tests/test_basic_rgb.py::test_float64",
+    "astropy/visualization/tests/test_basic_rgb.py::test_image_mapping",
+    "astropy/visualization/tests/test_basic_rgb.py::test_int8",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_scalar_interval"
+   ],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/basic_rgb.py",
+   "node": 60,
+   "op": "return:None",
+   "line": 143,
+   "col": 8,
+   "id": 14,
+   "oracle_rc": 1,
+   "oracle_killed_by": [
+    "astropy/visualization/tests/test_basic_rgb.py::test_float64",
+    "astropy/visualization/tests/test_basic_rgb.py::test_image_mapping",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_scalar_interval"
+   ],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/basic_rgb.py",
+   "node": 65,
+   "op": "return:None",
+   "line": 153,
+   "col": 8,
+   "id": 15,
+   "oracle_rc": 1,
+   "oracle_killed_by": [
+    "astropy/visualization/tests/test_basic_rgb.py::test_int8"
+   ],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/basic_rgb.py",
+   "node": 28,
+   "op": "return:None",
+   "line": 217,
+   "col": 4,
+   "id": 16,
+   "oracle_rc": 1,
+   "oracle_killed_by": [
+    "astropy/visualization/tests/test_basic_rgb.py::test_float64",
+    "astropy/visualization/tests/test_basic_rgb.py::test_int8",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_scalar_interval"
+   ],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 158,
+   "op": "cmp0:IsNot->Is",
+   "line": 72,
+   "col": 11,
+   "id": 17,
+   "oracle_rc": 1,
+   "oracle_killed_by": [
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_min_max"
+   ],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 68,
+   "op": "return:None",
+   "line": 75,
+   "col": 8,
+   "id": 18,
+   "oracle_rc": 1,
+   "oracle_killed_by": [
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_min_max"
+   ],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 716,
+   "op": "bin:Div->Mult",
+   "line": 325,
+   "col": 30,
+   "id": 19,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 492,
+   "op": "const:0->1",
+   "line": 330,
+   "col": 23,
+   "id": 20,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 728,
+   "op": "const:1->2",
+   "line": 331,
+   "col": 24,
+   "id": 21,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 733,
+   "op": "bin:Mult->Div",
+   "line": 334,
+   "col": 43,
+   "id": 22,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 300,
+   "op": "bin:Add->Sub",
+   "line": 337,
+   "col": 24,
+   "id": 23,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 510,
+   "op": "const:1->2",
+   "line": 337,
+   "col": 31,
+   "id": 24,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 517,
+   "op": "const:1->2",
+   "line": 343,
+   "col": 20,
+   "id": 25,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 744,
+   "op": "bin:Mult->Div",
+   "line": 343,
+   "col": 27,
+   "id": 26,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 526,
+   "op": "bool:Or",
+   "line": 347,
+   "col": 15,
+   "id": 27,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 753,
+   "op": "cmp0:GtE->Lt",
+   "line": 347,
+   "col": 15,
+   "id": 28,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 754,
+   "op": "cmp0:Lt->GtE",
+   "line": 347,
+   "col": 44,
+   "id": 29,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 946,
+   "op": "const:1->2",
+   "line": 350,
+   "col": 45,
+   "id": 30,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 533,
+   "op": "bin:Sub->Add",
+   "line": 354,
+   "col": 19,
+   "id": 31,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 535,
+   "op": "bin:Mult->Div",
+   "line": 357,
+   "col": 24,
+   "id": 32,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 957,
+   "op": "cmp0:Lt->GtE",
+   "line": 361,
+   "col": 20,
+   "id": 33,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 959,
+   "op": "cmp0:Gt->LtE",
+   "line": 361,
+   "col": 42,
+   "id": 34,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 537,
+   "op": "const:True->False",
+   "line": 361,
+   "col": 63,
+   "id": 35,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 318,
+   "op": "cmp0:GtE->Lt",
+   "line": 369,
+   "col": 11,
+   "id": 36,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 549,
+   "op": "cmp0:Gt->LtE",
+   "line": 372,
+   "col": 15,
+   "id": 37,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 793,
+   "op": "const:0->1",
+   "line": 372,
+   "col": 31,
+   "id": 38,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 795,
+   "op": "bin:Div->Mult",
+   "line": 373,
+   "col": 24,
+   "id": 39,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 797,
+   "op": "bin:Sub->Add",
+   "line": 374,
+   "col": 28,
+   "id": 40,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 979,
+   "op": "const:1->2",
+   "line": 374,
+   "col": 35,
+   "id": 41,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 799,
+   "op": "const:2->3",
+   "line": 374,
+   "col": 41,
+   "id": 42,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 806,
+   "op": "bin:Sub->Add",
+   "line": 376,
+   "col": 29,
+   "id": 43,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 987,
+   "op": "bin:Mult->Div",
+   "line": 376,
+   "col": 38,
+   "id": 44,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 1078,
+   "op": "bin:Sub->Add",
+   "line": 376,
+   "col": 39,
+   "id": 45,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 1113,
+   "op": "const:1->2",
+   "line": 376,
+   "col": 54,
+   "id": 46,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 810,
+   "op": "bin:Add->Sub",
+   "line": 377,
+   "col": 29,
+   "id": 47,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 992,
+   "op": "bin:Mult->Div",
+   "line": 377,
+   "col": 38,
+   "id": 48,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 1082,
+   "op": "bin:Sub->Add",
+   "line": 377,
+   "col": 39,
+   "id": 49,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/interval.py",
+   "node": 145,
+   "op": "return:None",
+   "line": 379,
+   "col": 8,
+   "id": 50,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/stretch.py",
+   "node": 143,
+   "op": "const:True->False",
+   "line": 40,
+   "col": 26,
+   "id": 51,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/stretch.py",
+   "node": 147,
+   "op": "return:None",
+   "line": 46,
+   "col": 8,
+   "id": 52,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/stretch.py",
+   "node": 400,
+   "op": "cmp0:Is->IsNot",
+   "line": 48,
+   "col": 11,
+   "id": 53,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/stretch.py",
+   "node": 401,
+   "op": "return:None",
+   "line": 49,
+   "col": 12,
+   "id": 54,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/stretch.py",
+   "node": 1687,
+   "op": "const:True->False",
+   "line": 49,
+   "col": 41,
+   "id": 55,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/stretch.py",
+   "node": 403,
+   "op": "return:None",
+   "line": 52,
+   "col": 12,
+   "id": 56,
+   "oracle_rc": 1,
+   "oracle_killed_by": [
+    "astropy/visualization/tests/test_basic_rgb.py::test_float64",
+    "astropy/visualization/tests/test_basic_rgb.py::test_image_mapping",
+    "astropy/visualization/tests/test_basic_rgb.py::test_int8",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_linear_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_bw",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_min_max",
+    "astropy/visualization/tests/test_basic_rgb.py::test_log_scalar_interval"
+   ],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/stretch.py",
+   "node": 783,
+   "op": "const:True->False",
+   "line": 988,
+   "col": 36,
+   "id": 57,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  },
+  {
+   "file": "astropy/visualization/stretch.py",
+   "node": 390,
+   "op": "return:None",
+   "line": 989,
+   "col": 8,
+   "id": 58,
+   "oracle_rc": 0,
+   "oracle_killed_by": [],
+   "oracle_error": false
+  }
+ ],
+ "positive_control": {
+  "B_on_A": {
+   "killed": 16,
+   "of": 18
+  },
+  "A_on_B": {
+   "killed": 16,
+   "of": 16
+  }
+ },
+ "negative_control": {
+  "baseline_passed": 3,
+  "killed": 0,
+  "of": 18
+ },
+ "arms": {
+  "B": {
+   "test_files": [
+    "astropy/visualization/tests/test_basic_rgb.py"
+   ],
+   "agent_test_functions": 15,
+   "pass_on_reference": 14,
+   "fail_on_reference": [
+    "astropy/visualization/tests/test_basic_rgb.py::TestMakeRGBImage::test_apply_mappings_is_used_not_inlined",
+    "astropy/visualization/tests/test_basic_rgb.py::TestMakeRGBImage::test_uint8_quantization_uses_full_range"
+   ],
+   "killed": 16,
+   "errors": 0,
+   "of": 18,
+   "killed_ids": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    7,
+    8,
+    9,
+    10,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    56
+   ]
+  },
+  "C": {
+   "test_files": [
+    "astropy/visualization/tests/test_basic_rgb.py"
+   ],
+   "agent_test_functions": 15,
+   "pass_on_reference": 14,
+   "fail_on_reference": [
+    "astropy/visualization/tests/test_basic_rgb.py::TestMakeRGBImage::test_apply_mappings_is_used_not_inlined",
+    "astropy/visualization/tests/test_basic_rgb.py::TestMakeRGBImage::test_uint8_quantization_uses_full_range"
+   ],
+   "killed": 16,
+   "errors": 0,
+   "of": 18,
+   "killed_ids": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    7,
+    8,
+    9,
+    10,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    56
+   ]
+  },
+  "C0": {
+   "test_files": [
+    "astropy/visualization/tests/test_basic_rgb.py"
+   ],
+   "agent_test_functions": 15,
+   "pass_on_reference": 15,
+   "fail_on_reference": [
+    "astropy/visualization/tests/test_basic_rgb.py::TestMakeRGBImage::test_apply_mappings_is_used_not_inlined",
+    "astropy/visualization/tests/test_basic_rgb.py::TestMakeRGBImage::test_uint8_quantization_uses_full_range"
+   ],
+   "killed": 16,
+   "errors": 0,
+   "of": 18,
+   "killed_ids": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    7,
+    8,
+    9,
+    10,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    56
+   ]
+  }
+ },
+ "wall_seconds": 352
+}

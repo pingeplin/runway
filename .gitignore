@@ -7,3 +7,5 @@ blueprint-eval-workspace/
 
 # Local Claude Code config (hooks, logs)
 .claude/
+# claude plugin eval output (report.html, aggregate-result.json)
+plugins/*/evals/results/

@@ -1,0 +1,56 @@
+{
+  "instance_id": "astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1",
+  "patch_chars": 8111,
+  "patch_sha256": "b596e2d41a864c728ae3496a488aab7dcb24f3e80d6b73b1f4f572e16a99c055",
+  "mask_applied": false,
+  "f2p_deleted": 0,
+  "mask_already_applied": false,
+  "mask_error": ".py:274\nerror: astropy/units/physical.py: patch does not apply\nerror: patch failed: astropy/utils/masked/function_helpers.py:704\nerror: astropy/utils/masked/function_helpers.py: patch does not apply\nerror: patch failed: astropy/utils/shapes.py:248\nerror: astropy/utils/shapes.py: patch does not apply",
+  "git_reinit": true,
+  "patch_applied": true,
+  "cost_usd": 1.0036479999999999,
+  "duration_ms": 281252,
+  "duration_api_ms": 279804,
+  "wall_seconds": 284.74,
+  "num_turns": 28,
+  "usage": {
+    "input_tokens": 56,
+    "cache_creation_input_tokens": 84197,
+    "cache_read_input_tokens": 2114635,
+    "output_tokens": 23822,
+    "output_tokens_details": {
+      "thinking_tokens": 13002
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 84197,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 206,
+        "cache_read_input_tokens": 97589,
+        "cache_creation_input_tokens": 5891,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 5891
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "returncode": 0,
+  "ok": true,
+  "error": null,
+  "verdict_located_by": "marker",
+  "verdict_source": ".blueprint/verdicts/verdict.md",
+  "verdict_path": "results/verdicts/astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1.md",
+  "verdict_chars": 13771
+}

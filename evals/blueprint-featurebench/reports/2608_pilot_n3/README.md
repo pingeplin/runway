@@ -1,5 +1,15 @@
 # Pilot 2608 — first clean run (N=3, 2026-08-15)
 
+> **Validity caveat (added 2026-09-16).** "Clean" here means working-tree
+> masking only. The workspaces the spec writer (stage 01) and the referee
+> (stage 06) read still carried the upstream git history, so `git show HEAD:`
+> returned the reference implementation and the deleted FAIL_TO_PASS tests —
+> the leak fixed in `_common.reinit_git` and flagged in
+> `../2608_scale_astropy_n5/`. Arm A is unaffected (`fb infer` re-inits git in
+> the container). Every B, C and C0 number below is superseded by
+> `../2609_clean_paired_astropy_n5/` (spec) and `../2609_armc_clean_astropy_n5/`
+> (referee).
+
 Archived output of the first oracle-masked pilot: FeatureBench fast split,
 3 tasks (metaflow stub_generator, astropy basic_rgb, astropy comparison),
 implementing agent claude_code/claude-sonnet-4-5 in every arm.

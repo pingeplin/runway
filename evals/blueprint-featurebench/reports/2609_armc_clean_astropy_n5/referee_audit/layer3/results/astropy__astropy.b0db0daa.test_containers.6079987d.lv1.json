@@ -1,0 +1,13 @@
+{
+ "task": "astropy__astropy.b0db0daa.test_containers.6079987d.lv1",
+ "cap": 200,
+ "oracle_files": [
+  "astropy/uncertainty/tests/test_containers.py"
+ ],
+ "arms_without_tests": [
+  "B",
+  "C",
+  "C0"
+ ],
+ "wall_seconds": 0
+}
