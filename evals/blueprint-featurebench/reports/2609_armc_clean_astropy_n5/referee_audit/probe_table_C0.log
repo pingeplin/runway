@@ -1,0 +1,7 @@
+C0 test_table: 2 test file(s), 12 added test fns: ['astropy/io/votable/tests/test_converter.py', 'astropy/io/votable/tests/test_tree.py']
+restore: restored
+apply: APPLIED
+pytest rc=0
+Internet access disabled
+............                                                             [100%]
+12 passed, 55 deselected in 0.12s

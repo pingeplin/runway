@@ -1,0 +1,55 @@
+{
+  "instance_id": "astropy__astropy.b0db0daa.test_containers.6079987d.lv1",
+  "patch_chars": 22820,
+  "patch_sha256": "aedaa7ee36d4375b49299961e7a2ea98ffc9958ba74ded2e77050a30cb4ef145",
+  "mask_applied": true,
+  "f2p_deleted": 0,
+  "mask_already_applied": true,
+  "git_reinit": true,
+  "patch_applied": true,
+  "cost_usd": 1.1910257999999998,
+  "duration_ms": 376950,
+  "duration_api_ms": 375618,
+  "wall_seconds": 380.52,
+  "num_turns": 19,
+  "usage": {
+    "input_tokens": 38,
+    "cache_creation_input_tokens": 118025,
+    "cache_read_input_tokens": 1806414,
+    "output_tokens": 35185,
+    "output_tokens_details": {
+      "thinking_tokens": 25443
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 118025,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 218,
+        "cache_read_input_tokens": 130456,
+        "cache_creation_input_tokens": 6852,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 6852
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "returncode": 0,
+  "ok": true,
+  "error": null,
+  "verdict_located_by": "marker",
+  "verdict_source": ".blueprint/verdicts/uncertainty-distribution-interfaces.md",
+  "verdict_path": "results/verdicts/astropy__astropy.b0db0daa.test_containers.6079987d.lv1.md",
+  "verdict_chars": 15318
+}

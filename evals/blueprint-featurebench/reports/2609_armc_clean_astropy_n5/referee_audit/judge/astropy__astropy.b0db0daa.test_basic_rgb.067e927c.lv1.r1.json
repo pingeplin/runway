@@ -1,0 +1,65 @@
+{
+  "task": "astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1",
+  "rep": 1,
+  "model": "claude-opus-5",
+  "mapping": {
+    "X": "C",
+    "Y": "C0"
+  },
+  "prompt_chars": 76116,
+  "wall_seconds": 73.5,
+  "returncode": 0,
+  "cost_usd": 1.08467,
+  "raw": "{\"claims\":[{\"id\":\"K1\",\"kind\":\"vacuous_test\",\"claim\":\"test_float_output_in_unit_range cannot detect dropped clip=True: the default interval over rng.random data already gives output in [0,1].\",\"accuracy_on_base\":\"TRUE\",\"accuracy_evidence\":\"The base test uses RGBImageMapping() defaults (ManualInterval(vmin=0, vmax=None)) on rng.random((10,12)) data in [0,1). Scaling by the data max keeps output in [0,1] with or without clipping, and the test only asserts min>=0 and max<=1.\",\"addressed_in_X\":\"YES\",\"addressed_in_Y\":\"NO\",\"addressed_evidence\":\"X's test uses ManualInterval(vmin=0.2, vmax=0.6) and adds a check that the data really falls outside that interval. Y keeps the default self.mapping and only adds a dtype assertion, which still can't catch a dropped clip.\"},{\"id\":\"K2\",\"kind\":\"other\",\"claim\":\"interval.py keeps extra blank lines: about 13 trailing blank lines at end of file, plus multiple blank lines after _process_values and get_limits.\",\"accuracy_on_base\":\"TRUE\",\"accuracy_evidence\":\"Both base interval.py hunks end with three blank context lines, after `return data[np.isfinite(data)]` and after `return vmin, vmax`. The leftover blank lines from the stripped regions stay in place.\",\"addressed_in_X\":\"PARTIAL\",\"addressed_in_Y\":\"NO\",\"addressed_evidence\":\"X deletes the trailing blank lines (its hunk ends at `return vmin, vmax`) and about 21 blank lines near _process_values, but still leaves two blank lines before __call__. Both of Y's hunks still end with three blank context lines.\"},{\"id\":\"K3\",\"kind\":\"other\",\"claim\":\"ZScaleInterval.get_limits has comments that just repeat the next line of code (e.g. '# Sample the image', '# Convolve with a kernel of length ngrow'); they could be trimmed.\",\"accuracy_on_base\":\"TRUE\",\"accuracy_evidence\":\"Base get_limits contains '# Sample the image', '# Fit a line to the sorted array of samples', '# Bad pixels mask used and updated at each iteration' and '# Convolve with a kernel of length ngrow'.\",\"addressed_in_X\":\"NO\",\"addressed_in_Y\":\"NO\",\"addressed_evidence\":\"X keeps the same comments word for word. Y keeps them and adds more ('# Subtract fitted line from the data array', '# Compute the k-sigma rejection threshold').\"},{\"id\":\"K4\",\"kind\":\"impl_defect\",\"claim\":\"When max_iterations=0, ZScaleInterval.get_limits uses `fit` before it is assigned, raising UnboundLocalError instead of falling back to plain min/max.\",\"accuracy_on_base\":\"TRUE\",\"accuracy_evidence\":\"Base only assigns `fit` inside `for _ in range(self.max_iterations)`. With zero iterations, ngoodpix=npix>=minpix whenever npix>=min_npixels, so `slope, intercept = fit` raises UnboundLocalError.\",\"addressed_in_X\":\"PARTIAL\",\"addressed_in_Y\":\"NO\",\"addressed_evidence\":\"X sets `fit = (0.0, 0.0)` before the loop, so the error goes away, but a zero slope makes both limits the median instead of falling back to min/max. Y still assigns `fit` only inside the loop.\"}],\"failure_clusters\":[{\"cluster\":\"F1\",\"caught\":\"NO\",\"evidence\":\"S18 | Accept 2- or 4-element interval lists silently | \u2705 `pytest.raises(ValueError)` \u2014 the error message text is never questioned.\"}]}",
+  "parsed": {
+    "claims": [
+      {
+        "id": "K1",
+        "kind": "vacuous_test",
+        "claim": "test_float_output_in_unit_range cannot detect dropped clip=True: the default interval over rng.random data already gives output in [0,1].",
+        "accuracy_on_base": "TRUE",
+        "accuracy_evidence": "The base test uses RGBImageMapping() defaults (ManualInterval(vmin=0, vmax=None)) on rng.random((10,12)) data in [0,1). Scaling by the data max keeps output in [0,1] with or without clipping, and the test only asserts min>=0 and max<=1.",
+        "addressed_in_X": "YES",
+        "addressed_in_Y": "NO",
+        "addressed_evidence": "X's test uses ManualInterval(vmin=0.2, vmax=0.6) and adds a check that the data really falls outside that interval. Y keeps the default self.mapping and only adds a dtype assertion, which still can't catch a dropped clip."
+      },
+      {
+        "id": "K2",
+        "kind": "other",
+        "claim": "interval.py keeps extra blank lines: about 13 trailing blank lines at end of file, plus multiple blank lines after _process_values and get_limits.",
+        "accuracy_on_base": "TRUE",
+        "accuracy_evidence": "Both base interval.py hunks end with three blank context lines, after `return data[np.isfinite(data)]` and after `return vmin, vmax`. The leftover blank lines from the stripped regions stay in place.",
+        "addressed_in_X": "PARTIAL",
+        "addressed_in_Y": "NO",
+        "addressed_evidence": "X deletes the trailing blank lines (its hunk ends at `return vmin, vmax`) and about 21 blank lines near _process_values, but still leaves two blank lines before __call__. Both of Y's hunks still end with three blank context lines."
+      },
+      {
+        "id": "K3",
+        "kind": "other",
+        "claim": "ZScaleInterval.get_limits has comments that just repeat the next line of code (e.g. '# Sample the image', '# Convolve with a kernel of length ngrow'); they could be trimmed.",
+        "accuracy_on_base": "TRUE",
+        "accuracy_evidence": "Base get_limits contains '# Sample the image', '# Fit a line to the sorted array of samples', '# Bad pixels mask used and updated at each iteration' and '# Convolve with a kernel of length ngrow'.",
+        "addressed_in_X": "NO",
+        "addressed_in_Y": "NO",
+        "addressed_evidence": "X keeps the same comments word for word. Y keeps them and adds more ('# Subtract fitted line from the data array', '# Compute the k-sigma rejection threshold')."
+      },
+      {
+        "id": "K4",
+        "kind": "impl_defect",
+        "claim": "When max_iterations=0, ZScaleInterval.get_limits uses `fit` before it is assigned, raising UnboundLocalError instead of falling back to plain min/max.",
+        "accuracy_on_base": "TRUE",
+        "accuracy_evidence": "Base only assigns `fit` inside `for _ in range(self.max_iterations)`. With zero iterations, ngoodpix=npix>=minpix whenever npix>=min_npixels, so `slope, intercept = fit` raises UnboundLocalError.",
+        "addressed_in_X": "PARTIAL",
+        "addressed_in_Y": "NO",
+        "addressed_evidence": "X sets `fit = (0.0, 0.0)` before the loop, so the error goes away, but a zero slope makes both limits the median instead of falling back to min/max. Y still assigns `fit` only inside the loop."
+      }
+    ],
+    "failure_clusters": [
+      {
+        "cluster": "F1",
+        "caught": "NO",
+        "evidence": "S18 | Accept 2- or 4-element interval lists silently | \u2705 `pytest.raises(ValueError)` \u2014 the error message text is never questioned."
+      }
+    ]
+  }
+}

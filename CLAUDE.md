@@ -8,8 +8,12 @@ A Claude Code plugin marketplace. One plugin so far: `blueprint`.
   eval suite under `evals/`.
 - `.claude-plugin/marketplace.json` — exposes the repo as a marketplace;
   `pluginRoot` is `./plugins`.
+- `evals/README.md` — index of every eval tier, what currently stands, and
+  the status of each benchmark report. Update it when a run lands.
 - `evals/blueprint-featurebench/` — the benchmark harness (FeatureBench
   spec-ablation). Expensive tier: containers, podman, ~$21/task/arm.
+- `evals/transcript-analysis/` — measurements from local session
+  transcripts. Free; raw output is private and stays uncommitted.
 - `docs/designs/` — design docs and post-mortems.
 - `.blueprint/specs/` — specs written with the plugin's own `/spec`.
 
@@ -37,8 +41,9 @@ and needs podman (`applehv` + Rosetta); see
 
 - **Measurement claims are load-bearing.** Two published benchmark results
   have already been retracted for oracle leaks. Any number in
-  `plugins/blueprint/README.md` names the report directory it came from, and
-  a retraction stays in the document rather than being edited away.
+  `plugins/blueprint/README.md` names the report directory it came from. A
+  README shows only the latest data; a retraction or correction stays in the
+  source as an HTML comment rather than being edited away.
 - **Keep `results/` out of git** (it is `*`-ignored by design); durable runs
   are archived under `evals/blueprint-featurebench/reports/<name>/` and
   committed.

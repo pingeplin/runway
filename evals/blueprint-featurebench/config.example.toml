@@ -5,16 +5,18 @@
 [eval]
 # Official FeatureBench dataset + split. Both arms are SCORED against this.
 dataset = "LiberCoders/FeatureBench"
-split = "lite"          # lite (30) | fast (100) | full
-# Pilot size: first N task ids after sorting by instance_id. 0 = whole split.
-limit = 10
+split = "fast"          # fast (100, all CPU-only) | lite (30, 11 CPU-only) | full
+# First N task ids after sorting by instance_id — astropy-heavy, so use
+# --task-ids-file (samples/) for a real panel. 0 = whole split.
+limit = 3
 # Parallel workers for `fb eval`.
 n_concurrent = 4
 
 [spec]
 # Stage 01: headless `claude -p` run that produces the blueprint spec.
 model = "claude-sonnet-5"
-timeout_seconds = 900
+# The costliest clean 4.0 spec took ~2600s.
+timeout_seconds = 3600
 # Passed through to the `claude` CLI verbatim, between -p and --model.
 claude_args = ["--permission-mode", "bypassPermissions"]
 
@@ -23,7 +25,7 @@ claude_args = ["--permission-mode", "bypassPermissions"]
 # over Arm B's patch applied into a scratch copy of the task workspace.
 # Mirrors [spec]; omit the section to accept these defaults.
 model = "claude-sonnet-5"
-timeout_seconds = 900
+timeout_seconds = 1800
 # Passed through to the `claude` CLI verbatim, between -p and --model.
 claude_args = ["--permission-mode", "bypassPermissions"]
 

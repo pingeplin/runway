@@ -10,4 +10,4 @@ A previous implementation attempt produced this patch:
 
 ## Instruction
 
-Produce a complete, corrected implementation addressing the verdict. Start from the pristine repository (the patch above is NOT applied).
+Produce a complete, corrected implementation addressing the feedback above. Start from the pristine repository (the patch above is NOT applied).

@@ -1,0 +1,7 @@
+test_basic_rgb               r1 $1.08 73.5s ok
+test_containers              r1 $1.03 60.9s ok
+test_lombscargle_multiband   r1 $1.34 56.4s ok
+test_table                   r1 $1.88 108.9s ok
+test_vo                      r1 $0.64 81.3s ok
+test_vo                      r2 $0.78 134.8s ok
+test_vo                      r3 $0.79 127.6s ok

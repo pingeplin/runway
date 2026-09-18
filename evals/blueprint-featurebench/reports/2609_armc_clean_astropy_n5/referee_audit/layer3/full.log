@@ -1,0 +1,37 @@
+[21:14:49] astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1: reference restored — Python 3.11.14 pytest-timeout ok
+[21:14:51] astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1: 59 mutants (59 candidates, 0 invalid)
+[21:14:53] astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1: oracle baseline rc=0 passed=17 failed=0
+[21:15:00] astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1: identity control dropped 0 file(s); 59 mutants remain
+[21:17:23] astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1: 18/59 mutants killed by the hidden tests
+[21:18:05] astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1: negative control killed 0/18; positive {'B_on_A': {'killed': 16, 'of': 18}, 'A_on_B': {'killed': 16, 'of': 16}}
+[21:18:52] astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1: B fns=15 pass_on_ref=14 fail_on_ref=2 killed 16/18 errors=0
+[21:19:40] astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1: C fns=15 pass_on_ref=14 fail_on_ref=2 killed 16/18 errors=0
+[21:20:27] astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1: C0 fns=15 pass_on_ref=15 fail_on_ref=2 killed 16/18 errors=0
+[21:20:38] astropy__astropy.b0db0daa.test_basic_rgb.067e927c.lv1: done in 352s
+[21:20:38] astropy__astropy.b0db0daa.test_containers.6079987d.lv1: no arm wrote tests — every arm scores 0, nothing to run
+[21:20:38] astropy__astropy.b0db0daa.test_containers.6079987d.lv1: done in 0s
+[21:20:41] astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1: reference restored — Python 3.11.14 pytest-timeout ok
+[21:20:44] astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1: 139 mutants (139 candidates, 0 invalid)
+[21:21:05] astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1: oracle baseline rc=1 passed=959 failed=1
+[21:25:13] astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1: identity control dropped 0 file(s); 139 mutants remain
+[22:13:10] astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1: 47/139 mutants killed by the hidden tests
+[22:15:01] astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1: negative control killed 0/47; positive {'B_on_A': {'killed': 32, 'of': 34}, 'A_on_B': {'killed': 32, 'of': 45}}
+[22:17:05] astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1: C fns=25 pass_on_ref=29 fail_on_ref=0 killed 15/47 errors=0
+[22:17:16] astropy__astropy.b0db0daa.test_lombscargle_multiband.78687278.lv1: done in 3398s
+[22:17:19] astropy__astropy.b0db0daa.test_table.48eef659.lv1: reference restored — Python 3.11.14 pytest-timeout ok
+[22:17:38] astropy__astropy.b0db0daa.test_table.48eef659.lv1: 200 mutants (203 candidates, 0 invalid)
+[22:17:40] astropy__astropy.b0db0daa.test_table.48eef659.lv1: oracle baseline rc=0 passed=43 failed=0
+[22:17:59] astropy__astropy.b0db0daa.test_table.48eef659.lv1: identity control dropped 0 file(s); 200 mutants remain
+[22:29:12] astropy__astropy.b0db0daa.test_table.48eef659.lv1: 106/200 mutants killed by the hidden tests
+[22:33:30] astropy__astropy.b0db0daa.test_table.48eef659.lv1: negative control killed 0/106; positive {'B_on_A': {'killed': 61, 'of': 93}, 'A_on_B': {'killed': 61, 'of': 74}}
+[22:40:22] astropy__astropy.b0db0daa.test_table.48eef659.lv1: C fns=18 pass_on_ref=19 fail_on_ref=0 killed 32/106 errors=0
+[22:46:52] astropy__astropy.b0db0daa.test_table.48eef659.lv1: C0 fns=11 pass_on_ref=11 fail_on_ref=0 killed 27/106 errors=0
+[22:47:03] astropy__astropy.b0db0daa.test_table.48eef659.lv1: done in 1786s
+[22:47:05] astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1: reference restored — Python 3.11.14 pytest-timeout ok
+[22:47:15] astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1: 130 mutants (130 candidates, 0 invalid)
+[22:47:19] astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1: oracle baseline rc=0 passed=184 failed=0
+[22:48:01] astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1: identity control dropped 0 file(s); 130 mutants remain
+[23:06:40] astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1: 54/130 mutants killed by the hidden tests
+[23:08:52] astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1: negative control killed 0/54; positive {'B_on_A': {'killed': 51, 'of': 51}, 'A_on_B': {'killed': 51, 'of': 54}}
+[23:11:27] astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1: C fns=11 pass_on_ref=10 fail_on_ref=1 killed 23/54 errors=0
+[23:11:37] astropy__astropy.b0db0daa.test_vo.8fd473ce.lv1: done in 1475s

@@ -55,6 +55,15 @@ versions follow SemVer.
   scored 0.46 against 0.48 for no document. Reading rules were registered
   before the run:
   `evals/blueprint-featurebench/reports/2609_control_arms_astropy_n5/`.
+- **Referee measured; tests claim corrected (2026-09-16).** README's
+  Benchmark section gains a referee subsection: against a one-sentence
+  self-review, `/verify`'s verdict was indistinguishable on the
+  pre-registered kill rate, and a post-hoc audit found it gets reasonable,
+  bug-catching tests written but does not steer the agent to correct code.
+  The same run corrects "the spec arm wrote tests on three of five tasks" to
+  one of five. The README now shows only the latest numbers; superseded
+  claims moved to an HTML comment in its source.
+  `evals/blueprint-featurebench/reports/2609_armc_clean_astropy_n5/`.
 
 ## [4.1.0] — 2026-09-14
 

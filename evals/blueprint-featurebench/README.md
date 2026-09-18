@@ -1,9 +1,10 @@
 # blueprint × FeatureBench — paired spec ablation
 
-Measures one number: **does handing an implementing agent a blueprint-produced
-spec improve its resolved rate on FeatureBench?**
+The core question: **does handing an implementing agent a blueprint-produced
+spec change what it builds on FeatureBench?** Mean pass rate is the primary
+number; resolved is reported but cannot decide anything at N=5.
 
-Two arms over the same tasks, same agent, same model:
+The core design is two arms over the same tasks, same agent, same model:
 
 - **Arm A (control)** — `fb infer` on the official dataset. The agent sees the
   original `problem_statement`.
@@ -14,6 +15,10 @@ Two arms over the same tasks, same agent, same model:
 Both arms are scored by the unmodified `fb eval` against the **official**
 dataset. Predictions carry only `instance_id` and `model_patch`, so the
 treatment cannot leak into scoring.
+
+Arm C / C0 (the `/verify` referee), the control arms, the mutation overlay and
+the doc-quality metrics are overlays on that design, each with its own stage
+below. What the reports currently show is indexed in `../README.md`.
 
 Design rationale: `docs/designs/2608.0001_blueprint_eval_featurebench_ablation.md`.
 
@@ -35,7 +40,13 @@ fail until the feature is built correctly; the agent never sees them.
   *survived* (the test is decoration). Kill rate = killed / planted. This is
   the only metric here that catches vacuous tests — 100% coverage with a ~4%
   mutation score is invisible to `resolved`/pass rate. Shipping no tests at
-  all is scored 0.0, not skipped.
+  all is scored 0.0, not skipped. **Known limit:** stage 07 runs every test
+  *file* a patch touched, so tests appended to a pre-existing file drag in
+  that file's mask-broken tests and the cell is excluded as `baseline_red`;
+  and mutation sites are LLM-chosen per cell, so arms are not graded on the
+  same mutants. On `reports/2609_armc_clean_astropy_n5/` this left one graded
+  cell per arm. The oracle-anchored grader in that report's
+  `referee_audit/layer3/` avoids both and is not yet a stage.
 
 - **Doc quality** (stages 12–13) — grades the *spec itself*, not the agent.
   Deterministic against the oracle: **oracle recall** (share of the
@@ -61,15 +72,15 @@ Shorthand: resolved asks "is it done?", pass rate "how close?", kill rate
 
 | Requirement | Notes |
 |---|---|
-| Docker, daemon running | Every stage except 02/05 needs it. FeatureBench images are large — budget disk. |
-| Python 3.11+ | Scripts are stdlib-only except `datasets`. |
-| `datasets` | `pip install datasets` (used by stages 01 and 02). |
-| `featurebench` | **Not on PyPI.** `pip install git+https://github.com/LiberCoders/FeatureBench.git` (or `uv tool install` the same URL). Provides the `fb` CLI. Stage 00 installs it for you. |
+| `docker` CLI backed by podman | Every stage that extracts a testbed or runs a container needs it. Images are amd64-only and 18–22GB each. The podman machine must be `applehv` + Rosetta: on libkrun the in-container Claude Code aborts at start and every cell returns an empty patch at ~$0. On a 16GB host, run inference with `n_concurrent = 1` and close desktop apps. |
+| `uv` | Every Python command runs as `uv run --with datasets python3 …`; scripts are stdlib-only otherwise. |
+| `featurebench` | **Not on PyPI.** `uv tool install git+https://github.com/LiberCoders/FeatureBench.git`. Provides the `fb` CLI. Stage 00 installs it for you. |
+| `CLAUDE_CODE_VERSION` pinned in `fb_config.toml` | `fb` installs `@latest` in the container otherwise, so arms run on different days run different agents. |
 | `claude` CLI, authenticated | Stage 01 shells out to it. `claude --version` must work. |
 | blueprint plugin installed | The `spec` skill must resolve inside a `claude -p` run started from an arbitrary directory. Install it from this marketplace (`/plugin` → `runway` → `blueprint`) so it is user-scoped, not repo-scoped — stage 01 runs inside extracted task codebases, not inside this repo. |
 | `ANTHROPIC_API_KEY` | Used by stage 01 directly and by the in-container agent via `fb_config.toml`. |
 
-## Run the pilot
+## Run a panel
 
 ```bash
 cd evals/blueprint-featurebench
@@ -79,7 +90,10 @@ $EDITOR config.toml fb_config.toml
 ```
 
 Start small. `[eval] limit = 3` for the first pass — stage 01 is the risky one
-and you want to see it work before paying for 30 tasks.
+and you want to see it work before paying for more. A panel that will be
+published takes an explicit `--task-ids-file` (`samples/`), and spans several
+images: use `run_batch.sh` (see "Running a multi-image panel") rather than the
+stage-by-stage walk below.
 
 **0. Setup**
 
@@ -89,12 +103,14 @@ bash scripts/00_setup.sh
 
 Installs `featurebench` if `fb` is missing, checks docker / `claude` /
 `ANTHROPIC_API_KEY` / config files, then pre-pulls the split's images with
-`fb pull --mode lite` (override with `SPLIT=fast bash scripts/00_setup.sh`).
+`fb pull --mode lite` — deliberately not the configured split (override with
+`SPLIT=fast bash scripts/00_setup.sh`). Do not pre-pull the whole `fast` split on a capped podman VM: its 18 images
+far exceed 93GB. `run_batch.sh` pulls and purges one image per batch.
 
 **1. Specs (Arm B pre-stage)**
 
 ```bash
-python3 scripts/01_make_specs.py
+uv run --with datasets python3 scripts/01_make_specs.py
 ```
 
 Per task: `docker create <image>` + `docker cp <cid>:/testbed` into
@@ -105,11 +121,25 @@ newest `.md` under `<workspace>/.blueprint/specs/`.
 
 Resumable — tasks with a successful `results/specs/<id>.meta.json` are skipped
 unless you pass `--force`. Other flags: `--limit N`, `--task-ids-file <file>`.
+The skip does not check how the cached spec was made: a spec written before
+the history-masking fix is reused silently. Start a new panel in a clean
+`results/`.
+
+**1b. Rebuild workspaces for restored specs**
+
+```bash
+uv run --with datasets python3 scripts/01b_rebuild_workspaces.py --task-ids-file panel.txt
+```
+
+A cached spec skips extraction, but stage 06 needs the masked workspaces.
+This does stage 01 minus the `claude -p` call, for $0 of model spend, and
+refuses to write a workspace whose mask did not apply. Use it when a panel
+reuses an archived spec set (`reports/2609_clean_paired_astropy_n5/v4/specs/`).
 
 **2. Arm B dataset**
 
 ```bash
-python3 scripts/02_make_dataset.py
+uv run --with datasets python3 scripts/02_make_dataset.py
 ```
 
 Writes `results/dataset_arm_b/` (a JSONL data file plus a `README.md` whose
@@ -121,8 +151,8 @@ is dropped from **both** arms.
 **3. Inference (both arms)**
 
 ```bash
-python3 scripts/03_infer.py --dry-run   # inspect the commands first
-python3 scripts/03_infer.py
+uv run --with datasets python3 scripts/03_infer.py --dry-run   # inspect the commands first
+uv run --with datasets python3 scripts/03_infer.py
 ```
 
 Two `fb infer` runs differing only in `--dataset` and `--output-dir`. This is
@@ -131,22 +161,22 @@ the long, expensive stage. Use `--arm A` / `--arm B` to run them separately.
 **4. Scoring (both arms, official dataset)**
 
 ```bash
-python3 scripts/04_eval.py --dry-run
-python3 scripts/04_eval.py
+uv run --with datasets python3 scripts/04_eval.py --dry-run
+uv run --with datasets python3 scripts/04_eval.py
 ```
 
 **5. Report**
 
 ```bash
-python3 scripts/05_report.py
+uv run --with datasets python3 scripts/05_report.py
 ```
 
 **6. Arm C — the `/verify` referee loop (optional)**
 
 ```bash
-python3 scripts/06_arm_c.py --stage all --arm both-c --dry-run
-python3 scripts/06_arm_c.py --stage all --arm both-c
-python3 scripts/05b_report_c.py
+uv run --with datasets python3 scripts/06_arm_c.py --stage all --arm both-c --dry-run
+uv run --with datasets python3 scripts/06_arm_c.py --stage all --arm both-c
+uv run --with datasets python3 scripts/05b_report_c.py
 ```
 
 Takes Arm B's patch, referees it host-side with headless `/verify` (static
@@ -157,11 +187,17 @@ with a generic self-review instruction instead of the verdict, so
 `report_c.md` can separate "the referee helped" from "a second iteration
 helped".
 
+Two design limits, both deliberate and both unfixed: the referee cannot run
+the suite (`prompts/verify_headless.md`), so `/verify`'s first check is never
+exercised; and round 2 starts from the pristine repository
+(`prompts/repair_instruction.md`), so C − B measures a fresh attempt rather
+than a repair. C − C0 is unaffected by either.
+
 **7. Mutation overlay — agent-written test quality (optional)**
 
 ```bash
-python3 scripts/07_mutation.py --arm both --dry-run
-python3 scripts/07_mutation.py --arm both
+uv run --with datasets python3 scripts/07_mutation.py --arm both --dry-run
+uv run --with datasets python3 scripts/07_mutation.py --arm both
 ```
 
 FeatureBench scores hidden tests only; this measures the tests the
@@ -174,8 +210,8 @@ census of cells that shipped no agent tests at all — itself signal).
 **8. Failure taxonomy (optional)**
 
 ```bash
-python3 scripts/08_taxonomy.py --dry-run
-python3 scripts/08_taxonomy.py
+uv run --with datasets python3 scripts/08_taxonomy.py --dry-run
+uv run --with datasets python3 scripts/08_taxonomy.py
 ```
 
 Classifies every unresolved (task, arm) cell as `spec_wrong` / `impl_wrong` /
@@ -186,7 +222,7 @@ Output: `results/taxonomy_report.md`. Single-LLM-rater; directional.
 **12. Doc quality — deterministic (optional, no docker, no LLM)**
 
 ```bash
-python3 scripts/12_doc_quality.py --pristine-testbed /path/to/extracted/testbed
+uv run --with datasets python3 scripts/12_doc_quality.py --pristine-testbed /path/to/extracted/testbed
 ```
 
 Scores every spec in `results/specs/` against the dataset mask: oracle
@@ -200,7 +236,7 @@ writer saw; omit the flag to skip grounding. Output:
 To validate metrics on several spec sets with known outcomes:
 
 ```bash
-python3 scripts/12_doc_quality.py --pristine-testbed … \
+uv run --with datasets python3 scripts/12_doc_quality.py --pristine-testbed … \
   --corpus "v4=reports/<run>/v4/specs:reports/<run>/v4/report.md" \
   --corpus "other=reports/<run>/other/specs:reports/<run>/other/report.md"
 ```
@@ -213,8 +249,8 @@ tasks, so pooled n is tasks × labels, not independent samples.
 **13. Doc quality — LLM judge (optional)**
 
 ```bash
-python3 scripts/13_doc_judge.py --dry-run --repeats 2
-python3 scripts/13_doc_judge.py --repeats 2
+uv run --with datasets python3 scripts/13_doc_judge.py --dry-run --repeats 2
+uv run --with datasets python3 scripts/13_doc_judge.py --repeats 2
 ```
 
 Report-only opus prompts (`prompts/judge_{fence,testability}.md`),
@@ -228,11 +264,11 @@ rewritten spec is re-judged). Output: `results/doc_judge_report.md`.
 **14. Control arms — is Arm B's lift blueprint's? (optional)**
 
 ```bash
-python3 scripts/14_control_arms.py --stage brief --parallel 3
-python3 scripts/14_control_arms.py --stage dataset
-python3 scripts/14_control_arms.py --stage infer --dry-run
-python3 scripts/14_control_arms.py --stage all
-python3 scripts/05c_report_controls.py
+uv run --with datasets python3 scripts/14_control_arms.py --stage brief --parallel 3
+uv run --with datasets python3 scripts/14_control_arms.py --stage dataset
+uv run --with datasets python3 scripts/14_control_arms.py --stage infer --dry-run
+uv run --with datasets python3 scripts/14_control_arms.py --stage all
+uv run --with datasets python3 scripts/05c_report_controls.py
 ```
 
 Two arms on the stage-01 panel, each testing a cheaper explanation for Arm
@@ -367,20 +403,24 @@ inline), producing 1/5 verdicts. The tell is `num_turns` ~5 instead of ~56.
 Both stages that shell out to `claude` set
 `CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS=0` so the CLI waits indefinitely, bounded
 instead by the harness's own `timeout_seconds`; and `prompts/verify_headless.md`
-forbids background dispatch outright. The underlying fix belongs in the plugin —
-`/verify` is affected in any headless context, not just this harness.
+forbids background dispatch outright. The plugin has since been fixed as well
+(PR #21): `/verify`'s "Running headless" section runs the referee inline when
+no human is in the loop. The harness guards stay, for older plugin builds and
+for any other skill that dispatches.
 
 ## Verifying the harness offline
 
 ```bash
-bash scripts/smoke_all.sh    # all four suites, correct deps per suite
+bash scripts/smoke_all.sh    # all seven suites, correct deps per suite
 ```
 
 Runs the whole pipeline in temp directories against fixtures — a fake
 `claude`, a fake testbed, a JSONL dataset, mock docker, and synthetic eval
 reports. Needs no real docker, no network, no `fb`, and no API key. Individual
-suites: `smoke_test.sh` (stages 00–05), `smoke_arm_c.sh`, `smoke_mutation.sh`,
-`smoke_taxonomy.sh`. Set `KEEP_TMP=1` to keep a fixture tree.
+suites: `smoke_test.sh` (stages 00–05), `smoke_arm_c.sh`, `smoke_taxonomy.sh`,
+`smoke_mutation.sh`, `smoke_costs.sh`, `smoke_controls.sh`,
+`smoke_doc_quality.sh`. Stage 01b has no suite. Set `KEEP_TMP=1` to keep a
+fixture tree.
 
 ## Oracle masking (do not skip)
 
@@ -399,9 +439,9 @@ implementation and the deleted FAIL_TO_PASS tests even after masking — and
 the 2608 specs demonstrably used it ("recoverable via `git show HEAD:…`").
 `mask_reference_solution` therefore also re-initialises git to a single
 commit of the masked tree (`_common.reinit_git`), exactly as `fb infer` does
-in the container. Every result produced before this fix (the 2608 archives
+in the container. Every result produced before this fix (both 2608 archives
 and the 2609 Ouroboros A rerun) was written with history access and is flagged as
-such in its README.
+such in its README; `../README.md` lists every report's status.
 
 ## Troubleshooting
 
