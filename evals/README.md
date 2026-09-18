@@ -11,7 +11,7 @@ cheapest first; each has its own README with the method and the traps.
 
 Only the triggering tier is a pre-PR check (see the root `CLAUDE.md`).
 
-## What stands — 2026-09-16
+## What stands — 2026-09-18
 
 Each line names the report it comes from. Every benchmark number is N=5, one
 repository (astropy), one run per arm: directional, never significant.
@@ -49,8 +49,24 @@ written; it does not steer to *correct code*. → `2609_armc_clean_astropy_n5`
 **Doc-quality metrics.** Breadth (oracle recall) and fenced ∩ oracle order
 spec versions the way pass rate does; coherence did not (ρ 0.00, ±4 between
 judge repeats) and was dropped; testability and grounding are saturated.
+Smell density — a lexical lint for the INCOSE wording rules — points the
+expected way but too weakly to use (ρ −0.34, agreement 0.62 over 13 pairs), and
+16 of 20 sampled hits (model-classified) sit in descriptive prose:
+diagnostic only.
+
+**The industry-practice `/spec` pass (unreleased).** It adds an Out of Scope
+section, INCOSE and BRIEF review rules, and a report-only evaluator.
+- Paired same-day rerun against the 4.x specs: mean 0.60 vs 0.66, resolved
+  1 vs 0.
+- The pre-registered guard rule fired on `vo`, 0.01 vs 0.39.
+- The new spec's Out of Scope section left stripped regions "untouched". The
+  agent then left an unnamed stripped module (`xml/check.py`) unwritten as
+  "out of scope". Every 4.x-spec run restored it.
+- Release is blocked. vo's own noise (0.55) means one more run is needed
+  before this is a verdict.
+→ `2609_spec_practices_paired_astropy_n5`
 Design docs have a rubric (`blueprint-featurebench/DESIGN_RUBRIC.md`) and no
-corpus. → `2609_doc_quality_validation`
+corpus. → `2609_doc_quality_validation`, `2609_smell_density_validation`
 
 **The abandoned 5.x line (Ouroboros).** Its produce → judge → revise loop
 fenced scope: spec pass rate 0.37 vs 4.0's 0.84 (below no spec, 0.42); the
@@ -80,6 +96,8 @@ retracted run stays as the record of what was retracted and why.
 | `2609_ouroboros_b_vo_probe` | 09-10 | Does the 5.1 scope fix keep stripped neighbours in scope? One task, spec only. | Clean. Abandoned line. |
 | `2609_clean_paired_astropy_n5` | 09-10 | 4.0 vs Ouroboros A vs Ouroboros B specs, history masked | Clean. Its `v4/specs/` are the spec set every later run reuses; its 0.84 headline is corrected by `2609_control_arms`. |
 | `2609_doc_quality_validation` | 09-12 | Which document metrics track pass rate? 15 specs. | **Current.** |
+| `2609_spec_practices_paired_astropy_n5` | 09-18 | Does the industry-practice `/spec` (Out of Scope section) make the agent build less than the 4.x spec? Pre-registered. | **Current** — rule 1 fired on `vo`; release blocked. |
+| `2609_smell_density_validation` | 09-18 | Does a lexical INCOSE-rule smell count track pass rate? Same 15 specs, $0. | **Current** — diagnostic only. |
 | `2609_control_arms_astropy_n5` | 09-16 | Is B's lift blueprint's, or any document's? Pinned agent. Pre-registered. | **Current** — the plugin README's benchmark numbers. |
 | `2609_armc_clean_astropy_n5` | 09-16 | Does the referee beat a generic self-review? Pre-registered + post-hoc audit. | **Current** — the first clean referee measurement. |
 

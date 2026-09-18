@@ -19,6 +19,14 @@ Numbers per spec, none of them from an LLM:
   design, which this metric cannot tell apart; treat it as diagnostic.
   Test paths are skipped: the spec is expected to name test files it wants
   created.
+- **smell density** — requirements smells (Femmer et al. 2017) per 100 prose
+  words, by word list, for the INCOSE GtWR v4 rules a word list can detect:
+  hedges, R7 vague terms, R8 escape clauses, R9 open-ended clauses, R26
+  absolutes. R16 ("not") and R24 (pronouns) need the sentence read, so they
+  are counted per class but kept out of the density. The word lists are
+  ours, seeded from those rules; Femmer reports ~0.5 precision for this kind
+  of detector. Measured on the 15-spec corpus (ρ −0.34, agreement 0.62):
+  diagnostic only — reports/2609_smell_density_validation/.
 
 `--corpus label=dir[:report.md]` scores several spec directories side by side
 and joins each to its paired report's B pass_rate. The report then shows each
@@ -59,6 +67,25 @@ FENCE_LINE_RE = re.compile(
     r"must not (?:implement|modify|touch|restore)|leave\b.*\buntouched|not (?:part of|covered by) this spec",
     re.I,
 )
+SMELL_CLASSES: dict[str, re.Pattern[str]] = {
+    "escape": re.compile(
+        r"\b(?:where|when|if|as far as|as much as) (?:possible|practical|practicable|appropriate|necessary|needed)\b|"
+        r"\bas (?:appropriate|required|needed)\b|\bto the extent (?:possible|practical|necessary)\b",
+        re.I,
+    ),
+    "open_ended": re.compile(r"\b(?:including )?but not limited to\b|\betc\b\.?|\band so (?:on|forth)\b|\band the like\b", re.I),
+    "hedge": re.compile(r"\b(?:should|might|ideally|preferably|possibly)\b", re.I),
+    "vague": re.compile(
+        r"\b(?:adequate(?:ly)?|appropriate(?:ly)?|reasonabl[ey]|sufficient(?:ly)?|significant(?:ly)?|"
+        r"efficient(?:ly)?|user-friendly|easy|easily|fast|quick(?:ly)?|flexible|robust|seamless(?:ly)?|"
+        r"graceful(?:ly)?|properly|correctly|suitable|several|various|numerous|large|minimal|optimal)\b",
+        re.I,
+    ),
+    "absolute": re.compile(r"\b(?:always|never|completely|entirely|totally)\b|\b100 ?%", re.I),
+    "negation": re.compile(r"\bnot\b|n't\b", re.I),
+    "pronoun": re.compile(r"\b(?:it|they|them|this|these|those)\b", re.I),
+}
+SENTENCE_LEVEL_SMELLS = {"negation", "pronoun"}
 COMMON_WORDS = {
     "true", "false", "none", "self", "cls", "the", "and", "for", "not", "with",
     "int", "str", "float", "bool", "list", "dict", "tuple", "set", "bytes", "object",
@@ -130,6 +157,19 @@ def prose_lines(spec: str) -> Iterable[tuple[str, bool]]:
             yield line, bool(HEADING_RE.match(line))
 
 
+def smells(spec: str) -> tuple[dict[str, int], int]:
+    """Per-class smell counts and word count over prose: no code blocks, no
+    headings, no inline code. Classes are matched in order and each match is
+    blanked, so "as appropriate" is one escape clause, not also a vague term."""
+    text = "\n".join(BACKTICK_RE.sub(" ", line) for line, is_heading in prose_lines(spec) if not is_heading)
+    words = len(re.findall(r"[A-Za-z][\w'-]*", text))
+    counts: dict[str, int] = {}
+    for name, pattern in SMELL_CLASSES.items():
+        counts[name] = len(pattern.findall(text))
+        text = pattern.sub(" ", text)
+    return counts, words
+
+
 def fenced_symbols(spec: str, oracle_symbols: set[str]) -> list[str]:
     fenced: set[str] = set()
     fence_level = 0
@@ -197,6 +237,8 @@ def score_spec(task_id: str, spec: str, oracle: Oracle, ws: Workspace | None) ->
     fenced = fenced_symbols(spec, syms)
     hit_files = {f for f in oracle.files if f in spec}
     paths, idents = named_items(spec)
+    smell_counts, prose_words = smells(spec)
+    lexical_smells = sum(n for k, n in smell_counts.items() if k not in SENTENCE_LEVEL_SMELLS)
 
     grounding: float | None = None
     ungrounded: list[str] = []
@@ -219,6 +261,9 @@ def score_spec(task_id: str, spec: str, oracle: Oracle, ws: Workspace | None) ->
         "grounding_precision": grounding,
         "n_named": len(paths) + len(idents),
         "ungrounded": ungrounded,
+        "prose_words": prose_words,
+        "smell_counts": smell_counts,
+        "smell_density": round(100 * lexical_smells / prose_words, 2) if prose_words else None,
     }
 
 
@@ -298,6 +343,7 @@ DIRECTION_KEYS: dict[str, Direction] = {
     "file_recall": (lambda r: r["file_recall"], 1),
     "fenced∩oracle": (lambda r: len(r["fenced_oracle_symbols"]), -1),
     "grounding_precision": (lambda r: r["grounding_precision"], 1),
+    "smell_density": (lambda r: r["smell_density"], -1),
     "spec_lines": (lambda r: r["spec_lines"], 0),
 }
 
@@ -330,10 +376,11 @@ def render(groups: dict[str, list[dict[str, Any]]], joined: bool) -> str:
         "code context; effective recall excludes symbols the spec fences off. Fenced = oracle symbols "
         "under an out-of-scope heading or in a do-not-touch sentence (heuristic; stage 13 has the LLM "
         "listing). Grounding = share of named files/identifiers that exist in the masked workspace "
-        "or are oracle symbols."
+        "or are oracle symbols. Smells = hedges, vague terms, escape and open-ended clauses, absolutes per "
+        "100 prose words (word lists; diagnostic only)."
     )
     lines.append("")
-    hdr = "| label | task | lines | oracle syms | symbol recall | effective recall | file recall | fenced∩oracle | grounding |"
+    hdr = "| label | task | lines | oracle syms | symbol recall | effective recall | file recall | fenced∩oracle | grounding | smells/100w |"
     if joined:
         hdr += " B pass_rate |"
     lines += [hdr, "|" + "---|" * (hdr.count("|") - 1)]
@@ -343,14 +390,14 @@ def render(groups: dict[str, list[dict[str, Any]]], joined: bool) -> str:
                 label, f"`{short_id(r['task_id'])}`", str(r["spec_lines"]), str(r["n_oracle_symbols"]),
                 fmt(r["symbol_recall"]), fmt(r["effective_recall"]), fmt(r["file_recall"]),
                 f"{len(r['fenced_oracle_symbols'])} {r['fenced_oracle_symbols'] or ''}".strip(),
-                fmt(r["grounding_precision"]),
+                fmt(r["grounding_precision"]), fmt(r["smell_density"]),
             ]
             if joined:
                 cells.append(fmt(r.get("pass_rate")))
             lines.append("| " + " | ".join(cells) + " |")
 
     lines += ["", "## Per-label means", ""]
-    hdr = "| label | n | symbol recall | effective recall | file recall | fenced∩oracle (sum) | grounding |" + (" B pass_rate |" if joined else "")
+    hdr = "| label | n | symbol recall | effective recall | file recall | fenced∩oracle (sum) | grounding | smells/100w |" + (" B pass_rate |" if joined else "")
     lines += [hdr, "|" + "---|" * (hdr.count("|") - 1)]
     for label, rows in groups.items():
         cells = [
@@ -358,7 +405,7 @@ def render(groups: dict[str, list[dict[str, Any]]], joined: bool) -> str:
             fmt(mean(r["symbol_recall"] for r in rows)), fmt(mean(r["effective_recall"] for r in rows)),
             fmt(mean(r["file_recall"] for r in rows)),
             str(sum(len(r["fenced_oracle_symbols"]) for r in rows)),
-            fmt(mean(r["grounding_precision"] for r in rows)),
+            fmt(mean(r["grounding_precision"] for r in rows)), fmt(mean(r["smell_density"] for r in rows)),
         ]
         if joined:
             cells.append(fmt(mean(r.get("pass_rate") for r in rows)))

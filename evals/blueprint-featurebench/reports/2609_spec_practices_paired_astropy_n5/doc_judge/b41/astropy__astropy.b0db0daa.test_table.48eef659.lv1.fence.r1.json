@@ -1,0 +1,214 @@
+{
+  "model": "claude-opus-5",
+  "claude_args": [
+    "--tools",
+    ""
+  ],
+  "spec_sha256": "d3fe49dcc26e24879c371909593c8af24a890f9f642fc96632647c652caca4a6",
+  "prompt_sha256": "fc9fe9469e188da02747b90f53674c3078929f74c36ec208b3c7a673290ed327",
+  "cost_usd": 0.465952,
+  "wall_seconds": 48.37,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 26756,
+    "cache_read_input_tokens": 88066,
+    "output_tokens": 5461,
+    "output_tokens_details": {
+      "thinking_tokens": 2770
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 26756,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 5461,
+        "cache_read_input_tokens": 88066,
+        "cache_creation_input_tokens": 26756,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 26756
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "ok": true,
+  "error": null,
+  "result": {
+    "fenced": [
+      {
+        "symbol": "concatenate",
+        "strength": "hard",
+        "quote": "Do not modify any existing call site \u2014 `concatenate`, `choose`, `select`, `quantile`, `nanmedian`, `Table.__init__`"
+      },
+      {
+        "symbol": "choose",
+        "strength": "hard",
+        "quote": "Do not modify any existing call site \u2014 `concatenate`, `choose`, `select`, `quantile`, `nanmedian`"
+      },
+      {
+        "symbol": "select",
+        "strength": "hard",
+        "quote": "Do not modify any existing call site \u2014 `concatenate`, `choose`, `select`, `quantile`, `nanmedian`"
+      },
+      {
+        "symbol": "quantile",
+        "strength": "hard",
+        "quote": "Do not modify any existing call site \u2014 `concatenate`, `choose`, `select`, `quantile`, `nanmedian`"
+      },
+      {
+        "symbol": "nanquantile",
+        "strength": "hard",
+        "quote": "the `quantile`/`nanquantile` helper (853 ...) ... Every one of those call sites is already implemented and must not be changed"
+      },
+      {
+        "symbol": "nanmedian",
+        "strength": "hard",
+        "quote": "Do not modify any existing call site \u2014 `concatenate`, `choose`, `select`, `quantile`, `nanmedian`"
+      },
+      {
+        "symbol": "Table.__init__",
+        "strength": "hard",
+        "quote": "Do not modify any existing call site \u2014 ... `Table.__init__`, `add_columns`, `__setitem__`, `UnicodeChar.__init__`"
+      },
+      {
+        "symbol": "Table.add_columns",
+        "strength": "hard",
+        "quote": "Do not modify any existing call site \u2014 ... `Table.__init__`, `add_columns`, `__setitem__`, `UnicodeChar.__init__`"
+      },
+      {
+        "symbol": "Table.__setitem__",
+        "strength": "hard",
+        "quote": "Do not modify any existing call site \u2014 ... `Table.__init__`, `add_columns`, `__setitem__`, `UnicodeChar.__init__`"
+      },
+      {
+        "symbol": "UnicodeChar.__init__",
+        "strength": "hard",
+        "quote": "Do not modify any existing call site \u2014 ... `add_columns`, `__setitem__`, `UnicodeChar.__init__` and friends already work"
+      },
+      {
+        "symbol": "nanvar",
+        "strength": "hard",
+        "quote": "Called from ~25 sites, e.g. `nanvar` (281) ... Every one of those call sites is already implemented and must not be changed"
+      },
+      {
+        "symbol": "nanstd",
+        "strength": "hard",
+        "quote": "`nanstd` (293) ... Every one of those call sites is already implemented and must not be changed"
+      },
+      {
+        "symbol": "histogram",
+        "strength": "hard",
+        "quote": "`histogram` (1000) ... Every one of those call sites is already implemented and must not be changed"
+      },
+      {
+        "symbol": "histogramdd",
+        "strength": "hard",
+        "quote": "`histogramdd` (1100) ... Every one of those call sites is already implemented and must not be changed"
+      },
+      {
+        "symbol": "diff",
+        "strength": "hard",
+        "quote": "`diff`/`ediff1d` (1134\u20131144) ... Every one of those call sites is already implemented and must not be changed"
+      },
+      {
+        "symbol": "ediff1d",
+        "strength": "hard",
+        "quote": "`diff`/`ediff1d` (1134\u20131144) ... Every one of those call sites is already implemented and must not be changed"
+      },
+      {
+        "symbol": "piecewise",
+        "strength": "hard",
+        "quote": "`piecewise` (783) ... Every one of those call sites is already implemented and must not be changed"
+      },
+      {
+        "symbol": "append",
+        "strength": "hard",
+        "quote": "`append` (792, with `unit_from_first=True`) ... Every one of those call sites ... must not be changed"
+      },
+      {
+        "symbol": "insert",
+        "strength": "hard",
+        "quote": "`insert` (803, `unit_from_first=True`) ... Every one of those call sites ... must not be changed"
+      },
+      {
+        "symbol": "isclose",
+        "strength": "hard",
+        "quote": "`isclose`/`allclose` (881) ... Every one of those call sites is already implemented and must not be changed"
+      },
+      {
+        "symbol": "allclose",
+        "strength": "hard",
+        "quote": "`isclose`/`allclose` (881) ... Every one of those call sites is already implemented and must not be changed"
+      },
+      {
+        "symbol": "histogram2d",
+        "strength": "hard",
+        "quote": "`histogram2d` (974, `unit_from_first=True`) ... Every one of those call sites ... must not be changed"
+      },
+      {
+        "symbol": "linspace",
+        "strength": "hard",
+        "quote": "`linspace` (1187) ... Every one of those call sites is already implemented and must not be changed"
+      },
+      {
+        "symbol": "interp",
+        "strength": "hard",
+        "quote": "`interp` (1195) ... Every one of those call sites is already implemented and must not be changed"
+      },
+      {
+        "symbol": "_make_masked_array",
+        "strength": "hard",
+        "quote": "`_make_masked_array`, `bitarray_to_bool`, `bool_to_bitarray` ... are **not** part of this spec's contract (out of scope)"
+      },
+      {
+        "symbol": "bitarray_to_bool",
+        "strength": "hard",
+        "quote": "`_make_masked_array`, `bitarray_to_bool`, `bool_to_bitarray` ... are **not** part of this spec's contract (out of scope)"
+      },
+      {
+        "symbol": "bool_to_bitarray",
+        "strength": "hard",
+        "quote": "`_make_masked_array`, `bitarray_to_bool`, `bool_to_bitarray` ... are **not** part of this spec's contract (out of scope)"
+      },
+      {
+        "symbol": "TableElement._parse_binary",
+        "strength": "hard",
+        "quote": "`TableElement._parse_binary(mode, iterator, colnumbers, config, pos)` ... are **not** part of this spec's contract"
+      },
+      {
+        "symbol": "TableElement._write_binary",
+        "strength": "hard",
+        "quote": "`TableElement._write_binary(mode, w, **kwargs)` ... are **not** part of this spec's contract (out of scope)"
+      },
+      {
+        "symbol": "TableElement._resize_strategy",
+        "strength": "hard",
+        "quote": "`TableElement._resize_strategy(alloc_rows)` ... are **not** part of this spec's contract (out of scope)"
+      },
+      {
+        "symbol": "test_converters",
+        "strength": "hard",
+        "quote": "There is no `astropy/io/votable/tests/test_table.py` and no `test_converters.py`; do not invent them."
+      },
+      {
+        "symbol": "test_table",
+        "strength": "hard",
+        "quote": "There is no `astropy/io/votable/tests/test_table.py` and no `test_converters.py`; do not invent them."
+      }
+    ]
+  },
+  "label": "b41",
+  "instance_id": "astropy__astropy.b0db0daa.test_table.48eef659.lv1",
+  "metric": "fence",
+  "repeat": 1
+}

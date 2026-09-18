@@ -1,0 +1,206 @@
+diff --git a/plugins/blueprint/CHANGELOG.md b/plugins/blueprint/CHANGELOG.md
+index 76f453e..03ad632 100644
+--- a/plugins/blueprint/CHANGELOG.md
++++ b/plugins/blueprint/CHANGELOG.md
+@@ -6,6 +6,38 @@ versions follow SemVer.
+ 
+ ## [Unreleased]
+ 
++### Changed
++
++- **Spec review uses named industry rules.** `references/review-spec.md`
++  now uses these practices in place of its ad hoc checklist:
++  - **Phase 3:** Rose & Nagy's BRIEF checks for scenarios (real data, one
++    rule per scenario, five lines or fewer, essential, intention-revealing),
++    Cucumber's "Then on observable output", and EARS's unwanted-behaviour
++    shape for error scenarios.
++  - **Phase 4:** the INCOSE *Guide to Writing Requirements* v4 wording rules
++    (R7 vague terms, R8 escape clauses, R9 open-ended clauses, R16 "not",
++    R24 pronouns, R26 absolutes) and its set-level characteristics (C10
++    Complete, C11 Consistent, C13 Comprehensible).
++  - A new **Sources** section cites each one.
++- **Specs get an Out of Scope section.** It comes with a guard: the
++  prerequisites of an in-scope scenario are never out of scope.
++  `review-spec.md` Phase 4 checks for fences that contradict a scenario.
++- **The spec evaluator never fixes scope or wording-rule hits on its own.**
++  - A fence on a prerequisite always goes to Needs Human Input. The evaluator
++    never adds to, extends or narrows Out of Scope.
++  - Hits from the new wording rules and BRIEF checks are reported under a new
++    *Wording Findings* section and left unapplied.
++  - Needs Human Input is capped at five questions, ranked by impact ×
++    uncertainty, following Spec Kit's clarify step. The rest are listed as
++    Deferred.
++  - Why: the abandoned 5.x line regressed by letting its evaluator narrow
++    scope. On the benchmark's `lombscargle` task, specs that fenced the
++    stripped `get_unit`/`strip_units` helpers scored 0.03 against 0.96 for
++    the spec that kept them in scope (`evals/blueprint-featurebench/reports/2609_doc_quality_validation/`).
++- **Not yet measured downstream.** The Out of Scope section changes what
++  `/spec` produces. A paired benchmark rerun (Arm B on the pinned astropy
++  panel) is pending before release.
++
+ ### Removed
+ 
+ - **`references/eval-methodology.md`.** 13.5KB shipped to every user,
+@@ -64,6 +96,12 @@ versions follow SemVer.
+   one of five. The README now shows only the latest numbers; superseded
+   claims moved to an HTML comment in its source.
+   `evals/blueprint-featurebench/reports/2609_armc_clean_astropy_n5/`.
++- **Smell density added to the doc-quality stage, not validated
++  (2026-09-18).** This lexical lint for the INCOSE rules points the expected
++  way, but too weakly to use: ρ −0.34, within-task agreement 0.62 over 13
++  pairs. In a 20-hit sample classified by Claude (not a human rating), 16
++  were in descriptive prose, not requirements. It is diagnostic only.
++  `evals/blueprint-featurebench/reports/2609_smell_density_validation/`.
+ 
+ ## [4.1.0] — 2026-09-14
+ 
+diff --git a/plugins/blueprint/agents/spec-evaluator.md b/plugins/blueprint/agents/spec-evaluator.md
+index d15999e..0fa5c50 100644
+--- a/plugins/blueprint/agents/spec-evaluator.md
++++ b/plugins/blueprint/agents/spec-evaluator.md
+@@ -39,6 +39,11 @@ Edit the spec file directly. Examples:
+ 
+ After fixing, re-run the review on the updated spec. Repeat until no more autonomous fixes remain.
+ 
++Only the kinds of fix listed above are autonomous. The two wording fixes ("handles errors gracefully", ambiguous language) apply only when the sentence has no assertable outcome — nothing a test could check. A smell word inside a sentence that is already assertable ("must never raise") is a Wording Finding, not a fix. Two kinds of finding are never autonomous:
++
++- **Wording rules and BRIEF checks** (Phase 4 R-rules, Phase 3 BRIEF) that the list above doesn't already cover — report them under *Wording Findings*, don't apply them. As a class they run at about half precision; the author decides.
++- **Fences that contradict scenarios** (Phase 4) — always Needs Human Input. Never add to, extend, or narrow the Out of Scope section, and never add or remove a "do not implement / modify / restore" sentence. Scope is the author's call, and a fence on a prerequisite is the failure this plugin's benchmark measured.
++
+ ### No — collect for the human
+ 
+ These findings require a decision, clarification, or domain knowledge:
+@@ -58,8 +63,14 @@ When the fix loop stops, return:
+ 
+ ### Needs Human Input
+ - Only items you could NOT resolve. Each is a question, not a statement.
++- At most **5**, ranked by impact × uncertainty. Rank first the questions whose answer would change an acceptance scenario — the ones that prevent a misaligned test.
++- Anything past five goes under **Deferred (N)**, one line each.
+ - If none: "No unresolved items. Ready for handoff."
+ 
++### Wording Findings
++- Report-only hits from the wording rules and BRIEF checks: rule (e.g. R8, BRIEF Focused), the quote, a suggested rewrite. Not applied.
++- If none: "None."
++
+ ### Verdict
+ - **Overall testability:** High / Medium / Low
+ - **Ready for handoff:** Yes / Yes, after resolving the above — i.e., is this a self-contained, referee-able contract a coding agent could build against and `/verify` could check?
+diff --git a/plugins/blueprint/references/review-spec.md b/plugins/blueprint/references/review-spec.md
+index 4516874..5b4b7ce 100644
+--- a/plugins/blueprint/references/review-spec.md
++++ b/plugins/blueprint/references/review-spec.md
+@@ -4,7 +4,7 @@ Review a technical spec for structural completeness, testability, and clarity. A
+ 
+ ## Phase 1 — Structural Completeness
+ 
+-Check the spec against the standard template sections (Context, Motivation, Proposed Solution, Interface Contract, Acceptance Scenarios, For the Implementing Agent, Definition of Done, Alternatives Considered, Trade-offs and Limitations, Open Questions). Report a table of present/missing sections with assessment notes. If the spec uses a non-standard structure, adapt — focus on content presence, not heading names.
++Check the spec against the standard template sections (Context, Motivation, Proposed Solution, Interface Contract, Out of Scope, Acceptance Scenarios, For the Implementing Agent, Definition of Done, Alternatives Considered, Trade-offs and Limitations, Open Questions). Report a table of present/missing sections with assessment notes. If the spec uses a non-standard structure, adapt — focus on content presence, not heading names.
+ 
+ Because the spec is the **executable contract handed to a coding agent**, treat these three as load-bearing, not optional polish:
+ 
+@@ -51,7 +51,16 @@ The highest-value phase. For each requirement or behavior in the spec, evaluate
+ If the spec includes Acceptance Scenarios, audit them:
+ 
+ 1. **Coverage check** — Map each behavior from Proposed Solution to at least one scenario. Flag behaviors without scenarios.
+-2. **Scenario quality** — Each scenario should follow Given/When/Then and describe observable behavior. Flag scenarios that assert implementation details (method calls, internal state, call order).
++2. **Scenario quality** — Each scenario should follow Given/When/Then and describe observable behavior. Flag scenarios that assert implementation details (method calls, internal state, call order). The *Then* belongs on "an observable output… not a behaviour deeply buried inside the system (like a record in a database)" (Cucumber). Apply the BRIEF checks (Rose & Nagy):
++   - **Real data** — concrete values that reveal the rule, not placeholders.
++     - Good: "Given a coupon that expired on 2026-01-31, when it is applied on 2026-02-01, then the order is rejected with `COUPON_EXPIRED`"
++     - Bad: "Given an invalid coupon, when it is applied, then an error occurs"
++   - **Focused** — one rule per scenario. A scenario that proves two rules fails for two reasons and names neither; split it.
++   - **Brief** — five lines or fewer; Gherkin's guide is 3–5 steps. A longer scenario usually carries incidental setup.
++   - **Essential** — drop details that don't illustrate the rule.
++   - **Business language, intention-revealing** — domain terms, not the mechanics of reaching the outcome.
++
++   For error scenarios, EARS's unwanted-behaviour pattern is a useful check on shape: "**If** {trigger}, **then** the {system} shall {response}" — a trigger with no stated response is an unfinished scenario.
+ 3. **Missing edge cases** — Check for common gaps:
+    - Empty/null/missing inputs
+    - Boundary values (0, 1, max)
+@@ -65,13 +74,40 @@ If no Acceptance Scenarios section exists, flag this as a critical gap.
+ 
+ ## Phase 4 — Ambiguity and Contradiction Detection
+ 
+-Scan for:
++### Requirement wording
+ 
+-- **Ambiguous language** — "should", "might", "ideally", "as appropriate", "etc." — these create undefined behavior that leads to undertested code
+-- **Contradictions** — Two sections that imply different behavior for the same scenario
+-- **Implicit requirements** — Behaviors implied by the design but never stated (e.g., creation described but duplicate creation unaddressed)
+-- **Missing error handling** — Happy path described but failure modes absent
++Scan requirements and scenarios for the INCOSE *Guide to Writing Requirements* (v4) rules below. Each is a requirements smell in Femmer et al.'s sense — "an indicator of a quality violation, which may lead to a defect" — not a defect by itself. Automated detection of these smells runs at roughly 0.5 precision (Femmer et al. 2017, 0.48 overall), so treat every hit as a candidate: it is a finding only if two competent implementers could build different behavior from the sentence, or a test could not assert it.
++
++- **Hedged obligation** — "should", "might", "ideally", "could". Leaves the behavior optional.
++- **R7 Vague terms** — "adequate", "appropriate", "reasonable", "fast", "user-friendly", "some", "several", "large".
++  - Good: "Returns within 200 ms for a 10,000-row table"
++  - Bad: "Returns quickly for large tables"
++- **R8 Escape clauses** — "where possible", "if practical", "as appropriate", "as required", "to the extent necessary". The sentence exempts itself.
++- **R9 Open-ended clauses** — "including but not limited to", "etc.", "and so on". The set a test must cover is unbounded.
++- **R16 Use of "not"** — a requirement stated only as what the system doesn't do has no pass condition.
++  - Good: "After a failed import, the table's row count and contents are unchanged"
++  - Bad: "A failed import does not corrupt the table"
++- **R24 Pronouns** — "it", "this", "they" whose referent is ambiguous across sentences. Repeat the noun.
++- **R26 Absolutes** — "always", "never", "all", "100%" — unverifiable or unachievable unless bounded ("for every row in the input", "for inputs up to 2^31").
++
++### The requirement set
++
++INCOSE's set-level characteristics — C10 Complete, C11 Consistent, C13 Comprehensible — applied across sections:
++
++- **Contradictions (C11)** — Two sections that imply different behavior for the same scenario.
++- **Terminology drift (C13, R4 Defined Terms)** — one concept named two ways, or one name used for two concepts.
++- **Implicit requirements (C10)** — Behaviors implied by the design but never stated (e.g., creation described but duplicate creation unaddressed).
++- **Missing error handling (C10)** — Happy path described but failure modes absent.
++- **Fences that contradict scenarios (C11)** — anything the spec puts out of scope (the Out of Scope section, or a "do not implement / modify / restore" sentence anywhere) that an in-scope scenario needs: a function it calls, a module it imports, a helper the behavior depends on. The prerequisites of an in-scope scenario are never out of scope. Report every such conflict with both quotes. Resolving it is a scope decision — never fence or unfence to make the review pass. This is the failure blueprint's own benchmark measured: on the same task, the spec that kept the stripped `get_unit`/`strip_units` helpers in scope scored 0.96 and the specs that fenced them scored 0.03 (`evals/blueprint-featurebench/reports/2609_doc_quality_validation/`, `lombscargle_multiband`).
+ 
+ ## Phase 5 — Spec Summary
+ 
+ Output: overall testability (High/Medium/Low), critical issues blocking downstream work, improvement suggestions, and a **Ready for handoff** verdict (Yes/No with conditions) — i.e., is this a self-contained, referee-able contract a coding agent could build against and `/verify` could check?
++
++## Sources
++
++- INCOSE, *Guide to Writing Requirements*, v4 (INCOSE-TP-2010-006-04, 2023) — characteristics C1–C15 and rules R1–R42; summary sheet: https://www.incose.org/docs/default-source/working-groups/requirements-wg/guidetowritingrequirements/incose_rwg_gtwr_v4_summary_sheet.pdf
++- Femmer et al., "Rapid quality assurance with Requirements Smells", *JSS* 123 (2017) — https://arxiv.org/abs/1611.08847
++- Mavin et al., "Easy Approach to Requirements Syntax (EARS)", RE'09 — https://alistairmavin.com/ears/
++- Rose, "Keep your scenarios BRIEF" (2019) — https://cucumber.io/blog/bdd/keep-your-scenarios-brief/
++- Cucumber, Gherkin reference — https://cucumber.io/docs/gherkin/reference/
+diff --git a/plugins/blueprint/skills/spec/SKILL.md b/plugins/blueprint/skills/spec/SKILL.md
+index 54897ad..192d48b 100644
+--- a/plugins/blueprint/skills/spec/SKILL.md
++++ b/plugins/blueprint/skills/spec/SKILL.md
+@@ -125,6 +125,12 @@ Use the template below. Omit sections that the Section Guide marks as skippable
+ {example API signature, error codes, or config snippet}
+ ```
+ 
++## Out of Scope
++
++{Behaviors a reader could reasonably expect from this change that it deliberately does not deliver, each with a one-line reason. **Never list a prerequisite of an in-scope scenario** — a function a scenario calls, a module it imports, a helper the behavior depends on, or code that must be restored for a scenario to pass. If the implementing agent needs it to make a scenario pass, it is in scope.}
++
++- {Excluded behavior} — {why}
++
+ ## Alternatives Considered
+ 
+ ### {Alternative 1 name}
+@@ -157,7 +163,7 @@ Use the template below. Omit sections that the Section Guide marks as skippable
+ 
+ {Concrete behavioral scenarios that define what "done" looks like. Each scenario MUST be verifiable without knowledge of internals. These are the contract the implementing agent builds against and the baseline `/verify` checks coverage and non-vacuity against — use the structured format below.}
+ 
+-{Each scenario gets a sequential ID (S1, S2, ...) so `/verify` can reference them in its coverage matrix.}
++{Each scenario gets a sequential ID (S1, S2, ...) so `/verify` can reference them in its coverage matrix. Keep each one BRIEF: one rule per scenario, concrete values rather than placeholders, five lines or fewer.}
+ 
+ ### Happy Path
+ - **S1:** Given {precondition}, when {action}, then {expected outcome}
+@@ -216,6 +222,7 @@ Done is when `/verify` passes against this spec:
+ | Motivation | Justify the work | Never |
+ | Proposed Solution | The actual design | Never |
+ | Interface Contract | The API/error/breaking-change surface the agent must honor | No public surface (purely internal change) |
++| Out of Scope | Stop the agent building adjacent behavior nobody asked for — never its prerequisites | Nothing adjacent that a reader would expect |
+ | Acceptance Scenarios | The behavioral contract the agent builds against | Never — this is what `/verify` checks |
+ | For the Implementing Agent | The build instruction + test-quality principles | Never — this is what makes the spec executable |
+ | Definition of Done | The `/verify` pass criteria, restated as a checklist | Never |
+@@ -231,6 +238,7 @@ Done is when `/verify` passes against this spec:
+ - **Be concrete** — use real file paths, function names, and data shapes from the codebase where possible
+ - **Right-size the doc** — a small feature (1-3 files) needs ~200-500 words; a cross-cutting change needs 1000+ words with data flow and migration details. Use the Section Guide to decide what to skip
+ - **Write testable requirements** — every behavior in the Proposed Solution should appear as an Acceptance Scenario. Beck's principle: scenarios describe observable behaviors (Given/When/Then), not implementation steps
++- **Word requirements so they have one reading** — no hedges ("should", "ideally"), vague terms ("fast", "appropriate"), escape clauses ("where possible"), open-ended lists ("etc."), or requirements stated only as what the system doesn't do. These are INCOSE *Guide to Writing Requirements* rules; `references/review-spec.md` Phase 4 has the list the evaluator checks against
+ - **No implementation code** — use pseudo-code or interface signatures, not copy-pasteable implementations. The spec says *what* and *what done looks like*; the implementing agent decides *how*
+ - **The spec must be self-contained for handoff** — an agent that has only this file (plus the linked design) should be able to build and self-check. If a scenario can't be turned into a test that fails when the behavior breaks, it isn't done being specified
+ - **Status values:** `draft` -> `accepted` -> `implemented` -> `superseded`

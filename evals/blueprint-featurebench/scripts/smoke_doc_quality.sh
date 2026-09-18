@@ -8,7 +8,9 @@
 # (an "Out of scope" heading fences, a "Companion gaps" heading with an
 # in-scope line does not, a code-block comment never does); grounding
 # against a re-masked workspace (hallucinated path counted, test paths and
-# oracle symbols not counted); corpus mode joined to a report.md whose A
+# oracle symbols not counted); smell density over prose only (hedge, vague,
+# escape, open-ended counted once each; inline code never; negation and
+# pronouns counted but outside the density); corpus mode joined to a report.md whose A
 # column is "—"; direction table; stage 13 blind args, cell caching, stale
 # fingerprint re-judging, and summary tables via a mock judge.
 set -euo pipefail
@@ -85,6 +87,7 @@ cat > "$EV/specs_x/acme__t1.lv1.md" <<'MD'
 # Spec X
 
 Restore `alpha` in `pkg/mod.py`. Reuse `kept`. The Beta class is context.
+The loader should handle large inputs gracefully, as appropriate, etc.
 Write tests in `pkg/tests/test_new.py` and `tests/test_top.py`. See `pkg/ghost.py`.
 
 ## Out of scope
@@ -100,7 +103,7 @@ MD
 cat > "$EV/specs_y/acme__t1.lv1.md" <<'MD'
 # Spec Y
 
-Restore `alpha`, `Beta` and `Beta.gamma` in `pkg/mod.py`.
+Restore `alpha`, `Beta` and `Beta.gamma` in `pkg/mod.py`. Keep `fast_path(etc)` as is.
 
 ## Companion gaps found during review
 
@@ -137,10 +140,14 @@ assert y["fenced_oracle_symbols"] == [], y["fenced_oracle_symbols"]
 assert x["file_recall"] == 1.0 and y["file_recall"] == 1.0
 assert x["ungrounded"] == ["pkg/ghost.py"], x["ungrounded"]
 assert x["pass_rate"] == 0.40 and y["pass_rate"] == 0.90
+sx, sy = x["smell_counts"], y["smell_counts"]
+assert sx == {"escape": 1, "open_ended": 1, "hedge": 1, "vague": 2, "absolute": 0, "negation": 1, "pronoun": 1}, sx
+assert sum(sy.values()) == 0, sy
+assert x["smell_density"] == round(100 * 5 / x["prose_words"], 2) and y["smell_density"] == 0.0, (x["smell_density"], y["smell_density"])
 md = (ev / "results/doc_quality_report.md").read_text()
 assert "1 tasks × 2 labels" in md and "within-task agreement" in md and "| x | 1 |" in md and "ledger" not in md
 PY
-pass "stage 12: oracle, recall in code context, effective recall, fence heuristic, grounding, corpus join"
+pass "stage 12: oracle, recall in code context, effective recall, fence heuristic, grounding, smell density, corpus join"
 
 # ---------------------------------------------------------------- stage 13 (mock claude)
 MOCK="$TMP/claude"
