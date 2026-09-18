@@ -8,6 +8,15 @@ versions follow SemVer.
 
 ### Removed
 
+- **`evals/`, the triggering suite.** It was retired on 2026-09-18 together
+  with every other evaluation tier in the repo: the FeatureBench benchmark
+  and transcript analysis. The benchmark's headline number measured how
+  well a spec finds code the benchmark had stripped out, not what a design
+  doc or a spec is for. It pulled the plugin toward maximal scope three
+  times. What v1 tried and the lessons for the next pipeline:
+  `docs/designs/2609.0005_eval_v1_post_mortem.md`. The code and reports are
+  at git tag `archive/evals-v1`. The README's Benchmark section is replaced
+  by a pointer; its last numbers stay in the source as an HTML comment.
 - **`references/eval-methodology.md`.** 13.5KB shipped to every user,
   describing the *manual* v3.3.1 → v3.4.0 comparison from May 2026: two
   config dirs, two tmux windows, a hand-written hidden oracle per task.

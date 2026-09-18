@@ -1,7 +1,0 @@
-C test_table: 4 test file(s), 21 added test fns: ['astropy/io/votable/tests/test_converter.py', 'astropy/io/votable/tests/test_tree.py', 'astropy/table/tests/test_init_table.py', 'astropy/units/tests/test_quantity_non_ufuncs.py']
-restore: restored
-apply: APPLIED
-pytest rc=0
-Internet access disabled
-......................                                                   [100%]
-22 passed, 854 deselected in 0.64s

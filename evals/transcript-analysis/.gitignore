@@ -1,6 +1,0 @@
-# Script output carries absolute paths and branch names from whatever
-# transcripts it was pointed at — usually unrelated private repositories.
-# This is a public repo. Only aggregate numbers go in the README.
-*.txt
-*.json
-*.jsonl

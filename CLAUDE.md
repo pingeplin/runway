@@ -4,51 +4,34 @@ A Claude Code plugin marketplace. One plugin so far: `blueprint`.
 
 ## Repository structure
 
-- `plugins/blueprint/` — the plugin: skills, agents, references, and its own
-  eval suite under `evals/`.
+- `plugins/blueprint/` — the plugin: skills, agents, references.
 - `.claude-plugin/marketplace.json` — exposes the repo as a marketplace;
   `pluginRoot` is `./plugins`.
-- `evals/README.md` — index of every eval tier, what currently stands, and
-  the status of each benchmark report. Update it when a run lands.
-- `evals/blueprint-featurebench/` — the benchmark harness (FeatureBench
-  spec-ablation). Expensive tier: containers, podman, ~$21/task/arm.
-- `evals/transcript-analysis/` — measurements from local session
-  transcripts. Free; raw output is private and stays uncommitted.
 - `docs/designs/` — design docs and post-mortems.
 - `.blueprint/specs/` — specs written with the plugin's own `/spec`.
 
+There is no evaluation suite. The first one (FeatureBench benchmark,
+transcript analysis, skill triggering) was retired on 2026-09-18. Its code
+and reports are at git tag `archive/evals-v1`, and its lessons are in
+`docs/designs/2609.0005_eval_v1_post_mortem.md`. Read that before designing
+the next one.
+
 ## Validation
 
-No CI runs in this repo, so these are the checks — run them before opening a
-PR that touches the plugin.
+No CI runs in this repo. Before opening a PR that touches the plugin, run:
 
 ```bash
-# manifest (free, instant)
 claude plugin validate --strict plugins/blueprint
-
-# triggering tier — does the right skill fire? (~$3.60, ~6 min at -j 3)
-cd plugins/blueprint && claude plugin eval . --ablation none --no-publish -j 3
 ```
-
-An eval run spawns real agents and outlives a 120s command timeout — run it
-backgrounded, or it dies with exit 137.
-
-The benchmark tier is **not** a pre-PR check. It costs real money per task
-and needs podman (`applehv` + Rosetta); see
-`evals/blueprint-featurebench/README.md`.
 
 ## Rules
 
 - **Measurement claims are load-bearing.** Two published benchmark results
-  have already been retracted for oracle leaks. Any number in
-  `plugins/blueprint/README.md` names the report directory it came from. A
-  README shows only the latest data; a retraction or correction stays in the
-  source as an HTML comment rather than being edited away.
-- **Keep `results/` out of git** (it is `*`-ignored by design); durable runs
-  are archived under `evals/blueprint-featurebench/reports/<name>/` and
-  committed.
-- **Eval graders must fail when the thing they test breaks.** The trace
-  embeds a listing of every available skill, so matching a bare skill name
-  passes even when nothing fired. Match the invocation shape
-  (`"skill":"blueprint:spec"`), and mutation-check new graders. See
-  `plugins/blueprint/evals/README.md`.
+  were retracted for oracle leaks. Any number in `plugins/blueprint/README.md`
+  names the report it came from. A README shows only the latest data; a
+  retraction or correction stays in the source as an HTML comment rather
+  than being edited away.
+- **Eval graders must fail when the thing they test breaks.** Mutation-check
+  every new grader. For skill triggering: the trace embeds a listing of every
+  available skill, so matching a bare skill name passes even when nothing
+  fired. Match the invocation shape (`"skill":"blueprint:spec"`).
