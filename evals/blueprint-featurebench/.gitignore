@@ -1,4 +1,0 @@
-# Local configs hold API keys — only the .example files are tracked.
-config.toml
-fb_config.toml
-runs/
