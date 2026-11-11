@@ -82,7 +82,7 @@ fails, the code of interest should be short.
 **Checklist:** Does the test name clearly describe the scenario? Does the
 assertion message explain what went wrong?
 
-### 11. Deterministic → Predictive
+### 11. Predictive
 If the tests all pass, then the code under test should be suitable for
 production. Unit tests passing gives moderate confidence; unit tests
 FAILING should give great confidence something is broken.
@@ -98,10 +98,10 @@ closer to "done"?
 
 ## Priority for Spec-Derived Tests
 
-When generating tests from a spec, prioritize these properties
+For tests written against a spec, prioritize these properties
 (in order):
 
-1. **Behavioral** — Tests MUST verify observable behavior described in the doc
+1. **Behavioral** — Tests MUST verify observable behavior described in the spec
 2. **Structure-insensitive** — Tests MUST NOT depend on implementation choices
 3. **Readable** — Tests serve as executable specification; readability is
    critical for review
@@ -115,7 +115,7 @@ Properties that may be traded off for spec-derived tests:
 
 ## Applying Desiderata as Review Criteria
 
-After generating tests, score each one:
+Score each test:
 
 - ✅ = Property fully satisfied
 - ⚠️ = Property partially satisfied (document the trade-off)

@@ -75,8 +75,8 @@ checking, which creates much of the validation value of TDD."
 - Comments like `# generated from actual output`
 - Snapshot tests that were auto-updated without review
 
-**How to fix:** Derive expected values independently from the design
-doc specification. The expected value should come from YOUR understanding
+**How to fix:** Derive expected values independently from the spec.
+The expected value should come from YOUR understanding
 of the requirement, not from what the code currently produces. For complex
 structures, assert on key fields rather than full equality.
 
@@ -224,21 +224,9 @@ assert result.status == "active", (
 away. If a unit test takes more than that, question whether it needs
 real I/O.
 
-## Generator-Specific Anti-Patterns
+## Spec-Derived Test Anti-Patterns
 
-These apply specifically when generating new tests from specs.
-
-### Premature Test Concretization
-
-**The problem:** Converting the entire Test List into concrete test code
-before making any of them pass. Beck: "What happens when making the first
-test pass causes you to reconsider a decision that affects all those
-speculative tests? Rework."
-
-**For spec-derived tests:** This is less of a concern since we're
-establishing the behavioral contract. However, mark tests that depend on
-design decisions that feel uncertain — these should be reviewed first
-during implementation.
+These apply to tests written against a spec.
 
 ### Mixing Interface and Implementation Design
 
@@ -258,7 +246,7 @@ or HOW it does it?"
 **The problem:** The test suite is green but doesn't actually predict
 production success because important behaviors are untested.
 
-**How to detect from a spec:** After generating tests, map each
+**How to detect from a spec:** Map each
 spec requirement to at least one test. Requirements without
 corresponding tests are behavioral gaps.
 

@@ -27,6 +27,8 @@ If invoked **with a description** (e.g., `/blueprint "add coupon validation to o
 
 Blueprint **produces intent** and **referees the result**; it does not drive the implementation. You (or any coding agent — Claude Code, Codex, Cursor, a teammate) build against the spec however works best. Blueprint owns the two brackets: the contract going in (`/spec`) and the verdict coming out (`/verify`). The durable artifact is the test suite; the spec is the contract that produces it.
 
+**Output guideline:** keep your summaries, gate questions and replies 80% of the way to ASD-STE100 (Simplified Technical English).
+
 ## Detect task size first
 
 Before starting, assess scope and recommend the right entry point:
@@ -69,7 +71,7 @@ Hand the approved spec to a coding agent. This can be:
 - **This session** — Claude Code implements against the contract directly.
 - **Another agent** — paste/route the spec (and linked design) to Codex, Cursor, a teammate, etc. The spec is self-contained for this purpose.
 
-Blueprint does **not** prescribe how the implementation proceeds — order, cadence, and commit structure are the implementing agent's choice. Only the result is checked. There is no `/plan` step and no driven `/run`; the agent's own loop does the building.
+Blueprint does **not** prescribe how the implementation proceeds — order, cadence, and commit structure are the implementing agent's choice. Only the result is checked. The agent's own loop does the building.
 
 ### Step 3: /verify
 When the implementation comes back, invoke `/verify` with the approved spec path (and, if available, the git ref the implementation started from). It dispatches the `referee` subagent — fresh context, treating the code as unknown-provenance — which runs the test suite, builds the scenario-coverage matrix, performs the **anti-vacuity thought-mutation check**, scores tests against the Desiderata, and flags implementation-quality issues.

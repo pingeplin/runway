@@ -80,3 +80,4 @@ When the fix loop stops, return:
 - **Preserve the author's voice and structural choices.** Edit for precision and honesty, not style.
 - **Distinguish "missing argument" from "missing section."** A doc can have every section and still fail. A doc can be missing sections and still make a sharp argument. Judge the argument first.
 - **Templates are not the goal.** If a section doesn't carry argument and the doc would be sharper without it, recommend deleting it rather than padding.
+- **Output guideline.** Keep your report, and the text you add to the doc, 80% of the way to ASD-STE100 (Simplified Technical English).
