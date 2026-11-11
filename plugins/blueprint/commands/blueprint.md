@@ -6,7 +6,7 @@ description: Full workflow orchestrator. Chains [/design] → /spec → ⟦any c
 If invoked **without arguments**, display this workflow map and ask what the user wants to build:
 
 ```
-Blueprint Workflow (v4.1 — producer → referee)
+Blueprint Workflow (v4.2 — producer → referee)
 
 [/design] ──→ /spec ──→ ⟦ any coding agent implements ⟧ ──→ /verify ──→ /commit
     │           │                                              │

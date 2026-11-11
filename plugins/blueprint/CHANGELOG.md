@@ -4,7 +4,19 @@ All notable changes to the `blueprint` TDD plugin are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/);
 versions follow SemVer.
 
-## [Unreleased]
+## [4.2.0] — 2026-11-11
+
+**Prompts brought in line with the plugin as it is, and one output
+guideline for everything it writes.** A prompt audit removed text left
+from 2.x and 3.x and corrected instructions that the repository
+contradicted. Every skill, command and agent now asks for output that is
+80% of the way to ASD-STE100. The evaluation tiers are retired. The core
+pipeline `/design → /spec → ⟦any coding agent⟧ → /verify → /commit` is
+unchanged.
+
+**Possibly breaking** for a repository that still keeps specs in a
+root-level `specs/` directory: `spec-evaluator` no longer looks there.
+Not measured: no eval covers this release.
 
 ### Removed
 
