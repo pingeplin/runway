@@ -1,7 +1,7 @@
 ---
 name: review
-description: Review any project artifact for quality, completeness, and correctness — specs, plans, test files, or implementation code. ALWAYS use this skill when the user asks to review, check, audit, or assess quality of any code or document. Trigger on "review my spec", "check the tests", "audit the plan", "review my implementation", "check for anti-patterns", "score tests against desiderata", "is this testable?", "did I miss anything?", or any request to evaluate quality of specs, plans, tests, or code against best practices. Even casual requests like "take a look at this" or "what do you think of these tests?" should trigger this skill.
-argument-hint: '[path-to-file] [--type=spec|plan|test|impl]'
+description: Review any project artifact for quality, completeness, and correctness — specs, test files, or implementation code. ALWAYS use this skill when the user asks to review, check, audit, or assess quality of any code or document. Trigger on "review my spec", "check the tests", "review my implementation", "check for anti-patterns", "score tests against desiderata", "is this testable?", "did I miss anything?", or any request to evaluate quality of specs, tests, or code against best practices. Even casual requests like "take a look at this" or "what do you think of these tests?" should trigger this skill.
+argument-hint: '[path-to-file] [--type=spec|design|test|impl]'
 ---
 
 # Review
@@ -64,7 +64,7 @@ For large test suites or multi-file reviews: ask the user to scope to specific f
 
 ## Relationship to Other Skills
 
-`/review` serves two roles:
+`/review` serves three roles:
 
 **1. Shared methodology** — The review reference files (`references/review-*.md`) are the single source of truth for review logic. The independent evaluator subagents (`agents/design-evaluator.md`, `agents/spec-evaluator.md`, `agents/referee.md`) and this standalone skill all read the same files. Update a reference file once, all consumers benefit.
 
@@ -95,3 +95,4 @@ The main workflow chain:
 - For test reviews, the goal is behavioral tests that survive refactoring — this is the north star
 - For spec reviews, the goal is unambiguous, testable requirements — every requirement should map to a test
 - For implementation reviews, the goal is verifying that the spec contract is fulfilled
+- Output guideline — keep the review report 80% of the way to ASD-STE100 (Simplified Technical English)

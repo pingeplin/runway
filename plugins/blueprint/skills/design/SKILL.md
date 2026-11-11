@@ -109,9 +109,9 @@ When you do interview, ask 2-4 high-leverage questions, not a sprawling checklis
 
 If you're unsure which mode to use, default to **draft with assumptions** and offer the user the option to redirect.
 
-### Step 3 — Pick the doc type by audience and decision, not by duration
+### Step 3 — Pick the doc type by audience and decision
 
-Forget rules like "SDD if 1+ months." Pick by what the doc is *for*:
+Pick by what the doc is *for*:
 
 - **Decision-making doc (RFC, design doc, ADR)** — the doc is an argument for one approach over alternatives. Reviewers' job is to challenge the choice. Lead with the decision and the trade-off.
 - **Alignment doc (feature spec, design proposal)** — the decision is mostly settled; the doc helps a team build the same thing. Lead with the user-facing behavior and the technical contract.
@@ -205,6 +205,8 @@ Read these on demand, not eagerly:
 ## Style
 
 Don't write a design doc that reads like it was generated. Signs that you've slipped into that mode: every section starts with the section name as a sentence ("The goal of this design is to..."), checklists where prose belongs, hedging language ("This solution may potentially..."), excessive headers for short content. Write like an engineer making a case to a colleague who will push back. Confident, specific, and willing to name what's hard.
+
+**Output guideline:** keep the design doc and your replies 80% of the way to ASD-STE100 (Simplified Technical English).
 
 ## Next Step
 

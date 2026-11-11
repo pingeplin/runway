@@ -21,7 +21,7 @@ The spec is the keystone of blueprint's producer→referee pipeline:
        the contract                                  checks against it
 ```
 
-Because blueprint no longer drives the implementation step, the spec has to
+Blueprint does not drive the implementation step, so the spec has to
 carry everything the implementing agent needs and everything the referee
 will check: the interface contract inherited from the design, the
 acceptance scenarios, an explicit instruction to the agent, the test-quality
@@ -175,10 +175,10 @@ Use the template below. Omit sections that the Section Guide marks as skippable 
 
 > **Your job:** make every acceptance scenario above pass with tests that would *fail if the behavior were wrong*. A green suite that passes for the wrong reason does not satisfy this contract — `/verify` will hunt for vacuous tests by asking, of each behavior, "what is the smallest change that breaks this, and would any test catch it?"
 
-Implement however you work best — blueprint does not prescribe order, cadence, or commit structure. Only the result is checked. Write tests to the project's conventions and to these principles (the same ones `/verify` scores against — see `references/test-desiderata.md` and `references/anti-patterns.md`):
+Implement however you work best — blueprint does not prescribe order, cadence, or commit structure. Only the result is checked. Write tests to the project's conventions and to these principles (the same ones `/verify` scores against):
 
 - **Behavioral over structural** — assert observable output/effects, not internals; the suite must survive refactoring.
-- **Every test can fail** — no copy-pasted expected values, no asserting a constant, no tautologies (AP-2, AP-4).
+- **Every test can fail** — no copy-pasted expected values, no asserting a constant, no tautologies.
 - **Deterministic, isolated, readable** — inject clocks/randomness, no cross-test state, AAA structure with inline setup.
 
 ## Definition of Done
@@ -188,7 +188,7 @@ Done is when `/verify` passes against this spec:
 - [ ] Test suite is green.
 - [ ] Every acceptance scenario (S1…SN) maps to at least one test.
 - [ ] No covered-but-vacuous scenarios — each scenario's test fails under the smallest break of its behavior (thought-mutation).
-- [ ] Tests meet the Desiderata bar (Behavioral and Structure-insensitive first); no AP-1…AP-8 violations.
+- [ ] Tests meet the Desiderata bar (Behavioral and Structure-insensitive first); none of the test anti-patterns `/verify` checks (structure-sensitive assertions, assertion-free tests, non-determinism, copy-pasted expected values, excessive mocking, over-DRY setup, test-per-method layout, unclear names).
 - [ ] No implementation-quality blockers (stubs, dead code, stale docstrings).
 
 ## Trade-offs and Limitations
@@ -233,6 +233,7 @@ Done is when `/verify` passes against this spec:
 - **Write testable requirements** — every behavior in the Proposed Solution should appear as an Acceptance Scenario. Beck's principle: scenarios describe observable behaviors (Given/When/Then), not implementation steps
 - **No implementation code** — use pseudo-code or interface signatures, not copy-pasteable implementations. The spec says *what* and *what done looks like*; the implementing agent decides *how*
 - **The spec must be self-contained for handoff** — an agent that has only this file (plus the linked design) should be able to build and self-check. If a scenario can't be turned into a test that fails when the behavior breaks, it isn't done being specified
+- **Output guideline** — keep the spec and your replies 80% of the way to ASD-STE100 (Simplified Technical English)
 - **Status values:** `draft` -> `accepted` -> `implemented` -> `superseded`
 - If the user provides `$ARGUMENTS`, use it as the feature name and description context
 - If no `$ARGUMENTS` are provided, ask the user for a feature name and a brief description before generating

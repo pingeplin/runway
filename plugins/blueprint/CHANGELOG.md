@@ -27,8 +27,51 @@ versions follow SemVer.
   dropped. Methodology now lives where it is actually executable:
   `evals/blueprint-featurebench/README.md` for the benchmark tier and
   `plugins/blueprint/evals/README.md` for the triggering tier.
+- **Prompt text left from 2.x and 3.x.** A prompt audit removed sentences
+  that describe a workflow the reader never saw: the plan file (`/verify`,
+  `referee`), `/plan` and `/run` (`/blueprint`), the duration rule for doc
+  types (`/design`), and the "Premature Test Concretization" rule in
+  `references/anti-patterns.md`, which prescribed an order of work that
+  `/spec` says blueprint does not prescribe. The six quoted wordings of
+  "commit" in the `/commit` description are now one sentence; `ALWAYS`
+  stays.
+- **`spec-evaluator` fallback to a root-level `specs/` directory.** No other
+  skill or agent had it, and it skipped the 3.6 location. Specs live in
+  `.blueprint/specs/`.
+
+### Changed
+
+- **Output guideline in every skill, command and agent.** Each of the nine
+  prompt files now asks for output that is 80% of the way to ASD-STE100
+  (Simplified Technical English): design docs, specs, reports, commit
+  messages and replies. The two fix-loop evaluators apply it to their
+  report and to the text they add, not to the author's text. Not measured:
+  no eval covers its effect on design docs and specs.
+- **The `referee` agent no longer has the `Edit` tool.** Five files said the
+  referee never edits; the `tools:` line, kept from `run-evaluator`, still
+  allowed it. `Bash` stays, because the referee runs the test suite.
+- **The spec template no longer sends the implementing agent to plugin
+  files.** The pointer to `references/test-desiderata.md` and
+  `references/anti-patterns.md` and the `AP-n` codes went into every spec,
+  where an agent without the plugin cannot resolve them. The Definition of
+  Done now names the eight anti-patterns in words.
+- **`references/test-desiderata.md` and `references/anti-patterns.md` speak
+  to a reader who scores tests,** not only to a test generator. These files
+  are no longer byte-identical to 4.0.0.
 
 ### Fixed
+
+- **`/verify` named its rubric files with paths that did not resolve.** The
+  three bare `references/…` paths are now `${CLAUDE_PLUGIN_ROOT}/references/…`.
+  This matters most when `/verify` runs the checks inline.
+- **`/review` still offered a `plan` review.** The type and its reference
+  file were removed in 4.0.0. The argument hint now reads
+  `--type=spec|design|test|impl`, and the description no longer names plans.
+- **Stale facts in agent and reference text.** `spec-evaluator` no longer
+  says "TDD workflow"; `referee` no longer names the removed
+  `/test-conventions` skill; property 11 in `test-desiderata.md` is
+  "Predictive"; `/review` lists three roles, not two; expected values come
+  "from the spec", not "from the design doc specification".
 
 - **`/verify` produced nothing when run headless.** The skill dispatched the
   `referee` subagent and ended the turn. A subagent is background work, and

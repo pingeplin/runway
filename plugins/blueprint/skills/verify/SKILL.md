@@ -38,21 +38,22 @@ bias) to run five checks against the produced code + tests:
    the check that replaces TDD's fail-first guarantee with a
    procedure-independent one.
 4. **Test Desiderata** — scores tests against Kent Beck's properties
-   (`references/test-desiderata.md`) and the anti-patterns checklist
-   (`references/anti-patterns.md`), plus this repo's own conventions when a
+   (`${CLAUDE_PLUGIN_ROOT}/references/test-desiderata.md`) and the anti-patterns checklist
+   (`${CLAUDE_PLUGIN_ROOT}/references/anti-patterns.md`), plus this repo's own conventions when a
    `docs/testing/test-conventions.md` exists.
 5. **Implementation quality** — flags stale docstrings, restated-*what*
-   comments, dead code, stubs (`references/review-impl.md`).
+   comments, dead code, stubs
+   (`${CLAUDE_PLUGIN_ROOT}/references/review-impl.md`).
 
-The desiderata + anti-patterns references are the **same** files `/spec`
-bundles as generator guidance — the contract and the rubric are one list
-read from two ends.
+The test-quality principles `/spec` writes into every spec are drawn from
+the **same** desiderata + anti-patterns references — the contract and the
+rubric are one list read from two ends.
 
 ## Inputs
 
 - **Spec** — if `$ARGUMENTS` names a spec path, use it. Otherwise locate the
   most recently modified spec under `.blueprint/specs/` and confirm with the
-  user. `/verify` needs **no plan file** — none exists in this workflow.
+  user.
 - **Base git ref (optional)** — if the user provides the commit the
   implementation started from, pass it to the referee so it can scope its
   review to `git diff {base}..HEAD`. Without one, the referee reviews the
@@ -119,3 +120,5 @@ and it costs nothing.
   pass into a guarantee.
 - **The referee assesses; it never edits.** Fixes are the implementing
   agent's job (or a human's). Keep generation and judgment separate.
+- **Output guideline.** Keep the report and the punch list 80% of the way to
+  ASD-STE100 (Simplified Technical English).

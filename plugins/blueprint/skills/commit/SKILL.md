@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Write a concise, descriptive git commit message in Conventional Commits format. ALWAYS use this skill when the user wants to commit changes, write a commit message, prepare a commit, or says "commit this", "commit my changes", "commit it", "let's commit", "write a commit message", or "help me commit". Also trigger when the user has just finished implementing something and says they want to save or commit the result.
+description: Write a concise, descriptive git commit message in Conventional Commits format. ALWAYS use this skill when the user wants to commit changes or asks for a commit message, in any wording. Also trigger when the user has just finished implementing something and says they want to save or commit the result.
 argument-hint: [optional description of changes]
 ---
 
@@ -13,6 +13,9 @@ Do it inline, in this session — nothing is dispatched for this.
 conversation that built the change is full of micro-decisions, dead
 ends, and narration that do not belong in the commit log. Read what
 `git` shows you and describe that.
+
+**Output guideline:** keep the commit message 80% of the way to ASD-STE100
+(Simplified Technical English).
 
 ## Procedure
 
