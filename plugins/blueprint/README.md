@@ -18,10 +18,12 @@ Grounded in Kent Beck's Test Desiderata and Canon TDD. **Tests remain the durabl
 /design ──→ /spec ──→ ⟦ any coding agent implements ⟧ ──→ /verify ──→ /commit
    │          │                                              │
    │          │                                              └─ The referee. On code of unknown
-   │          │                                                 provenance: runs the suite, maps
-   │          │                                                 scenarios → tests, hunts vacuous
-   │          │                                                 tests (thought-mutation), scores
-   │          │                                                 desiderata, flags quality.
+   │          │                                                 provenance: runs the suite and the
+   │          │                                                 repo's own tools, maps scenarios
+   │          │                                                 (by title) → tests, hunts vacuous
+   │          │                                                 tests (mutation tool, else thought-
+   │          │                                                 mutation), scores desiderata,
+   │          │                                                 judges design.
    │          │
    │          └─ The contract. Interface + acceptance scenarios + an explicit
    │             instruction to the implementing agent + a Definition of Done
@@ -42,7 +44,7 @@ Earlier blueprint versions *drove* TDD with a choreographed executor — a depen
 
 - **Procedure is model-compensation that decays; intent is durable.** As models improve, turn-by-turn scaffolding becomes a cage. The design + spec + test-quality principles outlast any model generation.
 - **"Any coding agent" is a protocol problem.** Each agent has its own internal loop. Specifying *what to build and what done means* is portable; specifying *the order and cadence of how to build it* is not.
-- **The one thing TDD's procedure bought — non-vacuous tests — is re-secured without the procedure.** Instead of proving non-vacuity *by construction* (fail-first commits), the referee proves it *by inspection* (thought-mutation), which works no matter how the code was made.
+- **The one thing TDD's procedure bought — non-vacuous tests — is re-secured without the procedure.** Instead of proving non-vacuity *by construction* (fail-first commits), the referee proves it *by inspection* — the repo's mutation tool when it has one, thought-mutation otherwise — which works no matter how the code was made.
 
 The full argument lives in `docs/designs/` (the 4.0 design doc), written with blueprint's own `/design`.
 
@@ -68,7 +70,7 @@ A design doc is **not** documentation of a decision after the fact. It is the pe
 
 - **Purpose**: carry everything the implementing agent needs and everything the referee will check — the interface contract (inherited from the design), structured acceptance scenarios, an explicit instruction to the agent ("make every scenario pass with tests that would fail if the behavior were wrong"), the bundled test-quality principles, and a Definition of Done worded as exactly what `/verify` verifies.
 - **Audience**: the implementing coding agent (primary); the engineer sanity-checking what it will build (secondary); the referee.
-- **Form**: structured acceptance scenarios (Given/When/Then) plus the contract and done-criteria around them.
+- **Form**: structured acceptance scenarios (Given/When/Then), each named by a short unique title rather than a number, plus the contract and done-criteria around them. People and agents refer to a scenario by its title.
 - **When**: once the approach is settled — after `/design`, or directly when the design is obvious.
 - **Lifecycle**: consumed by the implementing agent and `/verify`. Behavior changes flow through **tests**, not by editing the spec; the spec is a snapshot of intent at build time.
 
@@ -86,7 +88,8 @@ Blueprint is built on the TDD insight that the tests *are* the spec — the exec
 v4.0 keeps this and hardens it. The risk in *any* "satisfy the spec, write good tests" handoff is a green suite that passes for the wrong reason — 100% line coverage, ~4% mutation score (Meta, FSE'25). A "good tests" guideline alone under-triggers; advisory principles describe a good test in isolation but don't certify that the *suite* would catch a break. So blueprint moves the principles from advice the generator may skip into the **referee's enforced rubric**, and adds a procedure-independent anti-vacuity check:
 
 - **Coverage is necessary, not sufficient.** `/verify` maps every scenario to a test *and* asks, per behavior, "what's the smallest change that breaks this, and would any test catch it?"
-- **The verdict is honest about its limits.** Until real mutation tooling backs the check, the referee's verdict is *advisory-strong*, not *proven* — and it says so.
+- **Determinism over judgment.** The referee runs the repo's own formatter, linter, type checker, dependency rules and mutation tool first, and keeps its judgment for design questions no tool can decide — against the repo's own design principles first, the plugin's second.
+- **The verdict is honest about its limits.** A vacuity verdict from the repo's mutation tool is *proven*; one from thought-mutation, where no tool exists, is *advisory-strong* — and the report says which.
 - **Behavior changes flow through tests**, not spec edits. The spec's job ends when the implementation is verified.
 
 If you want a spec-as-source-of-truth model (BDD with maintained acceptance docs), blueprint is the wrong tool — Cucumber, Concordion, or a hand-maintained acceptance suite fits better.
@@ -129,10 +132,11 @@ The full text is at archive/evals-v1:plugins/blueprint/README.md.
 |---|---|---|
 | `/design` | producer | Write or critique a design doc. Dispatches `design-evaluator`. |
 | `/spec` | producer | Write the agent-executable contract. Dispatches `spec-evaluator`. |
-| `/verify` | referee | Check produced code against the spec — coverage, anti-vacuity, desiderata, quality. Dispatches `referee`. |
+| `/verify` | referee | Check produced code against the spec — repo tools, coverage, anti-vacuity, desiderata, design. Dispatches `referee`. |
 | `/commit` | utility | Write a Conventional Commits message from the diff, inline. |
 | `/review` | utility | Standalone single-lens audit of any artifact (spec, design, test, code). |
 | `/blueprint` | orchestrator | Chains the pipeline with human approval gates. |
+| `/migrate-scenario-titles` | utility (temporary) | Replace numbered scenario IDs (`S1`, `S2`, …) in older specs, ledgers, design docs, tests and comments with scenario titles. Removed in the next major release. |
 
 ## What blueprint deliberately does *not* produce
 

@@ -32,7 +32,8 @@ This is a **fix loop**, not a report. For each finding, decide whether you can r
 Edit the spec file directly. Examples:
 
 - "Handles errors gracefully" → rewrite to specific behavior ("Returns 400 with field-level validation errors")
-- Missing edge case → add an acceptance scenario
+- Missing edge case → add an acceptance scenario, with a unique title that says the behavior
+- Scenario with no title, in a `draft` spec → give it a title. Scenario with a number (`S3`) → in a `draft` spec, give it a title and change each reference in the spec to the quoted title; in any other status, do not edit — tests and ledgers may use the number — and recommend `/migrate-scenario-titles` in the report
 - Requirement describes HOW, not WHAT → rewrite as behavioral
 - Ambiguous language ("should", "might", "ideally") → commit to specific behavior
 - Implementation-coupled scenario → rewrite as observable behavior
