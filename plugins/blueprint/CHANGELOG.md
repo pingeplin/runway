@@ -4,7 +4,7 @@ All notable changes to the `blueprint` TDD plugin are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/);
 versions follow SemVer.
 
-## [Unreleased]
+## [4.3.0] — 2026-11-24
 
 **Scenarios have titles, not numbers, and the referee trusts the repo's
 tools before its own judgment.** A spec with twenty scenarios gave each a
