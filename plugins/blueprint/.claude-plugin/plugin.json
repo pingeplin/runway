@@ -1,7 +1,7 @@
 {
   "name": "blueprint",
   "description": "Intent producer + invariant referee: design, spec, then hand implementation to any coding agent and verify the result. Generates design docs (RFC/ADR/etc.) that argue for an approach and agent-executable specs (interface contract, acceptance scenarios, Definition of Done), then referees the produced code against the spec — the repo's own deterministic tools first (formatter, linter, type checker, dependency and mutation tools), then scenario coverage by title, an anti-vacuity check (thought-mutation where no mutation tool exists), Test Desiderata scoring, and design judgment against the repo's own principles, in a fresh-context evaluator. Tests remain the durable behavioral contract. Grounded in Kent Beck's Test Desiderata and Canon TDD principles.",
-  "version": "4.2.0",
+  "version": "4.3.0",
   "author": {
     "name": "@pingeplin"
   }
