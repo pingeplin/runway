@@ -157,19 +157,17 @@ Use the template below. Omit sections that the Section Guide marks as skippable 
 
 {Concrete behavioral scenarios that define what "done" looks like. Each scenario MUST be verifiable without knowledge of internals. These are the contract the implementing agent builds against and the baseline `/verify` checks coverage and non-vacuity against — use the structured format below.}
 
-{Each scenario gets a sequential ID (S1, S2, ...) so `/verify` can reference them in its coverage matrix.}
+{Each scenario starts with a title. Humans, the implementing agent and `/verify` refer to a scenario by its title, never by a number. See "Scenario titles" below.}
 
 ### Happy Path
-- **S1:** Given {precondition}, when {action}, then {expected outcome}
-- **S2:** Given {precondition}, when {action}, then {expected outcome}
+- **{Scenario title}:** Given {precondition}, when {action}, then {expected outcome}
+- **{Scenario title}:** Given {precondition}, when {action}, then {expected outcome}
 
 ### Edge Cases
-- **S3:** Given {boundary condition}, when {action}, then {expected outcome}
-- **S4:** Given {boundary condition}, when {action}, then {expected outcome}
+- **{Scenario title}:** Given {boundary condition}, when {action}, then {expected outcome}
 
 ### Error Scenarios
-- **S5:** Given {invalid state}, when {action}, then {expected error behavior}
-- **S6:** Given {invalid state}, when {action}, then {expected error behavior}
+- **{Scenario title}:** Given {invalid state}, when {action}, then {expected error behavior}
 
 ## For the Implementing Agent
 
@@ -180,16 +178,19 @@ Implement however you work best — blueprint does not prescribe order, cadence,
 - **Behavioral over structural** — assert observable output/effects, not internals; the suite must survive refactoring.
 - **Every test can fail** — no copy-pasted expected values, no asserting a constant, no tautologies.
 - **Deterministic, isolated, readable** — inject clocks/randomness, no cross-test state, AAA structure with inline setup.
+- **Name each test after its scenario title** — put the title, or a direct slug of it, in the test name or `describe`/`it` text. In comments, punch lists and replies, refer to a scenario by its title.
+- **Pass the repo's own checks** — run its formatter, linter, type checker and dependency rules before you hand back. `/verify` runs them too.
 
 ## Definition of Done
 
 Done is when `/verify` passes against this spec:
 
 - [ ] Test suite is green.
-- [ ] Every acceptance scenario (S1…SN) maps to at least one test.
-- [ ] No covered-but-vacuous scenarios — each scenario's test fails under the smallest break of its behavior (thought-mutation).
+- [ ] The repo's own checks pass: formatter, linter, type checker and dependency rules, where the repo has them.
+- [ ] Every acceptance scenario, by title, maps to at least one test.
+- [ ] No covered-but-vacuous scenarios — each scenario's test fails under the smallest break of its behavior (the repo's mutation tool when it has one, otherwise thought-mutation).
 - [ ] Tests meet the Desiderata bar (Behavioral and Structure-insensitive first); none of the test anti-patterns `/verify` checks (structure-sensitive assertions, assertion-free tests, non-determinism, copy-pasted expected values, excessive mocking, over-DRY setup, test-per-method layout, unclear names).
-- [ ] No implementation-quality blockers (stubs, dead code, stale docstrings).
+- [ ] No design blockers against the repo's own design principles, then the plugin's (stale docstrings, misplaced responsibility, a broken interface contract).
 
 ## Trade-offs and Limitations
 
@@ -207,6 +208,17 @@ Done is when `/verify` passes against this spec:
 - {Link or reference 2}
 
 ```
+
+## Scenario titles
+
+A scenario title is the name that people and agents use for the scenario in reviews, punch lists, test names and comments. A number such as "S7" tells the reader nothing, so do not number scenarios.
+
+- **Unique** in the spec. Two scenarios never share a title.
+- **Says the behavior and the condition**, in 3–8 plain words: "Expired coupon is rejected", "Empty cart shows zero total". A reader who has not opened the spec can guess what it checks.
+- **Plain characters.** Use only words, spaces, hyphens and apostrophes. A colon breaks the `**Title:**` label; a quote, comma or backtick breaks quoting and test names.
+- **Stable.** Do not rename a title after handoff, because tests and punch lists use it. If the behavior changes, write a new scenario.
+- **Usable in a test name.** The implementing agent puts the title, or a direct slug of it, in the test name or `describe`/`it` text, so `grep` finds the test from the title.
+- **To refer to another scenario**, quote its title: *the "Expired coupon is rejected" case*.
 
 ## Section Guide
 
@@ -251,7 +263,7 @@ When the implementation comes back, referee it:
 /verify .blueprint/specs/{yymm.xxxx}_{feature_name}.md
 ```
 
-`/verify` checks the result against this spec — coverage, non-vacuity (thought-mutation), desiderata, and implementation quality — and recommends `/commit` or returns a punch list.
+`/verify` checks the result against this spec — the repo's own tools, coverage, non-vacuity (mutation tool, else thought-mutation), desiderata, and design — and recommends `/commit` or returns a punch list.
 
 The full workflow chain:
 ```

@@ -11,9 +11,11 @@ Blueprint Workflow (v4.2 — producer → referee)
 [/design] ──→ /spec ──→ ⟦ any coding agent implements ⟧ ──→ /verify ──→ /commit
     │           │                                              │
     │           │                                              └── referee subagent (GATE, fresh context):
-    │           │                                                    test suite · scenario coverage ·
-    │           │                                                    anti-vacuity (thought-mutation) ·
-    │           │                                                    desiderata · impl-quality flags
+    │           │                                                    test suite · repo tools (lint, types,
+    │           │                                                    deps) · scenario coverage ·
+    │           │                                                    anti-vacuity (mutation tool, else
+    │           │                                                    thought-mutation) · desiderata ·
+    │           │                                                    design judgment
     │           │
     │           └── spec-evaluator subagent (GATE)
     └── design-evaluator subagent (GATE — only when /design runs)
@@ -74,8 +76,8 @@ Hand the approved spec to a coding agent. This can be:
 Blueprint does **not** prescribe how the implementation proceeds — order, cadence, and commit structure are the implementing agent's choice. Only the result is checked. The agent's own loop does the building.
 
 ### Step 3: /verify
-When the implementation comes back, invoke `/verify` with the approved spec path (and, if available, the git ref the implementation started from). It dispatches the `referee` subagent — fresh context, treating the code as unknown-provenance — which runs the test suite, builds the scenario-coverage matrix, performs the **anti-vacuity thought-mutation check**, scores tests against the Desiderata, and flags implementation-quality issues.
-**GATE — Present the referee's verdict.** If it meets the spec's Definition of Done, proceed to Step 4. If not, surface the punch list (uncovered scenarios, covered-but-vacuous scenarios with the surviving mutation, quality blockers) and send it back to the implementing agent for another pass, then re-`/verify`.
+When the implementation comes back, invoke `/verify` with the approved spec path (and, if available, the git ref the implementation started from). It dispatches the `referee` subagent — fresh context, treating the code as unknown-provenance — which runs the test suite and the repo's own deterministic tools (formatter, linter, type checker, dependency rules), builds the scenario-coverage matrix by scenario title, performs the **anti-vacuity check** (the repo's mutation tool first, thought-mutation where no tool answers), scores tests against the repo's test conventions and the Desiderata, and flags design issues against the repo's own design principles.
+**GATE — Present the referee's verdict.** If it meets the spec's Definition of Done, proceed to Step 4. If not, surface the punch list (failing tool checks, uncovered scenarios, covered-but-vacuous scenarios with the surviving mutation, design blockers — each scenario named by its title) and send it back to the implementing agent for another pass, then re-`/verify`.
 
 ### Step 4: /commit
 Invoke `/commit`, which drafts the message inline from `git diff` — written from the diff, not from the implementation conversation.

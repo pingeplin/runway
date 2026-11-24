@@ -4,6 +4,65 @@ All notable changes to the `blueprint` TDD plugin are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/);
 versions follow SemVer.
 
+## [Unreleased]
+
+**Scenarios have titles, not numbers, and the referee trusts the repo's
+tools before its own judgment.** A spec with twenty scenarios gave each a
+number such as `S7`. A person or an agent that read "S7 is vacuous" had to
+open the spec to know what failed. A scenario now starts with a short,
+unique title, and every report, punch list, test name and comment uses that
+title. The referee now runs the repo's own formatter, linter, type checker,
+dependency rules, coverage and mutation tools first. Its prompt keeps only
+the design questions that no tool can decide, and it judges them against
+the repo's own design principles before the plugin's.
+
+**Possibly breaking** for specs written before this release: they still
+number their scenarios. `/verify` and `/review` still read them and
+recommend `/migrate-scenario-titles`. Not measured: no eval covers this
+release.
+
+### Added
+
+- **`/migrate-scenario-titles`, a temporary skill.** It replaces `S1`,
+  `S2`, … in specs, ledger siblings, design docs, tests and comments with
+  titles, one spec at a time. It leaves a hit it cannot attribute to one
+  spec and reports it. Remove it in the next major release, together with
+  its mentions in `agents/referee.md` and `references/review-impl.md`.
+- **Referee step "The repo's deterministic checks".** It finds the tools
+  in the package manifest, task runner, pre-commit config and CI, and runs
+  them in check mode, scoped to the change. It installs nothing. A category
+  with no tool is reported as `not checked`, not replaced by judgment.
+
+### Changed
+
+- **Spec template.** Scenarios are `- **{Title}:** Given … when … then …`.
+  A new section, "Scenario titles", gives the rules: unique, 3–8 plain
+  words, says the behavior and the condition, stable after handoff, used in
+  the test name. The implementing agent is told to name tests after the
+  title and to pass the repo's own checks. The Definition of Done adds the
+  repo's checks and puts the repo's design principles first.
+- **Anti-vacuity.** The repo's mutation tool runs first, and its result is
+  *proven*. Thought-mutation runs only where no tool answers, and its
+  result stays *advisory-strong*. The report says which source decided each
+  scenario. The referee compares `git status` before and after a mutation
+  run, because some tools edit source files in place.
+- **Test Desiderata and design review.** The repo's test conventions and
+  design principles (`CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, ADRs,
+  design docs) come first; the plugin's references fill the gaps. Before
+  this release the plugin's references were authoritative.
+- **`references/review-impl.md`** splits into deterministic checks (the
+  repo's tools) and design judgment. Lint-type flags (unused imports, dead
+  code, bare `except`, commented-out code) move to the tools. Stale
+  docstrings, restated-*what* comments, task-referential rot, interface
+  contract and error semantics stay as judgment. `/review --type=impl`
+  reads the same file.
+- **Spec review** (`references/review-spec.md`, `spec-evaluator`) flags a
+  scenario with no title, a duplicate title, or a number used as a name,
+  and the evaluator fixes it.
+- **The referee runs six checks**, not five: tests, the repo's tools,
+  coverage, anti-vacuity, Test Desiderata, design judgment. `/verify`, the
+  `/blueprint` map, the README and `plugin.json` say so.
+
 ## [4.2.0] — 2026-11-11
 
 **Prompts brought in line with the plugin as it is, and one output

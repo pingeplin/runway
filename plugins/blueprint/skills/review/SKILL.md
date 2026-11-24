@@ -56,7 +56,7 @@ All review modes use this wrapper — mode-specific content goes in "Findings":
 
 ## Handling Partial Context
 
-The review adapts to available context. Test code only: assess Readable, Isolated, Deterministic, Specific, naming, mock patterns — flag where production code is needed for Behavioral/Structure-insensitive. Test + production code: full desiderata review. Test + spec: ideal — verify behavioral coverage and gaps. Impl only: code quality flags (stubs, error handling, dead code). Impl + spec: full scenario cross-check.
+The review adapts to available context. Test code only: assess Readable, Isolated, Deterministic, Specific, naming, mock patterns — flag where production code is needed for Behavioral/Structure-insensitive. Test + production code: full desiderata review. Test + spec: ideal — verify behavioral coverage and gaps. Impl only: the repo's deterministic tools (formatter, linter, type checker, dependency rules), then design judgment against the repo's own principles. Impl + spec: full scenario cross-check, by scenario title.
 
 ## Handling Large Files
 
@@ -78,7 +78,7 @@ implement -->  /review --type=test   (audit the produced tests)
 implement -->  /review --type=impl   (check implementation coverage)
 ```
 
-For the full post-implementation gate — coverage, anti-vacuity, desiderata, and quality together — use `/verify`, not `/review`. Standalone `/review` is a lighter, single-lens, read-only audit you can run any time.
+For the full post-implementation gate — repo tools, coverage, anti-vacuity, desiderata, and design together — use `/verify`, not `/review`. Standalone `/review` is a lighter, single-lens, read-only audit you can run any time.
 
 The main workflow chain:
 ```

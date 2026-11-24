@@ -60,6 +60,7 @@ If the spec includes Acceptance Scenarios, audit them:
    - Timeout and failure modes
    - Unicode / special characters (where applicable)
 4. **Redundant scenarios** — Flag scenarios that test the same behavior with trivially different inputs.
+5. **Scenario titles** — Each scenario starts with a bold title. Flag a scenario that has no title, a title that two scenarios share, a title that does not say the behavior and its condition, and a number used as a name or a reference (`S7`, "see S3"). The fix is a short, unique title that a reader can understand without the spec open; refer to other scenarios by their quoted titles.
 
 If no Acceptance Scenarios section exists, flag this as a critical gap.
 
